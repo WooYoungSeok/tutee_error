@@ -1,0 +1,106 @@
+{
+  "created_at_utc": "2026-09-23T13:18:59Z",
+  "experiment": "descriptive_verifier_v1",
+  "seed": 42,
+  "config": {
+    "path": "config/descriptive_verifier_v1.json",
+    "sha256": "ffa49fcffd4969d813250404068e25f482b14566c77332613a0c950246638df0"
+  },
+  "inputs": {
+    "pool": {
+      "path": "../data/full/pool.jsonl",
+      "sha256": "5d7c784aba6487bd1b77d9cce7079573ee2ec4887d1838e1bcf6896b46bb8bb7"
+    },
+    "descriptions": {
+      "path": "../outputs/runs/v4__gpt-5.6-luna__full/parsed.jsonl",
+      "sha256": "3cb03e02e6f9725379edcc11f695328a01a555be1a13106dc38208054219071e"
+    },
+    "description_run_meta": {
+      "path": "../outputs/runs/v4__gpt-5.6-luna__full/run_meta.json",
+      "sha256": "ce668d1db683f4ea5828e1d9951ebc5e590f2f2673f50bdff1b481dc2de4d49d"
+    },
+    "prompt_dev_manifest": {
+      "path": "../data/manifest/sample_manifest.jsonl",
+      "sha256": "4a1e56b2a5cf535842d273ae39f78bdff488575a6cf65fab6662c2bf32a7d3fd"
+    }
+  },
+  "description_run": {
+    "run_id": "v4__gpt-5.6-luna__full",
+    "model": "gpt-5.6-luna",
+    "prompt_version": "v4",
+    "prompt_sha256": "28ef5467bbbac5cec81290d4f0bd9d7cf83d2efe80efe1f858600916cb4f0a7c",
+    "generation": {
+      "model": "gpt-5.6-luna",
+      "max_output_tokens": 4000,
+      "temperature": null,
+      "reasoning_effort": null,
+      "response_format_json": true
+    }
+  },
+  "prompt": {
+    "system_sha256": "8873b8bcb1a596d72028d9444a4cad0748d37ff6bf5f36bfbac021ce857be16a",
+    "user_sha256": "e1fb1b93fbe7bf8b3d4a808ca8fa97b603b818928d70cbbc9543b23b79f1d60f"
+  },
+  "tokenizer": "Qwen/Qwen2.5-Math-7B-Instruct",
+  "max_seq_length": 4096,
+  "prompt_dev_sample_ids": [
+    "eic:0a162aced962b612",
+    "eic:10640910a93765fb",
+    "eic:1822ba27069405ba",
+    "eic:2af2c3486527eec9",
+    "eic:42079892bb47dd6c",
+    "eic:96a16a341bbe0856",
+    "eic:b99acb77b6f3f1cc",
+    "eic:d2a9f749ca02b9a6",
+    "eic:f74af932f863bb52",
+    "eic:fa4e846ad3902c4d",
+    "mathclean:021b0bf3e810c899",
+    "mathclean:49d0c9b1827cc310",
+    "mathclean:4c014f9227789706",
+    "mathclean:4f4f06b721d19046",
+    "mathclean:58c90e44dcbf9643",
+    "mathclean:6c8605b2eb64ed2b",
+    "mathclean:761b74e99ae62496",
+    "mathclean:8351714360a1cde0",
+    "mathclean:9ac6eb03c135487d",
+    "mathclean:ac388a1e13e59c4a",
+    "mathedu:60261eb873f04768",
+    "mathedu:68ba79b4b13409c8",
+    "mathedu:6c489513c81f01f3",
+    "mathedu:948a148769331105",
+    "mathedu:94d996d1af0f0a3f",
+    "mathedu:a471cc9af71232d7",
+    "mathedu:b5f53761609669b9",
+    "mathedu:ba54115698d61b80",
+    "mathedu:df84fe6066640d86",
+    "mathedu:e6503b2efa8c04e9",
+    "stepwise:231586f8d27166cb",
+    "stepwise:399820e1cec11c17",
+    "stepwise:3e87bc684837296d",
+    "stepwise:8def9bf33916f98a",
+    "stepwise:a4cfc51315961b61",
+    "stepwise:aa3c4787242df63d",
+    "stepwise:add543d19b488b59",
+    "stepwise:b5399468ec42c098",
+    "stepwise:d2de3b3537c6525b",
+    "stepwise:eae97714199818c2"
+  ],
+  "cases": 3986,
+  "eligible_cases": 3702,
+  "question_groups": 3114,
+  "splits": {
+    "train": {
+      "pair_records": 5938,
+      "anchors": 2969
+    },
+    "validation": {
+      "pair_records": 722,
+      "anchors": 361
+    },
+    "test": {
+      "pair_records": 744,
+      "anchors": 372
+    }
+  },
+  "checks_passed": true
+}

@@ -1,0 +1,10 @@
+# Training / evaluation environment (GPU server). The reward_model environment of
+# llm_tutee_tutor should already satisfy this. Scripts support transformers 4.41+ and 5.x.
+torch>=2.1
+transformers>=4.41
+datasets>=2.18
+accelerate>=0.30
+deepspeed>=0.14
+numpy
+wandb
+pytest

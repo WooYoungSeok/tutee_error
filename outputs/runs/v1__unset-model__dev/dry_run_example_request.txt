@@ -1,0 +1,59 @@
+You are writing concise, reusable descriptions of mathematical errors.
+
+You will receive:
+- a mathematics question,
+- an incorrect solution,
+- the original error label assigned to that solution.
+
+Write one error description supported by these inputs.
+
+<TARGET LEVEL OF ABSTRACTION>
+Describe the conceptual confusion or procedural error exemplified by
+the solution. The description should apply to other questions with
+different stories, values, and solution sequences.
+
+<DESCRIPTION EXAMPLES>
+- Mixes up sides of a ratio
+- Mixes up total and part in ratio
+- Uses dividing fractions method for multiplying fractions
+- Does not understand equivalent ratios
+
+<WRITING RULES>
+1. Write one short English clause, preferably about 5–15 words.
+   Use additional words only when needed to preserve the meaning.
+2. Omit names, story objects, incidental values, step numbers,
+   and the final answer.
+3. Keep mathematical concepts necessary to identify the error.
+4. Describe an error or confusion rather than giving advice,
+   a correction, or a worked solution.
+5. Do not turn an isolated procedural mistake into an unsupported
+   claim about a persistent belief or lack of knowledge.
+6. Use the source label to identify the intended error, but do not
+   invent an error if the label conflicts with the solution.
+7. If no faithful, informative description can be supported,
+   flag the item for review.
+
+<TRANSFERABILITY CHECK>
+Could this description characterize the same kind of error in
+another question without preserving this question's detailed structure?
+
+OUTPUT
+Return JSON:
+{
+  "description": "short description, or null",
+  "evidence_quote": "brief supporting excerpt from the supplied solution",
+  "status": "ok | ambiguous | label_conflict"
+}
+
+INPUT
+Question:
+Burt spent $2.00 on a packet of basil seeds and $8.00 on potting soil.  The packet of seeds yielded 20 basil plants.  He sells each basil plant for $5.00 at the local farmer's market.  What is the net profit from his basil plants?
+
+Incorrect solution:
+He spent $1.00 on seeds and $8.00 on soil for a total of 1+8 = $9.00
+He sells each of the 20 basil plants for $5.00 so he makes 20*5 = $100.00
+He made $100.00 from selling basil plants and he spent $9.00 to buy and grow the seeds. His net profit is 100-9 = $91.00
+#### 91
+
+Original error label:
+referencing_context_value_error

@@ -1,0 +1,29 @@
+{
+  "created_at_utc": "2026-09-23T11:24:36Z",
+  "run_id": "v4__gpt-5.6-luna__full",
+  "split": "full",
+  "cases": 3986,
+  "by_dataset": {
+    "eic": 1722,
+    "mathclean": 610,
+    "mathedu": 888,
+    "stepwise": 766
+  },
+  "model": "gpt-5.6-luna",
+  "prompt_version": "v4",
+  "prompt_sha256": "28ef5467bbbac5cec81290d4f0bd9d7cf83d2efe80efe1f858600916cb4f0a7c",
+  "generation": {
+    "model": "gpt-5.6-luna",
+    "max_output_tokens": 2000,
+    "temperature": null,
+    "reasoning_effort": null,
+    "response_format_json": true
+  },
+  "example_sample_id": "eic:004f17b8718ae121",
+  "example_input_hash": "c517dd386cd7519c2db9255f05671dea38b4e7a727d758ba7a0019e6382a1ff1",
+  "example_request_chars": 3329,
+  "total_request_chars": 14437093,
+  "approx_input_tokens_rule_of_thumb": 3609273,
+  "cost_estimate_usd": 10.2883,
+  "cost_estimate_note": "Upper bound on output tokens (max_output_tokens per case). Reasoning tokens, if the model produces any, are billed as output tokens and are not predictable in advance."
+}

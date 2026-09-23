@@ -1,0 +1,10 @@
+.env
+__pycache__/
+*.pyc
+.venv/
+.pytest_cache/
+data/raw/
+outputs/runs/*/raw.jsonl
+verifier_sft/checkpoints/
+wandb/
+.claude/settings.local.json

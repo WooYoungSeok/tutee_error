@@ -1,0 +1,387 @@
+{
+  "created_at_utc": "2026-09-23T12:04:06Z",
+  "run_id": "v4__gpt-5.6-luna__full",
+  "label_field": "generated_error_description",
+  "model": "gpt-5.6-luna",
+  "prompt_file": "prompts/error_description_v4.txt",
+  "prompt_version": "v4",
+  "prompt_sha256": "28ef5467bbbac5cec81290d4f0bd9d7cf83d2efe80efe1f858600916cb4f0a7c",
+  "generation": {
+    "model": "gpt-5.6-luna",
+    "max_output_tokens": 4000,
+    "temperature": null,
+    "reasoning_effort": null,
+    "response_format_json": true
+  },
+  "unique_cases": 3986,
+  "cases_without_result": 0,
+  "model_status_by_dataset": {
+    "eic": {
+      "label_conflict": 38,
+      "ok": 1684
+    },
+    "mathclean": {
+      "ambiguous": 5,
+      "label_conflict": 132,
+      "ok": 473
+    },
+    "mathedu": {
+      "ambiguous": 1,
+      "label_conflict": 21,
+      "ok": 866
+    },
+    "stepwise": {
+      "label_conflict": 77,
+      "ok": 689
+    }
+  },
+  "rows_by_dataset": {
+    "eic": {
+      "labeled:label_conflict": 38,
+      "labeled:ok": 1760,
+      "not_labeled:label_outside_canonical_set:arithmetic_error": 5,
+      "not_labeled:label_outside_canonical_set:calculation_error_fixed_addition": 1,
+      "not_labeled:label_outside_canonical_set:calculation_simple_arithmetic_error": 1,
+      "not_labeled:label_outside_canonical_set:calculational_error": 1,
+      "not_labeled:label_outside_canonical_set:confusing_numbers_error": 1,
+      "not_labeled:label_outside_canonical_set:confusing_ratio_error": 1,
+      "not_labeled:label_outside_canonical_set:exponent_error": 1,
+      "not_labeled:label_outside_canonical_set:logical_error": 1,
+      "not_labeled:label_outside_canonical_set:operation_error": 1,
+      "not_labeled:label_outside_canonical_set:referencing_value": 1,
+      "not_labeled:label_outside_canonical_set:rounding_error": 1,
+      "not_labeled:label_outside_canonical_set:simplification_error": 1,
+      "not_labeled:label_outside_canonical_set:specific_detail_error": 1,
+      "not_labeled:label_outside_canonical_set:wrong_transformation": 1,
+      "not_labeled:non_error_type_directory:wrong_step_calculation_error": 800
+    },
+    "mathclean": {
+      "labeled:ambiguous": 5,
+      "labeled:label_conflict": 132,
+      "labeled:ok": 473
+    },
+    "mathedu": {
+      "labeled:ambiguous": 1,
+      "labeled:label_conflict": 21,
+      "labeled:ok": 868,
+      "not_labeled:missing_field:incorrect_solution": 82,
+      "not_labeled:multiple_annotated_errors:2": 23,
+      "not_labeled:multiple_annotated_errors:3": 3,
+      "not_labeled:not_an_incorrect_answer:correct": 3050
+    },
+    "stepwise": {
+      "labeled:label_conflict": 92,
+      "labeled:ok": 823,
+      "not_labeled:non_error_label": 87
+    }
+  },
+  "files": {
+    "eic/data/generated_cases_GSM8K/adding_irrelevant_information/adding_irrelevant_information_100/generated_cases_clean.jsonl": {
+      "labeled:ok": 100
+    },
+    "eic/data/generated_cases_GSM8K/calculation_error/calculation_error_100/generated_cases_clean.jsonl": {
+      "labeled:label_conflict": 1,
+      "labeled:ok": 99
+    },
+    "eic/data/generated_cases_GSM8K/confusing_formula_error/confusing_formula_error_100/generated_cases_clean.jsonl": {
+      "labeled:label_conflict": 1,
+      "labeled:ok": 99
+    },
+    "eic/data/generated_cases_GSM8K/counting_error/counting_error_100/generated_cases_clean.jsonl": {
+      "labeled:ok": 100
+    },
+    "eic/data/generated_cases_GSM8K/missing_step/missing_step_100/generated_cases_clean.jsonl": {
+      "labeled:label_conflict": 7,
+      "labeled:ok": 93
+    },
+    "eic/data/generated_cases_GSM8K/operator_error/operator_error_100/generated_cases_clean.jsonl": {
+      "labeled:label_conflict": 1,
+      "labeled:ok": 99
+    },
+    "eic/data/generated_cases_GSM8K/referencing_context_value_error/referencing_context_value_error_100/generated_cases_clean.jsonl": {
+      "labeled:label_conflict": 1,
+      "labeled:ok": 98,
+      "not_labeled:label_outside_canonical_set:referencing_value": 1
+    },
+    "eic/data/generated_cases_GSM8K/referencing_previous_step_value_error/referencing_previous_step_value_error_100/generated_cases_clean.jsonl": {
+      "labeled:label_conflict": 1,
+      "labeled:ok": 98,
+      "not_labeled:label_outside_canonical_set:calculation_error_fixed_addition": 1
+    },
+    "eic/data/generated_cases_GSM8K/unit_conversion_error/unit_conversion_error_100/generated_cases_clean.jsonl": {
+      "labeled:label_conflict": 1,
+      "labeled:ok": 99
+    },
+    "eic/data/generated_cases_GSM8K/wrong_step_calculation_error/wrong_step_calculation_error_1_50/generated_cases_clean.jsonl": {
+      "not_labeled:non_error_type_directory:wrong_step_calculation_error": 50
+    },
+    "eic/data/generated_cases_GSM8K/wrong_step_calculation_error/wrong_step_calculation_error_2_50/generated_cases_clean.jsonl": {
+      "not_labeled:non_error_type_directory:wrong_step_calculation_error": 50
+    },
+    "eic/data/generated_cases_GSM8K/wrong_step_calculation_error/wrong_step_calculation_error_3_50/generated_cases_clean.jsonl": {
+      "not_labeled:non_error_type_directory:wrong_step_calculation_error": 50
+    },
+    "eic/data/generated_cases_GSM8K/wrong_step_calculation_error/wrong_step_calculation_error_4_50/generated_cases_clean.jsonl": {
+      "not_labeled:non_error_type_directory:wrong_step_calculation_error": 50
+    },
+    "eic/data/generated_cases_GSM8K/wrong_step_calculation_error/wrong_step_calculation_error_5_50/generated_cases_clean.jsonl": {
+      "not_labeled:non_error_type_directory:wrong_step_calculation_error": 50
+    },
+    "eic/data/generated_cases_GSM8K/wrong_step_calculation_error/wrong_step_calculation_error_6_50/generated_cases_clean.jsonl": {
+      "not_labeled:non_error_type_directory:wrong_step_calculation_error": 50
+    },
+    "eic/data/generated_cases_GSM8K/wrong_step_calculation_error/wrong_step_calculation_error_7_50/generated_cases_clean.jsonl": {
+      "not_labeled:non_error_type_directory:wrong_step_calculation_error": 50
+    },
+    "eic/data/generated_cases_GSM8K/wrong_step_calculation_error/wrong_step_calculation_error_8_50/generated_cases_clean.jsonl": {
+      "not_labeled:non_error_type_directory:wrong_step_calculation_error": 50
+    },
+    "eic/data/generated_cases_MathQA/adding_irrelevant_information/adding_irrelevant_information_100/generated_cases_clean.jsonl": {
+      "labeled:ok": 100
+    },
+    "eic/data/generated_cases_MathQA/calculation_error/calculation_error_100/generated_cases_clean.jsonl": {
+      "labeled:label_conflict": 2,
+      "labeled:ok": 98
+    },
+    "eic/data/generated_cases_MathQA/confusing_formula_error/confusing_formula_error_100/generated_cases_clean.jsonl": {
+      "labeled:ok": 107,
+      "not_labeled:label_outside_canonical_set:confusing_numbers_error": 1,
+      "not_labeled:label_outside_canonical_set:confusing_ratio_error": 1,
+      "not_labeled:label_outside_canonical_set:operation_error": 1
+    },
+    "eic/data/generated_cases_MathQA/counting_error/counting_error_100/generated_cases_clean.jsonl": {
+      "labeled:ok": 97,
+      "not_labeled:label_outside_canonical_set:arithmetic_error": 2,
+      "not_labeled:label_outside_canonical_set:rounding_error": 1
+    },
+    "eic/data/generated_cases_MathQA/missing_step/missing_step_100/generated_cases_clean.jsonl": {
+      "labeled:label_conflict": 11,
+      "labeled:ok": 90,
+      "not_labeled:label_outside_canonical_set:wrong_transformation": 1
+    },
+    "eic/data/generated_cases_MathQA/operator_error/operator_error_100/generated_cases_clean.jsonl": {
+      "labeled:ok": 98,
+      "not_labeled:label_outside_canonical_set:exponent_error": 1,
+      "not_labeled:label_outside_canonical_set:logical_error": 1
+    },
+    "eic/data/generated_cases_MathQA/referencing_context_value_error/referencing_context_value_error_100/generated_cases_clean.jsonl": {
+      "labeled:ok": 104
+    },
+    "eic/data/generated_cases_MathQA/referencing_previous_step_value_error/referencing_previous_step_value_error_100/generated_cases_clean.jsonl": {
+      "labeled:label_conflict": 4,
+      "labeled:ok": 89,
+      "not_labeled:label_outside_canonical_set:arithmetic_error": 3,
+      "not_labeled:label_outside_canonical_set:calculation_simple_arithmetic_error": 1,
+      "not_labeled:label_outside_canonical_set:calculational_error": 1,
+      "not_labeled:label_outside_canonical_set:simplification_error": 1,
+      "not_labeled:label_outside_canonical_set:specific_detail_error": 1
+    },
+    "eic/data/generated_cases_MathQA/unit_conversion_error/unit_conversion_error_100/generated_cases_clean.jsonl": {
+      "labeled:label_conflict": 8,
+      "labeled:ok": 92
+    },
+    "eic/data/generated_cases_MathQA/wrong_step_calculation_error/wrong_step_calculation_error_1_50/generated_cases_clean.jsonl": {
+      "not_labeled:non_error_type_directory:wrong_step_calculation_error": 50
+    },
+    "eic/data/generated_cases_MathQA/wrong_step_calculation_error/wrong_step_calculation_error_2_50/generated_cases_clean.jsonl": {
+      "not_labeled:non_error_type_directory:wrong_step_calculation_error": 50
+    },
+    "eic/data/generated_cases_MathQA/wrong_step_calculation_error/wrong_step_calculation_error_3_50/generated_cases_clean.jsonl": {
+      "not_labeled:non_error_type_directory:wrong_step_calculation_error": 50
+    },
+    "eic/data/generated_cases_MathQA/wrong_step_calculation_error/wrong_step_calculation_error_4_50/generated_cases_clean.jsonl": {
+      "not_labeled:non_error_type_directory:wrong_step_calculation_error": 50
+    },
+    "eic/data/generated_cases_MathQA/wrong_step_calculation_error/wrong_step_calculation_error_5_50/generated_cases_clean.jsonl": {
+      "not_labeled:non_error_type_directory:wrong_step_calculation_error": 50
+    },
+    "eic/data/generated_cases_MathQA/wrong_step_calculation_error/wrong_step_calculation_error_6_50/generated_cases_clean.jsonl": {
+      "not_labeled:non_error_type_directory:wrong_step_calculation_error": 50
+    },
+    "eic/data/generated_cases_MathQA/wrong_step_calculation_error/wrong_step_calculation_error_7_50/generated_cases_clean.jsonl": {
+      "not_labeled:non_error_type_directory:wrong_step_calculation_error": 50
+    },
+    "eic/data/generated_cases_MathQA/wrong_step_calculation_error/wrong_step_calculation_error_8_50/generated_cases_clean.jsonl": {
+      "not_labeled:non_error_type_directory:wrong_step_calculation_error": 50
+    },
+    "mathclean/check_type_answer/challenging.json": {
+      "labeled:ambiguous": 3,
+      "labeled:label_conflict": 74,
+      "labeled:ok": 370
+    },
+    "mathclean/check_type_answer/simple.json": {
+      "labeled:ambiguous": 2,
+      "labeled:label_conflict": 58,
+      "labeled:ok": 103
+    },
+    "mathedu/dataset/time_series_split/test.json": {
+      "labeled:label_conflict": 4,
+      "labeled:ok": 135,
+      "not_labeled:missing_field:incorrect_solution": 18,
+      "not_labeled:multiple_annotated_errors:2": 5,
+      "not_labeled:not_an_incorrect_answer:correct": 441
+    },
+    "mathedu/dataset/time_series_split/train.json": {
+      "labeled:ambiguous": 1,
+      "labeled:label_conflict": 14,
+      "labeled:ok": 593,
+      "not_labeled:missing_field:incorrect_solution": 47,
+      "not_labeled:multiple_annotated_errors:2": 14,
+      "not_labeled:multiple_annotated_errors:3": 3,
+      "not_labeled:not_an_incorrect_answer:correct": 2164
+    },
+    "mathedu/dataset/time_series_split/val.json": {
+      "labeled:label_conflict": 3,
+      "labeled:ok": 140,
+      "not_labeled:missing_field:incorrect_solution": 17,
+      "not_labeled:multiple_annotated_errors:2": 4,
+      "not_labeled:not_an_incorrect_answer:correct": 445
+    },
+    "stepwise/dataset/dataset.json": {
+      "labeled:label_conflict": 92,
+      "labeled:ok": 823,
+      "not_labeled:non_error_label": 87
+    },
+    "mathedu/dataset/leave_one_out/student1/test.json": {
+      "labeled:ambiguous": 1,
+      "labeled:label_conflict": 2,
+      "labeled:ok": 173,
+      "not_labeled:missing_field:incorrect_solution": 16,
+      "not_labeled:multiple_annotated_errors:2": 8,
+      "not_labeled:multiple_annotated_errors:3": 1,
+      "not_labeled:not_an_incorrect_answer:correct": 482
+    },
+    "mathedu/dataset/leave_one_out/student1/train.json": {
+      "labeled:label_conflict": 18,
+      "labeled:ok": 624,
+      "not_labeled:missing_field:incorrect_solution": 60,
+      "not_labeled:multiple_annotated_errors:2": 13,
+      "not_labeled:multiple_annotated_errors:3": 1,
+      "not_labeled:not_an_incorrect_answer:correct": 2312
+    },
+    "mathedu/dataset/leave_one_out/student1/val.json": {
+      "labeled:label_conflict": 1,
+      "labeled:ok": 72,
+      "not_labeled:missing_field:incorrect_solution": 6,
+      "not_labeled:multiple_annotated_errors:2": 2,
+      "not_labeled:multiple_annotated_errors:3": 1,
+      "not_labeled:not_an_incorrect_answer:correct": 255
+    },
+    "mathedu/dataset/leave_one_out/student2/test.json": {
+      "labeled:label_conflict": 2,
+      "labeled:ok": 81,
+      "not_labeled:multiple_annotated_errors:2": 2,
+      "not_labeled:not_an_incorrect_answer:correct": 600
+    },
+    "mathedu/dataset/leave_one_out/student2/train.json": {
+      "labeled:ambiguous": 1,
+      "labeled:label_conflict": 18,
+      "labeled:ok": 694,
+      "not_labeled:missing_field:incorrect_solution": 76,
+      "not_labeled:multiple_annotated_errors:2": 18,
+      "not_labeled:multiple_annotated_errors:3": 2,
+      "not_labeled:not_an_incorrect_answer:correct": 2217
+    },
+    "mathedu/dataset/leave_one_out/student2/val.json": {
+      "labeled:label_conflict": 1,
+      "labeled:ok": 94,
+      "not_labeled:missing_field:incorrect_solution": 6,
+      "not_labeled:multiple_annotated_errors:2": 3,
+      "not_labeled:multiple_annotated_errors:3": 1,
+      "not_labeled:not_an_incorrect_answer:correct": 232
+    },
+    "mathedu/dataset/leave_one_out/student3/test.json": {
+      "labeled:label_conflict": 2,
+      "labeled:ok": 186,
+      "not_labeled:missing_field:incorrect_solution": 3,
+      "not_labeled:multiple_annotated_errors:2": 4,
+      "not_labeled:multiple_annotated_errors:3": 1,
+      "not_labeled:not_an_incorrect_answer:correct": 482
+    },
+    "mathedu/dataset/leave_one_out/student3/train.json": {
+      "labeled:ambiguous": 1,
+      "labeled:label_conflict": 16,
+      "labeled:ok": 618,
+      "not_labeled:missing_field:incorrect_solution": 74,
+      "not_labeled:multiple_annotated_errors:2": 16,
+      "not_labeled:multiple_annotated_errors:3": 2,
+      "not_labeled:not_an_incorrect_answer:correct": 2306
+    },
+    "mathedu/dataset/leave_one_out/student3/val.json": {
+      "labeled:label_conflict": 3,
+      "labeled:ok": 65,
+      "not_labeled:missing_field:incorrect_solution": 5,
+      "not_labeled:multiple_annotated_errors:2": 3,
+      "not_labeled:not_an_incorrect_answer:correct": 261
+    },
+    "mathedu/dataset/leave_one_out/student4/test.json": {
+      "labeled:label_conflict": 5,
+      "labeled:ok": 154,
+      "not_labeled:missing_field:incorrect_solution": 1,
+      "not_labeled:multiple_annotated_errors:2": 2,
+      "not_labeled:multiple_annotated_errors:3": 1,
+      "not_labeled:not_an_incorrect_answer:correct": 497
+    },
+    "mathedu/dataset/leave_one_out/student4/train.json": {
+      "labeled:ambiguous": 1,
+      "labeled:label_conflict": 16,
+      "labeled:ok": 642,
+      "not_labeled:missing_field:incorrect_solution": 72,
+      "not_labeled:multiple_annotated_errors:2": 21,
+      "not_labeled:multiple_annotated_errors:3": 1,
+      "not_labeled:not_an_incorrect_answer:correct": 2296
+    },
+    "mathedu/dataset/leave_one_out/student4/val.json": {
+      "labeled:ok": 73,
+      "not_labeled:missing_field:incorrect_solution": 9,
+      "not_labeled:multiple_annotated_errors:3": 1,
+      "not_labeled:not_an_incorrect_answer:correct": 256
+    },
+    "mathedu/dataset/leave_one_out/student5/test.json": {
+      "labeled:label_conflict": 5,
+      "labeled:ok": 183,
+      "not_labeled:missing_field:incorrect_solution": 31,
+      "not_labeled:multiple_annotated_errors:2": 6,
+      "not_labeled:not_an_incorrect_answer:correct": 457
+    },
+    "mathedu/dataset/leave_one_out/student5/train.json": {
+      "labeled:ambiguous": 1,
+      "labeled:label_conflict": 15,
+      "labeled:ok": 622,
+      "not_labeled:missing_field:incorrect_solution": 40,
+      "not_labeled:multiple_annotated_errors:2": 16,
+      "not_labeled:multiple_annotated_errors:3": 3,
+      "not_labeled:not_an_incorrect_answer:correct": 2332
+    },
+    "mathedu/dataset/leave_one_out/student5/val.json": {
+      "labeled:label_conflict": 1,
+      "labeled:ok": 64,
+      "not_labeled:missing_field:incorrect_solution": 11,
+      "not_labeled:multiple_annotated_errors:2": 1,
+      "not_labeled:not_an_incorrect_answer:correct": 260
+    },
+    "mathedu/dataset/leave_one_out/student6/test.json": {
+      "labeled:label_conflict": 5,
+      "labeled:ok": 92,
+      "not_labeled:missing_field:incorrect_solution": 31,
+      "not_labeled:multiple_annotated_errors:2": 1,
+      "not_labeled:not_an_incorrect_answer:correct": 531
+    },
+    "mathedu/dataset/leave_one_out/student6/train.json": {
+      "labeled:ambiguous": 1,
+      "labeled:label_conflict": 15,
+      "labeled:ok": 707,
+      "not_labeled:missing_field:incorrect_solution": 45,
+      "not_labeled:multiple_annotated_errors:2": 21,
+      "not_labeled:multiple_annotated_errors:3": 3,
+      "not_labeled:not_an_incorrect_answer:correct": 2257
+    },
+    "mathedu/dataset/leave_one_out/student6/val.json": {
+      "labeled:label_conflict": 1,
+      "labeled:ok": 70,
+      "not_labeled:missing_field:incorrect_solution": 6,
+      "not_labeled:multiple_annotated_errors:2": 1,
+      "not_labeled:not_an_incorrect_answer:correct": 261
+    }
+  }
+}

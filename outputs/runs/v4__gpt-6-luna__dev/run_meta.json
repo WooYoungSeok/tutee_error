@@ -1,0 +1,30 @@
+{
+  "run_id": "v4__gpt-6-luna__dev",
+  "finished_at_utc": "2026-09-23T10:09:04Z",
+  "split": "dev",
+  "cases": 40,
+  "model": "gpt-6-luna",
+  "mock": false,
+  "prompt_version": "v4",
+  "prompt_file": "prompts/error_description_v4.txt",
+  "prompt_sha256": "28ef5467bbbac5cec81290d4f0bd9d7cf83d2efe80efe1f858600916cb4f0a7c",
+  "generation": {
+    "model": "gpt-6-luna",
+    "max_output_tokens": 2000,
+    "temperature": null,
+    "reasoning_effort": null,
+    "response_format_json": false
+  },
+  "concurrency": 2,
+  "processing_status_counts": {
+    "ok": 39,
+    "json_parse_error": 1
+  },
+  "usage_totals": {
+    "input_tokens": 33388,
+    "output_tokens": 10278,
+    "total_tokens": 43666
+  },
+  "raw_path": "outputs/runs/v4__gpt-6-luna__dev/raw.jsonl",
+  "parsed_path": "outputs/runs/v4__gpt-6-luna__dev/parsed.jsonl"
+}

@@ -1,0 +1,83 @@
+{
+  "experiment": "descriptive_verifier_v1",
+  "seed": 42,
+  "inputs": {
+    "pool": "../data/full/pool.jsonl",
+    "descriptions": "../outputs/runs/v4__gpt-5.6-luna__full/parsed.jsonl",
+    "description_run_meta": "../outputs/runs/v4__gpt-5.6-luna__full/run_meta.json",
+    "prompt_dev_manifest": "../data/manifest/sample_manifest.jsonl"
+  },
+  "filters": {
+    "description_status": "ok",
+    "processing_status": "ok",
+    "held_out_missing_information": {
+      "mathclean:3fa3a27b6b350aa5": "question refers to 'a more complex figure' that is not included",
+      "mathclean:5420672e35b7999b": "vertex labels B and G depend on a cube figure that is not included",
+      "mathclean:2018d169dd6fe205": "the sales graph the question refers to is not included"
+    }
+  },
+  "grouping": {
+    "question_group_key": "NFKC, lowercase, all whitespace and punctuation removed",
+    "duplicate_record_key": "same dataset; question and solution equal after NFKC, lowercase and whitespace removal; same normalized label"
+  },
+  "split": {
+    "ratios": {
+      "train": 0.8,
+      "validation": 0.1,
+      "test": 0.1
+    },
+    "stratify_by": "dataset | benchmark | normalized source label of the group's most frequent case",
+    "prompt_dev_split": "dev",
+    "prompt_dev_groups_assigned_to": "train"
+  },
+  "negatives": {
+    "per_anchor": 1,
+    "candidate_rule": "same dataset, same split, different normalized source label, different question group",
+    "rng": "numpy.random.RandomState(seed), re-initialized once per split",
+    "label_normalization": "NFKC, lowercase, underscores as spaces, whitespace collapsed"
+  },
+  "prompt": {
+    "system": "prompts/system.txt",
+    "user": "prompts/user.txt",
+    "ablations": {
+      "no_solution": "prompts/user_ablation_no_solution.txt",
+      "description_only": "prompts/user_ablation_description_only.txt"
+    }
+  },
+  "model": {
+    "name": "Qwen/Qwen2.5-Math-7B-Instruct",
+    "max_seq_length": 4096
+  },
+  "output": {
+    "data_dir": "data/descriptive_v1",
+    "manifest_dir": "manifests",
+    "report": "reports/data_audit.md"
+  },
+  "training": {
+    "checkpoint_dir": "checkpoints",
+    "num_train_epochs": 8,
+    "learning_rate": 1e-05,
+    "weight_decay": 0.01,
+    "warmup_ratio": 0.1,
+    "per_device_train_batch_size": 8,
+    "per_device_eval_batch_size": 1,
+    "gradient_accumulation_steps": 4,
+    "bf16": true,
+    "gradient_checkpointing": true,
+    "eval_and_save": "epoch",
+    "metric_for_best_model": "eval_loss",
+    "save_total_limit": 2,
+    "logging_steps": 10,
+    "padding_side": "left",
+    "report_to": "wandb",
+    "dataloader_num_workers": 4
+  },
+  "evaluation": {
+    "split": "test",
+    "max_new_tokens": 10,
+    "batch_size": 8,
+    "min_support_for_label_pairs": 10,
+    "bootstrap_samples": 1000,
+    "output_dir": "outputs"
+  }
+}

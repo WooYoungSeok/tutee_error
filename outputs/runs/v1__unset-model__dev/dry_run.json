@@ -1,0 +1,28 @@
+{
+  "created_at_utc": "2026-09-21T05:28:32Z",
+  "run_id": "v1__unset-model__dev",
+  "split": "dev",
+  "cases": 30,
+  "by_dataset": {
+    "eic": 10,
+    "mathclean": 10,
+    "stepwise": 10
+  },
+  "model": null,
+  "prompt_version": "v1",
+  "prompt_sha256": "1b3c182347176be6b65945aece0523d6911f8f7763e960f21d00d24975d59a0a",
+  "generation": {
+    "model": "",
+    "max_output_tokens": 1200,
+    "temperature": null,
+    "reasoning_effort": null,
+    "response_format_json": false
+  },
+  "example_sample_id": "eic:0a162aced962b612",
+  "example_input_hash": "0d71d805f8dbc7ee4ebbe0b451dac71e88557fed8902b86c470c75647d07e57f",
+  "example_request_chars": 2342,
+  "total_request_chars": 84232,
+  "approx_input_tokens_rule_of_thumb": 21058,
+  "cost_estimate_usd": null,
+  "cost_estimate_note": "No price given (--price-input / --price-output), so no cost is estimated."
+}

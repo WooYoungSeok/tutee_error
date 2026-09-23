@@ -1,0 +1,36 @@
+{
+  "seed": 42,
+  "datasets": [
+    "mathedu",
+    "stepwise",
+    "mathclean",
+    "eic"
+  ],
+  "eic": {
+    "benchmarks": [
+      "GSM8K",
+      "MathQA"
+    ]
+  },
+  "prompt_file": "prompts/error_description_v4.txt",
+  "prompt_version": "v4",
+  "model": "gpt-5.6-luna",
+  "generation": {
+    "concurrency": 6,
+    "max_output_tokens": 4000,
+    "temperature": null,
+    "reasoning_effort": null,
+    "response_format_json": true,
+    "request_timeout_s": 180,
+    "max_retries": 4
+  },
+  "mathedu": {
+    "field_map": {
+      "question": null,
+      "incorrect_solution": null,
+      "source_error_label": null,
+      "annotations": [],
+      "group_by": null
+    }
+  }
+}

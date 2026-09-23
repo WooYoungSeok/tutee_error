@@ -1,0 +1,29 @@
+{
+  "run_id": "mock_dev",
+  "finished_at_utc": "2026-09-21T05:31:51Z",
+  "split": "dev",
+  "cases": 30,
+  "model": "mock-model",
+  "mock": true,
+  "prompt_version": "v1",
+  "prompt_file": "prompts/error_description_v1.txt",
+  "prompt_sha256": "1b3c182347176be6b65945aece0523d6911f8f7763e960f21d00d24975d59a0a",
+  "generation": {
+    "model": "mock-model",
+    "max_output_tokens": 1200,
+    "temperature": null,
+    "reasoning_effort": null,
+    "response_format_json": false
+  },
+  "concurrency": 2,
+  "processing_status_counts": {
+    "ok": 30
+  },
+  "usage_totals": {
+    "input_tokens": 21046,
+    "output_tokens": 1200,
+    "total_tokens": 22246
+  },
+  "raw_path": "outputs/runs/mock_dev/raw.jsonl",
+  "parsed_path": "outputs/runs/mock_dev/parsed.jsonl"
+}

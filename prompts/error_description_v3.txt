@@ -1,0 +1,95 @@
+You are writing concise, reusable descriptions of mathematical errors.
+
+You will receive:
+- a mathematics question,
+- a solution labeled as incorrect,
+- the original error label assigned to that solution.
+
+Write one error description supported by the question and solution.
+
+<TARGET LEVEL OF ABSTRACTION>
+Describe the general type of conceptual confusion or procedural error,
+rather than how it specifically appears in this problem.
+
+Keep the mathematical concept or operation needed to identify the
+error, but omit the particular quantities involved, the problem's
+specific request, and the sequence of calculations needed to solve it.
+
+For example:
+- Applying a fraction to the original amount instead of the remainder
+  should be described as applying a fraction to the wrong reference
+  quantity.
+- Calculating one proportional share without comparing it with another
+  should be described as stopping at an intermediate result.
+
+Do not make the description so broad that it no longer identifies
+the kind of error, such as "Uses an incorrect method."
+
+<DESCRIPTION EXAMPLES>
+- Confuses perimeter with area
+- Applies a fraction to the wrong reference quantity
+- Uses incompatible units without converting them first
+- Makes a sign error when rearranging an equation
+- Makes an arithmetic multiplication error
+- Stops at an intermediate result before obtaining the requested quantity
+
+<USE OF THE ORIGINAL ERROR LABEL>
+Treat the original label as a clue for locating the intended error,
+not as wording or a scope that the description must reproduce.
+
+A label may cover several alternative errors. Describe only the
+error actually present in the solution. For example, the label
+"Extra quantity or Missing quantity" does not justify mentioning
+a missing quantity when the solution only double-counts a quantity.
+
+The question and solution determine what the description can claim.
+Do not invent an error or criticize a valid method to fit the label.
+
+<WRITING RULES>
+1. Write one short English clause, preferably about 5–15 words.
+   Use additional words only when needed to preserve the meaning.
+2. Omit names, story objects, step numbers, and the final answer.
+3. Omit mathematical topics or quantity relationships that are not
+   necessary to distinguish the error. A sign error need not mention
+   slope merely because it occurs in a slope problem.
+4. Describe an error rather than giving advice, a correction,
+   a worked solution, or a summary of the method used.
+5. Do not turn an isolated procedural mistake into an unsupported
+   claim about a persistent belief or lack of knowledge.
+6. Check that the behavior being described is actually incorrect.
+   Being labeled incorrect does not guarantee that the solution is wrong.
+7. If no faithful, informative description is supported, return
+   description: null and flag the item for review.
+8. Copy evidence_quote directly from the solution. Keep details
+   supporting this particular case in the quote, not the description.
+
+<TRANSFERABILITY CHECK>
+Would this description still identify the same kind of error if
+the story, values, particular quantities, and requested calculation
+were changed?
+
+<SOURCE SUPPORT CHECK>
+Is every error mentioned observable in the solution, rather than
+inferred solely from the original label?
+
+OUTPUT
+Return only valid JSON with these fields:
+- description: a short English error description, or null.
+- evidence_quote: a brief exact excerpt from the solution,
+  or an empty string if no relevant excerpt is available.
+- status: "ok", "ambiguous", or "label_conflict".
+
+Use "ok" when the description is supported.
+Use "ambiguous" when the error cannot be reliably identified.
+Use "label_conflict" when the label contradicts the solution,
+including when the solution is correct despite being labeled incorrect.
+
+INPUT
+Question:
+{question}
+
+Incorrect solution:
+{incorrect_solution}
+
+Original error label:
+{source_error_label}

@@ -1,0 +1,12 @@
+# Copied from llm_tutee_tutor/finetuning/reward_model (commit 972f0c38).
+# deepspeed_config_file is resolved from the working directory: launch from verifier_sft/.
+compute_environment: LOCAL_MACHINE
+distributed_type: DEEPSPEED
+deepspeed_config:
+  deepspeed_config_file: ds_config.json
+  zero3_init_flag: false
+machine_rank: 0
+main_training_function: main
+num_machines: 1
+num_processes: 1
+use_cpu: false

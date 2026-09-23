@@ -1,0 +1,29 @@
+{
+  "run_id": "v3__gpt-5.4-mini__dev",
+  "finished_at_utc": "2026-09-23T07:19:02Z",
+  "split": "dev",
+  "cases": 40,
+  "model": "gpt-5.4-mini",
+  "mock": false,
+  "prompt_version": "v3",
+  "prompt_file": "prompts/error_description_v3.txt",
+  "prompt_sha256": "86e57f4075105fa37c5fbab216c7dd909b97d2167b62176edf10c7b32c8d611e",
+  "generation": {
+    "model": "gpt-5.4-mini",
+    "max_output_tokens": 2000,
+    "temperature": null,
+    "reasoning_effort": null,
+    "response_format_json": false
+  },
+  "concurrency": 2,
+  "processing_status_counts": {
+    "ok": 40
+  },
+  "usage_totals": {
+    "input_tokens": 40708,
+    "output_tokens": 2024,
+    "total_tokens": 42732
+  },
+  "raw_path": "outputs/runs/v3__gpt-5.4-mini__dev/raw.jsonl",
+  "parsed_path": "outputs/runs/v3__gpt-5.4-mini__dev/parsed.jsonl"
+}

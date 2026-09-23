@@ -1,0 +1,180 @@
+# Task
+
+You are writing concise, reusable descriptions of mathematical errors.
+
+You will receive:
+
+- A mathematics question.
+- A solution presented as incorrect.
+- The original error label assigned to that solution.
+
+Write one error description grounded in the question and solution.
+
+The supplied solution may be correct, and the original label may be broad, partly applicable, or incorrect. Do not assume that an error must exist.
+
+## Target Level of Abstraction
+
+Describe the general mathematical confusion or procedural mistake exemplified by the solution.
+
+Retain the mathematical concept, operation, or relationship needed to distinguish the error. Remove details about how that error appears in this particular problem.
+
+In particular:
+
+- Omit story objects, names, incidental values, and step numbers.
+- Omit the particular quantities the problem asks the solver to find, compare, or combine.
+- Do not reconstruct the problem's required sequence of calculations.
+- Do not retain a mathematical topic merely because the problem involves it. For example, a sign error in rearranging an equation need not mention that the equation concerns slope.
+- Do not remove so much information that the description becomes an uninformative statement such as "Makes a mathematical error."
+
+The description should remain applicable when the story, values, specific quantities, and solution sequence change, while the same kind of mathematical error remains.
+
+## Grounding and Use of the Source Label
+
+1. Identify an actual error by checking the solution against the question and the relevant mathematics.
+
+2. Use the source label as a guide to the intended error, not as a definition that must be fully reproduced.
+
+3. A source label may combine several alternatives or cover a broad family of errors. Include only the aspect actually supported by the solution. For example, "Extra quantity or Missing quantity" does not justify describing both an extra and a missing quantity.
+
+4. Do not describe a valid method or correct intermediate step as an error merely because it appears in a solution labeled incorrect.
+
+5. Describe one coherent error pattern. Closely related manifestations may be included when each is supported, but do not combine unrelated errors into a catch-all description.
+
+6. Describe observable behavior. Do not infer a persistent belief, lack of knowledge, or psychological cause from an isolated mistake.
+
+7. If the label clearly contradicts the observed error, or the solution is correct under the stated conditions, flag the item rather than inventing an error.
+
+## Writing Rules
+
+- Write one short English clause, preferably about 5–15 words. Use additional words only when necessary to preserve the meaning.
+- State what is wrong, rather than merely naming the method used.
+- Describe the error without giving advice, a correction, a worked solution, or the final answer.
+- Preserve the direction of any confusion when supported: what is being used or treated incorrectly.
+- Keep mathematical constants or relationships only when they are necessary to identify the error.
+- Keep case-specific supporting details in `evidence_quote` rather than in `description`.
+
+## Positive Description Examples
+
+- Uses perimeter-style addition instead of area multiplication
+- Uses incompatible units without converting them first
+- Makes an arithmetic multiplication error
+
+## Abstraction and Grounding Examples
+
+These examples illustrate how to describe an error only when the corresponding behavior is supported by the inputs.
+
+### Example 1: Excessive Detail About the Requested Calculation
+
+**Observed behavior:** The solution calculates one intermediate quantity but stops before obtaining what the question asks for.
+
+**Avoid:** "Gives only one ratio part and stops before comparing amounts."
+
+**Prefer:** "Stops at an intermediate result before obtaining the requested quantity."
+
+### Example 2: Excessive Detail About the Reference Quantity
+
+**Observed behavior:** A fraction is applied to the original amount when the question requires applying it to the remaining amount.
+
+**Avoid:** "Skips reducing to the remaining amount before taking a fraction."
+
+**Prefer:** "Applies a fraction to the wrong reference quantity."
+
+### Example 3: Describing a Valid Method Instead of the Error
+
+**Observed behavior:** The solution omits common factors and fails to select the greatest common factor.
+
+**Avoid:** "Finds the new GCF by factoring the scaled numbers directly."
+
+**Prefer:** "Omits common factors and fails to select the greatest common factor."
+
+### Example 4: Retaining Story Objects
+
+**Observed behavior:** The solution uses a count of bicycles where a count of their tires is needed.
+
+**Avoid:** "Uses the wrong tire count for bicycles."
+
+**Prefer:** "Uses an object count as the count of its components."
+
+### Example 5: Naming the Topic Without Identifying the Mistake
+
+**Observed behavior:** The solution makes a sign error while rearranging an equation used to calculate slope.
+
+**Avoid:** "Incorrectly manipulates the slope equation algebraically."
+
+**Prefer:** "Makes a sign error when rearranging a linear equation."
+
+### Example 6: Including Unsupported Parts of the Source Label
+
+**Source label:** "Extra quantity or Missing quantity"
+
+**Observed behavior:** The solution multiplies an already combined total by the group size again. No quantity is omitted.
+
+**Avoid:** "Counts one quantity twice and omits another."
+
+**Prefer:** "Multiplies an already combined total by the group size again."
+
+### Example 7: Inventing an Error in a Correct Solution
+
+**Observed behavior:** The question states that two workers each perform the same additional activity. The solution correctly includes one contribution for each worker.
+
+**Avoid:** "Includes the same ladder-climbing amounts twice."
+
+Do not merely generalize this to "Counts the same quantity twice." The repeated expressions represent distinct contributions.
+
+Return `description: null` and `status: "label_conflict"`.
+
+## Evidence Rules
+
+- Copy a brief, contiguous excerpt exactly from the supplied solution.
+- Preserve its original wording and mathematical notation.
+- Do not paraphrase, add ellipses, or join separate passages.
+- Choose an excerpt that supports the identified error when read together with the question and surrounding solution.
+- Exact copying alone is insufficient: a correct step does not support an error claim.
+- If no relevant excerpt can be identified, use an empty string.
+
+## Final Check
+
+Before returning the result, check:
+
+1. Does the description identify an actual error supported by the question and solution?
+2. Does every claim in the description have support, independently of the breadth or wording of the source label?
+3. Have story details, specific requested quantities, and the problem's calculation sequence been removed?
+4. Does the description retain enough mathematical meaning to distinguish this error from other kinds of errors?
+5. Could it describe the same error in a different problem?
+6. Is `evidence_quote` copied exactly and relevant to the error?
+
+## Status Rules
+
+- `"ok"`: A faithful, informative description is supported and is compatible with the applicable part of the source label.
+- `"ambiguous"`: The available information does not allow a reliable identification of the intended error.
+- `"label_conflict"`: The source label clearly contradicts the observed error, or the solution is correct under the stated conditions despite being labeled incorrect.
+
+For `"ambiguous"` or `"label_conflict"`, set `description` to JSON `null`. Do not write a speculative error description.
+
+## Output
+
+Return only one valid JSON object with these keys:
+
+```json
+{
+  "description": "short error description, or JSON null",
+  "evidence_quote": "exact solution excerpt, or an empty string",
+  "status": "ok | ambiguous | label_conflict"
+}
+```
+
+Use an actual JSON `null`, not the string `"null"`, when withholding the description. Choose exactly one of the three status values.
+
+## Input
+
+### Question
+
+{question}
+
+### Incorrect Solution
+
+{incorrect_solution}
+
+### Original Error Label
+
+{source_error_label}

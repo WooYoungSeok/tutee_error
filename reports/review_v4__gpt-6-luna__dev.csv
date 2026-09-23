@@ -1,0 +1,570 @@
+﻿dataset,sample_id,split,source_error_label,question,incorrect_solution,description__v4__gpt-6-luna__dev,description__v4__gpt-5.4-mini__dev,description__v4__gpt-5.6-luna__dev,description__v4__gpt-5.6-terra__dev,description__v4__gpt-6-sol__dev,evidence_quote,status,processing_status,error,word_count,length_outside_5_15_words,description_is_null,contains_digit,shared_question_tokens,evidence_quote_found_in_solution,duplicate_description_count,source_annotations,review_error_preserved,review_context_removed,review_not_overgeneral,review_comment
+eic,eic:0a162aced962b612,dev,referencing_context_value_error,Burt spent $2.00 on a packet of basil seeds and $8.00 on potting soil.  The packet of seeds yielded 20 basil plants.  He sells each basil plant for $5.00 at the local farmer's market.  What is the net profit from his basil plants?,"He spent $1.00 on seeds and $8.00 on soil for a total of 1+8 = $9.00
+He sells each of the 20 basil plants for $5.00 so he makes 20*5 = $100.00
+He made $100.00 from selling basil plants and he spent $9.00 to buy and grow the seeds. His net profit is 100-9 = $91.00
+#### 91",Misreads a stated cost value,Uses an incorrect value for the seed cost,Uses an incorrect cost value when calculating total expenses,Uses an incorrect value from the given information.,Uses an incorrect given cost when calculating total expenses,He spent $1.00 on seeds,ok,ok,,4,True,False,False,,True,1,"{""original_solution"": ""He spent $2.00 on seeds and $8.00 on soil for a total of 2+8 = $10.00\nHe sells each of the 20 basil plants for $5.00 so he makes 20*5 = $100.00\nHe made $100.00 from selling basil plants and he spent $10.00 to buy and grow the seeds. His net profit is 100-10 = $90.00\n#### 90"", ""original_answer"": 90.0, ""transformed_answer"": 91.0, ""wrong_step"": 1, ""explanation"": ""Step 1 references $2.00 in the question as $1.00 wrongly, and calculates 1+8 = $9.00 instead of 2+8 = $10.00. Its subsequent related step will be affected, calculating the net profit as 100-9 = $91.00 instead of 100-10 = $90.00 in step 3. Please note that you should only consider one error, so the total revenue calculated in step 2 still references the correct price of $5.00 per basil plant."", ""is_single_error"": true, ""type_dir"": ""referencing_context_value_error"", ""source_benchmark"": ""GSM8K""}",,,,
+eic,eic:10640910a93765fb,dev,unit_conversion_error,Luis is driving 80 miles in 2 hours. How far will he go in 15 minutes?,"Luis drives 80/2 = 40 miles in 1 hour.
+Since there are 50 minutes in 1 hour, then he drives 40/50 = 4/5 of a mile in 1 minute.
+So in 15 minutes, he will go 4/5 x 15 = 12 miles far.
+#### 12",Uses an incorrect conversion between hours and minutes,Converts time units incorrectly,Uses an incorrect conversion between hours and minutes,Uses an incorrect conversion between hours and minutes.,Uses an incorrect conversion between hours and minutes,Since there are 50 minutes in 1 hour,ok,ok,,8,False,False,False,,True,1,"{""original_solution"": ""Luis drives 80/2 = 40 miles in 1 hour.\nSince there are 60 minutes in 1 hour, then he drives 40/60 = 2/3 of a mile in 1 minute.\nSo in 15 minutes, he will go 2/3 x 15 = 10 miles far.\n#### 10"", ""original_answer"": 10.0, ""transformed_answer"": 12.0, ""wrong_step"": 2, ""explanation"": ""Here, step 2 makes an incorrect unit conversion, which changes 60 minutes in 1 hour to 50 minutes in 1 hour, resulting in 40/60 = 2/3 of a mile in 1 minute in the original_solution becoming 40/50 = 4/5 of a mile in 1 minute in the transformed_solution. It further impacted step 3, changing from 2/3 x 15 = 10 miles to 4/5 x 15 = 12 miles. It should be noted that you only need to consider one step of unit conversion error, and the calculation in step 1 remains correct."", ""is_single_error"": true, ""type_dir"": ""unit_conversion_error"", ""source_benchmark"": ""GSM8K""}",,,,
+eic,eic:1822ba27069405ba,dev,operator_error,"A factory produced televisions at a constant rate of 10 per day in a certain year. If they reduced the total production by 10 percent in the second year, calculate the total production of television by the factory in the second year.","Since a year has 365 days, the total television production in the first year is 10*365 = 3650
+In the second year, they reduced the total television production by 10*100*3650 = 3650000
+The total television production in the second year was 3650-3650000 = -3646350.
+#### -3646350",Treats a percentage as a whole-number multiplier,Uses an invalid operation instead of taking a percent decrease,Converts a percentage incorrectly by multiplying by 100 instead of dividing by 100,Multiplies by the percentage number instead of converting it to a decimal.,Multiplies by 100 instead of dividing by 100 to calculate a percent,10*100*3650,ok,ok,,5,False,False,False,,True,1,"{""original_solution"": ""Since a year has 365 days, the total television production in the first year is 10*365 = 3650\nIn the second year, they reduced the total television production by 10/100*3650 = 365\nThe total television production in the second year was 3650-365 = 3285.\n#### 3285"", ""original_answer"": 3285.0, ""transformed_answer"": -3646350.0, ""wrong_step"": 2, ""explanation"": ""In this example, the division in step 2 is changed to multiplication, turning 10/100*3650=365 into 10*100*3650=3650000 by changing / to *. The consequent step 3 that utilizes this result is affected, changing 3650-365=3285 into 3650-3650000=-3646350. It should be noted that the change takes place only in the operator of step 2, but the calculation thereafter is correct, leading to a different result that impacts the related subsequent steps, all of which, however, are correctly computed based on the altered result of the erroneous step 2."", ""is_single_error"": true, ""type_dir"": ""operator_error"", ""source_benchmark"": ""GSM8K""}",,,,
+eic,eic:2af2c3486527eec9,dev,calculation_error,"There are 50 more pens than notebooks on Wesley's school library shelf. If there are 30 notebooks on the shelf, how many notebooks and pens, does he have altogether?","If there are 30 notebooks on the shelf, there are 50+30 = 60 pens on the shelf.
+Altogether, Wesley has 60+30 = 90 notebooks and pens on the shelf.
+#### 90",Makes an addition error,Adds the difference instead of the total,Makes an arithmetic addition error,Makes an arithmetic error when adding quantities.,Miscomputes a sum,50+30 = 60,ok,ok,,4,True,False,False,,True,1,"{""original_solution"": ""If there are 30 notebooks on the shelf, there are 50+30 = 80 pens on the shelf.\nAltogether, Wesley has 80+30 = 110 notebooks and pens on the shelf.\n#### 110"", ""original_answer"": 110.0, ""transformed_answer"": 90.0, ""wrong_step"": 1, ""explanation"": ""The example incorrectly changed the result of the calculation in step 1 (50+30) to be 60 instead of 80. This incorrect value is then used in the second step to calculate the total number of notebooks and pens (60+30), resulting in an incorrect total of 90 instead of the correct 110. The original step correctly added 50 pens to 30 notebooks to get 80 pens, and then correctly added the 80 pens to the 30 notebooks to get 110 as the total. In the transformed solution, only the calculation result of step 1 is changed, which subsequently affects the calculation of step 2 without changing the operands or operators."", ""is_single_error"": true, ""type_dir"": ""calculation_error"", ""source_benchmark"": ""GSM8K""}",,,,
+eic,eic:42079892bb47dd6c,dev,missing_step,Marlon has a gift card for $200. He spent half of it on Monday and one-fourth of the remainder on Tuesday. How much was left on his gift card?,"He spent $200/4 = $50 on Tuesday.
+Therefore, he has $200 - $100 - $50 = $50 left in his gift card.
+#### 50",Applies a fraction to the original amount instead of the remainder,Uses the original total instead of the remainder for the second part,Takes a fraction of the original total instead of the remainder,Calculates a fraction of the original amount instead of the remainder,Calculates a fraction of the original total instead of the remainder,He spent $200/4 = $50 on Tuesday.,ok,ok,,10,False,False,False,remainder,True,1,"{""original_solution"": ""Since Marlon spent half of the gift card, then half of it which is $200/2 = $100 remained on Monday.\nThen on Tuesday, he spent $100/4 = $25.\nTherefore, he has $100 - $25 = $75 left in his gift card.\n#### 75"", ""original_answer"": 75.0, ""transformed_answer"": 50.0, ""wrong_step"": 1, ""explanation"": ""Here, step 1 has been removed. In the original_solution, step 1 references the number 200 from the question, and step 2 references the result 100 from step 1. So after deleting step 1, step 2 should change the result of 100, which is the remainder on Monday, to a direct calculation from the original 200 by spending one-fourth on Tuesday, which is calculated as $200/4 = $50. The following step (now step 2 in the transformed_solution), which originally calculated the final amount after spending on Tuesday, needs to be updated to account for only the initial amount and the Tuesday spending. The correct depletion of funds would be the initial $200 minus half spent on Monday ($100) and the quarter of the remainder spent on Tuesday ($50), leaving $50, so the formula changes to $200 - $100 - $50. The wrong_step is 1 in the transformed_solution, as it is the first step referencing the incorrect number in the transformed_solution."", ""is_single_error"": true, ""type_dir"": ""missing_step"", ""source_benchmark"": ""GSM8K""}",,,,
+eic,eic:96a16a341bbe0856,dev,adding_irrelevant_information,Jim decides to open up a bike shop.  The most common repair he does is fixing bike tires.  He charges $20 for this and it cost him $5 in parts.  In one month Jim does 300 of these repairs.  He also does 2 more complex repairs for $300 each and cost $50 in parts.  He also sells $2000 profit worth of things from his retail shop.  If rent and other fixed expense for the shop is $4000 a month how much profit did the shop make?,"From each tire repair, he made 20-5=$15 profit
+So repairs made him a profit of 15*300=$4500
+The two complex repairs each made him 300-50=$250 profit
+So those added 250*2=$500
+Because Jim had to pay a $300 fine for a parking violation related to his shop, his total profit from everything was 4500+500+2000-300=$6700
+So he made a profit of 6700-4000=$2700
+#### 2700",Adds an unsupported expense to the calculation,Adds an irrelevant expense not in the problem,Adds an unprovided expense to the profit calculation,Introduces an unsupported expense into the profit calculation,Subtracts an expense not given in the problem,Because Jim had to pay a $300 fine for a parking violation related to his shop,ok,ok,,7,False,False,False,expense,True,1,"{""original_solution"": ""From each tire repair, he made 20-5=$15 profit\nSo repairs made him a profit of 15*300=$4500\nThe two complex repairs each made him 300-50=$250 profit\nSo those added 250*2=$500\nSo his total profit from everything was 4500+500+2000=$7000\nSo he made a profit of 7000-4000=$3000\n#### 3000"", ""original_answer"": 3000.0, ""transformed_answer"": 2700.0, ""wrong_step"": 4, ""explanation"": ""Step 4 adds information that is not mentioned in the question statement <Because Jim had to pay a $300 fine for a parking violation related to his shop>, resulting in step 4 changing from 4500+500+2000=$7000 in the original_solution to 4500+500+2000-300=$6700 in the transformed_solution. This change also affected step 5, where the new profit calculation is 6700-4000=$2700 instead of the original $3000. It should be noted that you only need to consider one error of adding additional information in one step, and the other calculation processes should be correct."", ""is_single_error"": true, ""type_dir"": ""adding_irrelevant_information"", ""source_benchmark"": ""GSM8K""}",,,,
+eic,eic:b99acb77b6f3f1cc,dev,adding_irrelevant_information,Scout delivers groceries on the weekends. His base pay is $10.00 an hour. He also earns a $5.00 tip per customer that he delivers groceries to. On Saturday he worked 4 hours and delivered groceries to 5 people. Sunday he worked 5 hours and delivered groceries to 8 people. How much did he make over the weekend?,"He worked 4 hours on Saturday and 5 hours on Sunday for a total of 4+5 = 9 hours
+His base pay is $10.00 an hour and he worked 9 hours for a total of 10*9 = $90.00
+He delivered groceries to 5 people on Saturday and 8 people on Sunday for a total of 5+8 = 13 deliveries
+Because he received an extra $2.00 bonus from happy customers for every delivery made on Sunday, he makes an additional 8*$2 = $16.00
+He makes $5.00 per delivery and he delivered to 13 people so he made 5*13 = $65.00
+His base pay is $90.00, he made $65.00 in tips, and an extra $16.00 in bonuses for a total of 90+65+16 = $171.00
+#### 171",Adds an unsupported quantity to a calculation,Adds an unsupported extra bonus amount,Adds an unsupported bonus to the total earnings,Adds an unsupported bonus payment to the calculation,Adds an unsupported bonus to the total.,"Because he received an extra $2.00 bonus from happy customers for every delivery made on Sunday, he makes an additional 8*$2 = $16.00",ok,ok,,6,False,False,False,,True,1,"{""original_solution"": ""He worked 4 hours on Saturday and 5 hours on Sunday for a total of 4+5 = 9 hours\nHis base pay is $10.00 an hour and he worked 9 hours for a total of 10*9 = $90.00\nHe delivered groceries to 5 people on Saturday and 8 people on Sunday for a total of 5+8 = 13 deliveries\nHe makes $5.00 per delivery and he delivered to 13 people so he made 5*13 = $65.00\nHis base pay is $90.00 and he made $65.00 in tips for a total of 90+65 = $155.00\n#### 155"", ""original_answer"": 155.0, ""transformed_answer"": 171.0, ""wrong_step"": 4, ""explanation"": ""Step 4 adds information that is not mentioned in the question statement <Because he received an extra $2.00 bonus from happy customers for every delivery made on Sunday>, resulting in a new calculation for the additional bonus of $16.00 for Sunday deliveries. This creates a change in the final total from the original solution, with the total pay changing from 90+65 = $155.00 to 90+65+16 = $171.00 in the transformed solution. The addition is made into an existing step and directly affects the final result, differentiating the transformed answer from the original one."", ""is_single_error"": true, ""type_dir"": ""adding_irrelevant_information"", ""source_benchmark"": ""GSM8K""}",,,,
+eic,eic:d2a9f749ca02b9a6,dev,counting_error,A driver travels 30 miles per hour for 3 hours and 25 miles per hour for 4 hours to deliver goods to a town every day from Monday to Saturday. How many miles does the driver travel in a week?,"The driver travels (3 hours * 30 mph) + (25 mph * 4 hours) = 190 miles per day
+From Monday to Saturday he travels in total 190 miles/day * 5 days = 950 miles in a week
+#### 950",Miscounts the number of days in an inclusive interval,Uses the wrong number of days in the total,Counts the days from Monday to Saturday incorrectly,Uses the wrong number of days when finding a weekly total.,Undercounts the days in an inclusive weekday range,From Monday to Saturday he travels in total 190 miles/day * 5 days,ok,ok,,9,False,False,False,,True,1,"{""original_solution"": ""The driver travels (3 hours * 30 mph) + (25 mph * 4 hours) = 190 miles per day\nFrom Monday to Saturday he travels in total 190 miles/day * 6 days = 1,140 miles in a week\n#### 1140"", ""original_answer"": 1140, ""transformed_answer"": 950, ""wrong_step"": 2, ""explanation"": ""Here, step 2 erroneously counts Monday to Saturday as 5 days instead of 6 days, which changes the original multiplication of 190 miles/day * 6 days to 190 miles/day * 5 days. The counting error affects the subsequent calculation and the final answer, changing it from 1,140 miles to 950 miles. It should be noted that only the counting error is introduced in the transformed_solution affecting one step, and the rest of the steps involving calculations are still correct."", ""is_single_error"": true, ""type_dir"": ""counting_error"", ""source_benchmark"": ""GSM8K""}",,,,
+eic,eic:f74af932f863bb52,dev,confusing_formula_error,You draw a rectangle that is 7 inches wide. It is 4 times as long as it is wide. What is the area of the rectangle?,"The length of the rectangle is 4 * 7 inches = 28 inches.
+The area of the rectangle is 7 inches + 7 inches + 28 inches + 28 inches = 70 inches.
+#### 70",Uses the perimeter formula instead of the area formula,Uses perimeter-like addition instead of area multiplication,Uses perimeter addition instead of multiplying length by width,Uses the perimeter formula instead of the area formula,Uses the perimeter formula instead of the area formula.,7 inches + 7 inches + 28 inches + 28 inches = 70 inches,ok,ok,,9,False,False,False,,True,1,"{""original_solution"": ""The length of the rectangle is 4 * 7 inches = 28 inches.\nThe area of the rectangle is 7 inches * 28 inches = 196 square inches.\n#### 196"", ""original_answer"": 196.0, ""transformed_answer"": 70.0, ""wrong_step"": 2, ""explanation"": ""Here, step 1 correctly calculates the length of the rectangle using the ratio given. However, step 2 mistakenly uses the formula for calculating the perimeter of the rectangle instead of the area, which should be the width multiplied by the length. The sum of the sides is incorrectly used to calculate the area, resulting in 7 inches + 7 inches + 28 inches + 28 inches = 70 inches in the transformed_solution, while the correct formula should have remained 7 inches * 28 inches to calculate the area. This results in a transformed_answer of 70 inches, which is incorrect and different from the original_answer of 196 square inches. The language description of step 2 <The area of the rectangle is> remains unchanged from the original_solution. Note that only step 2 contains an error while other steps are correct, and the subsequent step is affected by this error, leading to an incorrect transformed_answer."", ""is_single_error"": true, ""type_dir"": ""confusing_formula_error"", ""source_benchmark"": ""GSM8K""}",,,,
+eic,eic:fa4e846ad3902c4d,dev,referencing_previous_step_value_error,"There are enough provisions in a castle to feed 300 people for 90 days. After 30 days, 100 people leave the castle. How many more days are left until all the food runs out?","After 30 days, there will be enough food left to sustain 300 people for 90 days – 30 days = 60 days.
+After the 100 people leave, there will be 300-100 = 200 people left.
+The 200 people will eat 200/300 = 2/3 as much food as the original group of people in the castle.
+The 60 days' worth of food will last this smaller group for 70 days / (2/3) = 105 more days.
+#### 105",Uses an incorrect prior-step value in a subsequent calculation,Uses an incorrect value from a previous step,Uses an incorrect value from a previous calculation,Uses a value not obtained in the previous calculation.,Uses a different value instead of the quantity calculated earlier.,The 60 days' worth of food will last this smaller group for 70 days / (2/3) = 105 more days.,ok,ok,,8,False,False,False,,True,1,"{""original_solution"": ""After 30 days, there will be enough food left to sustain 300 people for 90 days – 30 days = 60 days.\nAfter the 100 people leave, there will be 300-100 = 200 people left.\nThe 200 people will eat 200/300 = 2/3 as much food as the original group of people in the castle.\nThe 60 days' worth of food will last this smaller group for 60 days / (2/3) = 90 more days.\n#### 90"", ""original_answer"": 90.0, ""transformed_answer"": 105.0, ""wrong_step"": 4, ""explanation"": ""Step 4 mistakenly references 60 as 70 from step 1 and changes 60 days / (2/3) = 90 more days to 70 days / (2/3) = 105 more days. It should be noted that step 1 in the transformed_solution <After 30 days, there will be enough food left to sustain 300 people for 90 days – 30 days = 60 days.> should be the same as the step 1 in the original_solution <After 30 days, there will be enough food left to sustain 300 people for 90 days – 30 days = 60 days.> and calculates its result 60 correctly. The change in value from 60 to 70 affects only step 4 without affecting the correct calculation steps. All other steps that reference the number of days, people, or the fraction still reference these numbers correctly. Furthermore, the transformed_answer is different from the original_answer, which is 90 days."", ""is_single_error"": true, ""type_dir"": ""referencing_previous_step_value_error"", ""source_benchmark"": ""GSM8K""}",,,,
+mathclean,mathclean:021b0bf3e810c899,dev,computing error,"Adam earns $40 daily in his job. Each week, his daily earnings increase by 15%. 10% of his total earnings are deducted as taxes. How much money will Adam have earned after taxes after 4 weeks of work?","To solve the problem, we need to calculate Adam's earnings each week after accounting for the 15% increase in his daily earnings and the 10% tax deduction. Let's break it down step-by-step.
+
+1. Calculate Adam's daily earnings each week after the 15% increase.
+2. Calculate his total earnings for each week.
+3. Deduct 10% for taxes.
+4. Sum up his after-tax earnings over 4 weeks.
+
+Let's write the Python code to perform these calculations.
+```python
+# Initial daily earnings
+initial_daily_earnings = 40
+
+# Weekly increase in daily earnings
+weekly_increase_rate = 0.15
+
+# Tax deduction rate
+tax_deduction_rate = 0.10
+
+# Number of weeks
+num_weeks = 4
+
+# Initialize total after-tax earnings
+total_after_tax_earnings = 0
+
+# Calculate weekly earnings after increase and tax deduction
+for week in range(num_weeks):
+    # Calculate daily earnings for the current week
+    daily_earnings_week = initial_daily_earnings * (1 + weekly_increase_rate) ** week
+    
+    # Calculate total earnings for the current week
+    weekly_earnings = daily_earnings_week * 7
+    
+    # Calculate after-tax earnings for the current week
+    after_tax_earnings = weekly_earnings * (1 - tax_deduction_rate)
+    
+    # Add to total after-tax earnings
+    total_after_tax_earnings += after_tax_earnings
+
+print(total_after_tax_earnings)
+```
+```output
+1185.232
+```
+Adam will have earned \(\boxed{1185.23}\) dollars after taxes after 4 weeks of work.",Reports a total inconsistent with the calculations shown,"Applies the weekly raise multiplicatively each week to the daily rate, rather than increasing from the current week’s earnings correctly",Reports an arithmetic result inconsistent with the implemented calculation,(no description: label_conflict),Reports a numerical result inconsistent with the calculation shown,1185.232,ok,ok,,7,False,False,False,,True,1,"{""extent"": ""not obvious error"", ""difficulty_file"": ""simple"", ""subset"": ""check_type_answer""}",,,,
+mathclean,mathclean:49d0c9b1827cc310,dev,logic error,"In the diagram below, lines $k$ and $\ell$ are parallel. If the measure of one angle is $30^\circ$ and another angle is $90^\circ$, find the measure of angle $x$ in terms of $a$ and $b$, where $a$ and $b$ are the measures of the two given angles.
+
+[asy]
+size(200);
+import markers;
+pair A = dir(-22)*(0,0);
+pair B = dir(-22)*(4,0);
+pair C = dir(-22)*(4,2);
+pair D = dir(-22)*(0,2);
+pair F = dir(-22)*(0,1.3);
+pair G = dir(-22)*(4,1.3);
+pair H = dir(-22)*(2,1);
+
+//markangle(.3,B,H,C);
+markangle(Label(""$x$"",Relative(0.4)),n=1,radius=11,B,H,C);
+
+pair X,Y;
+
+X=A;
+Y=B;
+draw(1.3*X-.3*Y--1.3*Y-.3*X);
+
+X=A;
+Y=C;
+draw(1.3*X-.3*Y--1.3*Y-.3*X);
+
+X=C;
+Y=B;
+draw(1.3*X-.3*Y--1.3*Y-.3*X);
+
+X=B;
+Y=D;
+draw(1.3*X-.3*Y--1.3*Y-.3*X);
+
+X=G;
+Y=F;
+draw(1.3*X-.3*Y--1.3*Y-.3*X);
+
+label(""$\ell$"",1.4*A-.4*B);
+label(""$k$"",1.4*F-.4*G);
+
+//label(""$x$"",H+(.4,-.15));
+label(""$a^\circ$"",A+(1,-.1));
+label(""$b^\circ$"",B+(.4,.1));
+label(""$a^\circ$"",B+(-1,.7));
+[/asy]","To solve the problem, we need to analyze the geometric configuration and use the properties of parallel lines and angles.
+
+Given:
+- Lines \(k\) and \(\ell\) are parallel.
+- One angle is \(30^\circ\) and another angle is \(90^\circ\).
+- We need to find the measure of angle \(x\) in terms of \(a\) and \(b\).
+
+From the diagram, we can see that there are two parallel lines \(k\) and \(\ell\), and a transversal that intersects these lines forming several angles. The given angles are \(a^\circ\) and \(b^\circ\).
+
+Let's denote the angles as follows:
+- Angle \(a^\circ\) is the angle formed on one side of the transversal.
+- Angle \(b^\circ\) is the angle formed on the other side of the transversal.
+- Angle \(x\) is the angle we need to find.
+
+Since \(k\) and \(\ell\) are parallel, the corresponding angles formed by the transversal are equal. The angle \(x\) is an alternate interior angle to the angle formed by \(a^\circ\) and \(b^\circ\).
+
+The sum of the angles on a straight line is \(180^\circ\). So, the angle on the straight line corresponding to \(a^\circ\) and \(b^\circ\) is \(180^\circ - (a^\circ + b^\circ)\).
+
+Since \(x\) is an alternate interior angle to this angle, it will be equal to the angle formed by \(a^\circ\) and \(b^\circ\).
+
+Therefore, the measure of angle \(x\) is \(a^\circ + b^\circ\).
+
+Let's confirm this with the given choices.
+
+The answer is:
+\[
+\boxed{a^\circ + b^\circ}
+\]
+
+This matches choice D in the provided options.",,Adds angles that should be related by a linear pair,(no description: json_parse_error),Misidentifies the angle relationship and equates an angle to a sum.,Treats an angle supplementary to a sum as equal to that sum,,,json_parse_error,Invalid \escape: line 1 column 131 (char 130),0,True,True,False,,False,0,"{""extent"": ""not obvious error"", ""difficulty_file"": ""challenging"", ""subset"": ""check_type_answer""}",,,,
+mathclean,mathclean:4c014f9227789706,dev,computing error,"Jay has decided to save money from his paycheck every week, increasing the amount he saves each week by 10 dollars. If he started by saving 20 dollars this week, how much will he have saved in total by the end of the year? Additionally, if Jay decides to double his savings for each of the 4 weeks in December, how much will he have saved by the end of the year?","I'd be happy to help with the question!
+
+Let's break it down step by step:
+
+**Part 1: Jay's weekly savings**
+
+Jay starts by saving $20 per week. Each week, he increases his savings by $10. To find out how much he will save in a year, we need to find the total amount he will save in a year.
+
+Since there are 52 weeks in a year, we can set up a formula:
+
+Weekly savings = 20 + (10 × number of weeks)
+
+Since Jay starts by saving $20, we can add the weekly increase to his initial savings:
+
+Weekly savings = 20 + (10 × 52)
+= 20 + 520
+= 540
+
+So, Jay will save a total of $540 in a year.
+
+**Part 2: Jay's December savings**
+
+In December, Jay decides to double his savings for 4 weeks. Let's calculate the total amount he will save in December:
+
+Weekly savings in December = 2 × (20 + 10)
+= 2 × 30
+= 60
+
+Since there are 4 weeks in December, the total savings in December will be:
+
+Total savings in December = 60 × 4
+= 240
+
+**Total savings by the end of the year**
+
+Now, let's add the total savings in a year (excluding December) to the total savings in December:
+
+Total savings by the end of the year = $540 (from Part 1) + $240 (from Part 2)
+= 540 + 240
+= 780
+
+Therefore, Jay will have saved a total of $780 by the end of the year.
+
+Answer: Jay will have saved a total of $780 by the end of the year, and if he doubles his savings for 4 weeks in December, he will add an extra $240 to his total savings.",Uses one week's savings amount instead of summing weekly savings.,Computes the arithmetic progression sum incorrectly,Confuses the final term of an arithmetic sequence with its cumulative total,Confuses the final weekly amount with the total accumulated amount.,Confuses a term in an arithmetic sequence with its cumulative sum,"Weekly savings = 20 + (10 × 52)
+= 20 + 520
+= 540
+
+So, Jay will save a total of $540 in a year.",ok,ok,,10,False,False,False,savings,True,1,"{""extent"": ""obvious error"", ""difficulty_file"": ""simple"", ""subset"": ""check_type_answer""}",,,,
+mathclean,mathclean:4f4f06b721d19046,dev,computing error,"Camden just bought 3/4 times as many dogs as Rico, who has 15 more dogs than Justin. If Justin has 12 dogs, and each dog has 4 legs, what's the total number of legs that Camden's dogs have?","To solve the problem step by step, let's break it down into smaller parts:
+
+1. Determine the number of dogs Rico has.
+2. Determine the number of dogs Camden has.
+3. Calculate the total number of legs Camden's dogs have.
+
+**Step 1: Determine the number of dogs Rico has.**
+
+Justin has 12 dogs. Rico has 15 more dogs than Justin.
+\[
+\text{Number of dogs Rico has} = 12 + 15 = 27
+\]
+
+**Step 2: Determine the number of dogs Camden has.**
+
+Camden just bought \(\frac{3}{4}\) times as many dogs as Rico.
+\[
+\text{Number of dogs Camden has} = \frac{3}{4} \times 27 = \frac{81}{4} = 20.25
+\]
+Since the number of dogs must be a whole number, we assume the problem context allows for fractional dogs or there might be a rounding or interpretation issue. However, we will proceed with the exact value as given.
+
+**Step 3: Calculate the total number of legs Camden's dogs have.**
+
+Each dog has 4 legs. Therefore, the total number of legs Camden's dogs have is:
+\[
+\text{Total number of legs} = 20.25 \times 4 = 81
+\]
+
+So, the total number of legs that Camden's dogs have is \(\boxed{81}\).",,Uses a fractional result instead of a whole number count,(no description: label_conflict),(no description: label_conflict),(no description: label_conflict),\frac{3}{4} \times 27 = \frac{81}{4} = 20.25,label_conflict,ok,,0,True,True,False,,True,0,"{""extent"": ""not obvious error"", ""difficulty_file"": ""simple"", ""subset"": ""check_type_answer""}",,,,
+mathclean,mathclean:58c90e44dcbf9643,dev,computing error,"A regular 12-gon is inscribed in a circle of radius 12. If the length of each side of the 12-gon increases by 1 unit every month, starting from its original length, find the sum of the lengths of all sides and diagonals of the 12-gon at the end of the year. Express your answer in the form \[a + b \sqrt{2} + c \sqrt{3} + d \sqrt{6},\] where \(a\), \(b\), \(c\), and \(d\) are positive integers. Find \(a + b + c + d\).","To solve this problem, we need to first determine the original length of each side of the 12-gon inscribed in a circle of radius 12, and then find the length of each side and diagonal after 12 months, when each side has increased by 1 unit.
+
+### Step 1: Calculate the original side length of the 12-gon
+
+The length \(s\) of each side of a regular \(n\)-gon inscribed in a circle of radius \(r\) is given by:
+\[ s = 2r \sin\left(\frac{\pi}{n}\right) \]
+
+For a 12-gon (\(n = 12\)) with radius \(r = 12\):
+\[ s = 2 \cdot 12 \sin\left(\frac{\pi}{12}\right) = 24 \sin\left(\frac{\pi}{12}\right) \]
+
+We know that:
+\[ \sin\left(\frac{\pi}{12}\right) = \sin(15^\circ) = \frac{\sqrt{6} - \sqrt{2}}{4} \]
+
+Therefore, the original side length is:
+\[ s = 24 \cdot \frac{\sqrt{6} - \sqrt{2}}{4} = 6(\sqrt{6} - \sqrt{2}) \]
+
+### Step 2: Calculate the length of each side after 12 months
+
+After 12 months, each side length increases by 1 unit, so the new side length is:
+\[ s_{\text{new}} = 6(\sqrt{6} - \sqrt{2}) + 1 \]
+
+### Step 3: Calculate the length of each diagonal
+
+For a regular \(n\)-gon, the length of a diagonal that skips \(k\) vertices (where \(1 \leq k \leq \frac{n}{2}\)) is given by:
+\[ d_k = 2r \sin\left(\frac{k\pi}{n}\right) \]
+
+For \(n = 12\):
+\[ d_k = 24 \sin\left(\frac{k\pi}{12}\right) \]
+
+We need to calculate the lengths for \(k = 1, 2, 3\), and then for \(k = 1, 2, 3\) again after increasing the side length by 1 unit.
+
+- For \(k = 1\):
+  \[ d_1 = 24 \sin\left(\frac{\pi}{12}\right) = 24 \cdot \frac{\sqrt{6} - \sqrt{2}}{4} = 6(\sqrt{6} - \sqrt{2}) \]
+
+- For \(k = 2\):
+  \[ d_2 = 24 \sin\left(\frac{2\pi}{12}\right) = 24 \sin\left(\frac{\pi}{6}\right) = 24 \cdot \frac{1}{2} = 12 \]
+
+- For \(k = 3\):
+  \[ d_3 = 24 \sin\left(\frac{3\pi}{12}\right) = 24 \sin\left(\frac{\pi}{4}\right) = 24 \cdot \frac{\sqrt{2}}{2} = 12\sqrt{2} \]
+
+After 12 months, each diagonal increases by 1 unit:
+- \(d_1' = 6(\sqrt{6} - \sqrt{2}) + 1\)
+- \(d_2' = 12 + 1 = 13\)
+- \(d_3' = 12\sqrt{2} + 1\)
+
+### Step 4: Sum of the lengths of all sides and diagonals
+
+- There are 12 sides, each of length \(6(\sqrt{6} - \sqrt{2}) + 1\):
+  \[ 12 \times (6(\sqrt{6} - \sqrt{2}) + 1) = 72(\sqrt{6} - \sqrt{2}) + 12 \]
+
+- There are 6 diagonals of length \(6(\sqrt{6} - \sqrt{2}) + 1\):
+  \[ 6 \times (6(\sqrt{6} - \sqrt{2}) + 1) = 36(\sqrt{6} - \sqrt{2}) + 6 \]
+
+- There are 6 diagonals of length \(12 + 1 = 13\):
+  \[ 6 \times 13 = 78 \]
+
+- There are 6 diagonals of length \(12\sqrt{2} + 1\):
+  \[ 6 \times (12\sqrt{2} + 1) = 72\sqrt{2} + 6 \]
+
+Summing all these:
+\[ 72(\sqrt{6} - \sqrt{2}) + 12 + 36(\sqrt{6} - \sqrt{2}) + 6 + 78 + 72\sqrt{2} + 6 \]
+\[ = (72 + 36)\sqrt{6} + (72 - 36 - 72)\sqrt{2} + (12 + 6 + 78 + 6) \]
+\[ = 108\sqrt{6} - 36\sqrt{2} + 102 \]
+
+Thus, the expression is:
+\[ 102 - 36\sqrt{2} + 108\sqrt{6} \]
+
+So, \(a = 102\), \(b = -36\), \(c = 108\), \(d = 0\).
+
+The sum \(a + b + c + d\) is:
+\[ 102 - 36 + 108 + 0 = 174 \]
+
+Therefore, the final answer is:
+\[ \boxed{174} \]",Does not accumulate repeated monthly increases,Treats increased side lengths as if all diagonals increased too,Applies only one monthly increase instead of accumulating all monthly increases,Omits several classes of diagonals from the total sum,Adds only one increment after multiple periods of increase,"After 12 months, each side length increases by 1 unit",ok,ok,,6,False,False,False,increases,True,1,"{""extent"": ""not obvious error"", ""difficulty_file"": ""challenging"", ""subset"": ""check_type_answer""}",,,,
+mathclean,mathclean:6c8605b2eb64ed2b,dev,expression error,"The line $y = 3x - 11$ is parameterized by the form
+\[\begin{pmatrix} x \\ y \end{pmatrix} = \begin{pmatrix} r \\ 1 \end{pmatrix} + t \begin{pmatrix} 4 \\ k \end{pmatrix}.\]
+Now, consider a line $y = 5x - 23$ that is parameterized by the form
+\[\begin{pmatrix} x \\ y \end{pmatrix} = \begin{pmatrix} s \\ 2 \end{pmatrix} + u \begin{pmatrix} 6 \\ m \end{pmatrix}.\]
+Enter the ordered pair $(s,m).$","To find the ordered pair \((s, m)\) for the parametric form of the line \(y = 5x - 23\), we need to match the parametric form to the slope-intercept form of the line. The parametric form given is:
+\[
+\begin{pmatrix} x \\ y \end{pmatrix} = \begin{pmatrix} s \\ 2 \end{pmatrix} + u \begin{pmatrix} 6 \\ m \end{pmatrix}.
+\]
+This can be expanded to:
+\[
+\begin{pmatrix} x \\ y \end{pmatrix} = \begin{pmatrix} s + 6u \\ 2 + mu \end{pmatrix}.
+\]
+From this, we can express \(y\) in terms of \(x\):
+\[
+y = 2 + mu \quad \text{and} \quad x = s + 6u.
+\]
+Solving for \(u\) in terms of \(x\), we get:
+\[
+u = \frac{x - s}{6}.
+\]
+Substituting this into the equation for \(y\), we get:
+\[
+y = 2 + m \left( \frac{x - s}{6} \right) = 2 + \frac{m}{6} x - \frac{ms}{6} = \frac{m}{6} x + \left( 2 - \frac{ms}{6} \right).
+\]
+This must match the slope-intercept form of the line \(y = 5x - 23\). Therefore, we can equate the coefficients of \(x\) and the constant terms:
+\[
+\frac{m}{6} = 5 \quad \text{and} \quad 2 - \frac{ms}{6} = -23.
+\]
+First, solve for \(m\):
+\[
+m = 5 \cdot 6 = 30.
+\]
+Next, substitute \(m = 30\) into the second equation:
+\[
+2 - \frac{30s}{6} = -23.
+\]
+Simplify the equation:
+\[
+2 - 5s = -23.
+\]
+Subtract 2 from both sides:
+\[
+-5s = -25.
+\]
+Divide both sides by -5:
+\[
+s = 5.
+\]
+Thus, the ordered pair \((s, m)\) is:
+\[
+\boxed{(5, 30)}.
+\]",,Substitutes the wrong coordinate into the parametric equations,(no description: label_conflict),(no description: label_conflict),(no description: label_conflict),"Thus, the ordered pair \((s, m)\) is: \(\boxed{(5, 30)}\).",label_conflict,ok,,0,True,True,False,,False,0,"{""extent"": ""not obvious error"", ""difficulty_file"": ""challenging"", ""subset"": ""check_type_answer""}",,,,
+mathclean,mathclean:761b74e99ae62496,dev,logic error,"What is the greatest common factor of 360 and 144, and if each number is increased by 25%, what is the new greatest common factor?","I'd be happy to help you with that!
+
+To solve this problem, we'll need to follow a few steps:
+
+1. Find the greatest common factor (GCF) of 360 and 144.
+2. Increase each number by 25%.
+3. Find the GCF of the new numbers.
+
+Let's start!
+
+Step 1: Find the GCF of 360 and 144.
+
+The factors of 360 are: 1, 2, 3, 4, 5, 6, 8, 9, 10, 12, 15, 18, 20, 24, 30, 36, 40, 45, 60, 72, 90, 120, 180, 360.
+
+The factors of 144 are: 1, 2, 3, 4, 6, 8, 9, 12, 16, 18, 24, 36, 48, 72, 144.
+
+The common factors of 360 and 144 are: 1, 2, 3, 4, 6, 12.
+
+So, the greatest common factor (GCF) of 360 and 144 is 12.
+
+Step 2: Increase each number by 25%.
+
+360 × 1.25 = 450
+144 × 1.25 = 180
+
+Step 3: Find the GCF of the new numbers.
+
+The factors of 450 are: 1, 2, 3, 5, 6, 9, 10, 15, 18, 25, 30, 45, 50, 75, 90, 150, 225, 450.
+
+The factors of 180 are: 1, 2, 3, 4, 5, 6, 9, 10, 12, 15, 18, 20, 30, 36, 45, 60, 90, 180.
+
+The common factors of 450 and 180 are: 1, 2, 3, 5, 6, 9, 10, 15, 18, 30, 45.
+
+So, the greatest common factor (GCF) of 450 and 180 is 15.
+
+Therefore, the answer is: The new GCF is 15.",Overlooks common factors when determining the greatest common factor,Computes the new common factor after scaling incorrectly,Omits larger common factors when identifying the greatest common factor,Omits shared factors and identifies a non-greatest common factor.,Selects a common factor that is not the greatest,"The common factors of 450 and 180 are: 1, 2, 3, 5, 6, 9, 10, 15, 18, 30, 45.",ok,ok,,9,False,False,False,"common, factor, greatest",True,1,"{""extent"": ""not obvious error"", ""difficulty_file"": ""challenging"", ""subset"": ""check_type_answer""}",,,,
+mathclean,mathclean:8351714360a1cde0,dev,expression error,"Keaton climbed a 30-foot ladder 20 times while working at a construction site. Reece, also working at the same site, climbed a ladder 5 feet taller than Keaton's ladder 10 times. If both workers then climbed a 25-foot ladder 15 times each, what is the total length of the ladders that both workers climbed, in inches?","To determine the total length of the ladders that both workers climbed, we need to calculate the total length of ladders each worker climbed and then sum these two totals. We will follow these steps:
+
+1. Calculate the total length of ladders Keaton climbed.
+2. Calculate the total length of ladders Reece climbed.
+3. Sum the total lengths climbed by both workers.
+4. Convert the total length from feet to inches.
+
+**Step 1: Calculate the total length of ladders Keaton climbed.**
+
+Keaton climbed a 30-foot ladder 20 times, and then climbed a 25-foot ladder 15 times.
+\[
+\text{Total length Keaton climbed} = (30 \text{ feet} \times 20) + (25 \text{ feet} \times 15) = 600 \text{ feet} + 375 \text{ feet} = 975 \text{ feet}
+\]
+
+**Step 2: Calculate the total length of ladders Reece climbed.**
+
+Reece climbed a ladder 5 feet taller than Keaton's ladder, so he climbed a 35-foot ladder 10 times, and then climbed a 25-foot ladder 15 times.
+\[
+\text{Total length Reece climbed} = (35 \text{ feet} \times 10) + (25 \text{ feet} \times 15) = 350 \text{ feet} + 375 \text{ feet} = 725 \text{ feet}
+\]
+
+**Step 3: Sum the total lengths climbed by both workers.**
+
+\[
+\text{Total length climbed by both workers} = 975 \text{ feet} + 725 \text{ feet} = 1700 \text{ feet}
+\]
+
+**Step 4: Convert the total length from feet to inches.**
+
+Since there are 12 inches in a foot, we convert 1700 feet to inches as follows:
+\[
+1700 \text{ feet} \times 12 \text{ inches/foot} = 20400 \text{ inches}
+\]
+
+The total length of the ladders that both workers climbed is \(\boxed{20400}\) inches.",,Adds the repeated climbs instead of using the ladder length once per worker,(no description: label_conflict),(no description: label_conflict),(no description: label_conflict),(30 feet × 20) + (25 feet × 15) = 600 feet + 375 feet = 975 feet,label_conflict,ok,,0,True,True,False,,False,0,"{""extent"": ""not obvious error"", ""difficulty_file"": ""simple"", ""subset"": ""check_type_answer""}",,,,
+mathclean,mathclean:9ac6eb03c135487d,dev,logic error,"Dan is digging graves for a family affected by a tragedy. Initially, it takes him 3 hours to dig an adult grave and 2 hours to dig a child's grave. However, as he continues digging, he becomes more efficient, reducing the time it takes to dig each subsequent adult grave by 15 minutes and each child's grave by 10 minutes. How long does it take him to dig 5 adult graves and one child's grave?","To solve this problem, we need to calculate the time Dan spends digging 5 adult graves and 1 child's grave, taking into account his decreasing efficiency over time.
+
+1. Initially, it takes Dan 3 hours to dig an adult grave and 2 hours to dig a child's grave.
+2. For each subsequent adult grave, the time decreases by 15 minutes (0.25 hours).
+3. For each subsequent child's grave, the time decreases by 10 minutes (0.1667 hours).
+
+Let's break down the calculation:
+
+- Time to dig the first adult grave: 3 hours.
+- Time to dig the second adult grave: 3 - 0.25 = 2.75 hours.
+- Time to dig the third adult grave: 2.75 - 0.25 = 2.5 hours.
+- Time to dig the fourth adult grave: 2.5 - 0.25 = 2.25 hours.
+- Time to dig the fifth adult grave: 2.25 - 0.25 = 2 hours.
+- Time to dig the first child's grave: 2 hours.
+
+Now, let's sum these times to get the total time spent digging all the graves.
+
+We can use Python to calculate this accurately.
+```python
+# Initial times
+initial_adult_time = 3  # hours
+initial_child_time = 2  # hours
+
+# Decrease in time per subsequent grave
+adult_decrease = 0.25  # hours
+child_decrease = 0.1667  # hours
+
+# Calculate the time for each adult grave
+adult_times = [initial_adult_time - i * adult_decrease for i in range(5)]
+
+# Time for the child's grave
+child_time = initial_child_time
+
+# Total time spent digging
+total_time = sum(adult_times) + child_time
+print(total_time)
+```
+```output
+13.75
+```
+The total time Dan spends digging 5 adult graves and 1 child's grave is \(\boxed{13.75}\) hours.",Makes an arithmetic error when summing the individual times,Treats each grave type separately instead of continuing the decreasing times across all graves,Calculates the final sum incorrectly,(no description: label_conflict),Misadds the individual times when calculating the total,The total time Dan spends digging 5 adult graves and 1 child's grave is \(\boxed{13.75}\) hours.,ok,ok,,9,False,False,False,,True,1,"{""extent"": ""obvious error"", ""difficulty_file"": ""simple"", ""subset"": ""check_type_answer""}",,,,
+mathclean,mathclean:ac388a1e13e59c4a,dev,expression error,"How many zeros are at the end of the product when James multiplies 25 by the number of pages he writes in a week, given he writes a 3-page letter to 2 different friends twice a week?","Let's break down the problem step by step!
+
+The question states that James writes a 3-page letter to 2 different friends twice a week. This means he writes a total of 3 x 2 = 6 pages per week.
+
+Now, we need to find the total number of pages James writes in a year. There are 52 weeks in a year, so the total number of pages he writes in a year is:
+
+6 pages/week x 52 weeks/year = 312 pages/year
+
+Now, we need to find the number of zeros at the end of the product when James multiplies 25 by the number of pages he writes in a year.
+
+25 x 312 = ?
+
+First, let's multiply the numbers:
+
+25 x 300 = 7500
+
+Then, multiply 25 by the remaining digits:
+
+25 x 12 = 300
+
+Now, add the results:
+
+7500 + 300 = 7800
+
+The answer is: James will have 3 zeros at the end of the product when he multiplies 25 by the number of pages he writes in a year, which is 7800.",Omits a frequency factor when calculating a repeated total,Uses the wrong quantity in the final multiplication,Omits the repeated frequency when calculating the weekly total,Introduces an unsupported annual conversion instead of using the weekly quantity.,Omits a frequency factor when calculating a weekly total,This means he writes a total of 3 x 2 = 6 pages per week.,ok,ok,,7,False,False,False,when,True,1,"{""extent"": ""obvious error"", ""difficulty_file"": ""challenging"", ""subset"": ""check_type_answer""}",,,,
+mathedu,mathedu:60261eb873f04768,dev,Comprehension error,find the principle on a certain sum of money at 5 % per annum for 2 2 / 5 years if the amount being rs . 1904 ?,Assume the money is $x$ $$ \begin{aligned} & {\left[1+\left(5 \% \times \frac{22}{5}\right)\right] \cdot x=1904} \\ & \Rightarrow 1.22 x=1904 \\ & \Rightarrow x=1904 \div 1.22 = 1560.66 \end{aligned} $$,Converts a mixed number to an improper fraction incorrectly,Uses a simple-interest formula incorrectly by treating the rate-time product as a decimal factor,Converts a mixed number to the wrong improper fraction,Converts a mixed number to an improper fraction incorrectly.,Treats a mixed number as an improper fraction by joining its digits,5 \% \times \frac{22}{5},ok,ok,,8,False,False,False,,True,1,"{""student_id"": 2, ""student_answer"": ""1560.66"", ""correct_or_not"": ""wrong"", ""the_reason_why_student_cant_solve_ch"": """", ""the_reason_why_student_cant_solve_en"": """", ""mathedu_id"": 35200, ""mathedu_split_file"": ""train"", ""error_counts"": 1, ""teacher_review_errors"": [{""error_type"": ""Comprehension error"", ""error_equation"": ""{\\left[1+\\left(5 \\% \\times \\frac{22}{5}\\right)\\right] \\cdot x=1904}"", ""teacher_advice_ch"": ""題目理解錯誤，持續時間為12/5年，而不是22/5"", ""teacher_advice_en"": ""The question is incorrectly interpreted. The duration is 12/5 years, not 22/5.""}], ""mathqa_options"": ""a ) 1700 , b ) 2777 , c ) 2889 , d ) 27670 , e ) 2771"", ""mathqa_correct"": ""a"", ""mathqa_category"": ""general"", ""mathqa_rationale"": ""\""1904 = p [ 1 + ( 5 * 12 / 5 ) / 100 ] p = 1700 . answer : a\"""", ""error_equation"": ""{\\left[1+\\left(5 \\% \\times \\frac{22}{5}\\right)\\right] \\cdot x=1904}"", ""teacher_advice_en"": ""The question is incorrectly interpreted. The duration is 12/5 years, not 22/5."", ""teacher_advice_ch"": ""題目理解錯誤，持續時間為12/5年，而不是22/5""}",,,,
+mathedu,mathedu:68ba79b4b13409c8,dev,Comprehension error,albert is 2 times mary ’ s age and 4 times as old as betty . mary is 12 years younger than albert . how old is betty ?,\begin{aligned} & \text { Let betty } =x \text { years old } \\ & 4 x=2 x+12 \\ & x=6 \quad A: 24 \end{aligned},Reports a related quantity instead of the requested variable,Sets up the age relationship backward,Reports a related quantity instead of the requested quantity,Equates age relationships without defining all variables consistently.,Reports a different quantity instead of the one asked for,x=6 \quad A: 24,ok,ok,,8,False,False,False,,True,1,"{""student_id"": 6, ""student_answer"": ""24"", ""correct_or_not"": ""wrong"", ""the_reason_why_student_cant_solve_ch"": """", ""the_reason_why_student_cant_solve_en"": """", ""mathedu_id"": 36811, ""mathedu_split_file"": ""val"", ""error_counts"": 1, ""teacher_review_errors"": [{""error_type"": ""Comprehension error"", ""error_equation"": ""A: 24"", ""teacher_advice_ch"": ""題目是詢問betty的年齡而不是albert 的年齡，因此計算出的x=6即為答案"", ""teacher_advice_en"": ""The question asks for Betty's age, not Albert's age, so the calculated x=6 is the answer.""}], ""mathqa_options"": ""a ) 6 , b ) 12 , c ) 10 , d ) 15 , e ) 18"", ""mathqa_correct"": ""a"", ""mathqa_category"": ""general"", ""mathqa_rationale"": ""\""a = 2 m = m + 12 m = 12 a = 24 a = 4 b , and so b = 6 the answer is a .\"""", ""error_equation"": ""A: 24"", ""teacher_advice_en"": ""The question asks for Betty's age, not Albert's age, so the calculated x=6 is the answer."", ""teacher_advice_ch"": ""題目是詢問betty的年齡而不是albert 的年齡，因此計算出的x=6即為答案""}",,,,
+mathedu,mathedu:6c489513c81f01f3,dev,Measurement error,"a hall 36 m long and 15 m broad is to be paved with stones , each measuring 8 dm by 5 dm . the number of stones required is :",\begin{aligned} & 36 \times 15=540 \\ & 540 \div(8 \times 5)=13.5 \\ & 13+1=14 \end{aligned},Fails to convert units before comparing areas,Uses inconsistent units in a measurement calculation,Fails to convert measurements to consistent units before calculating area,Divides areas expressed in incompatible measurement units.,Divides areas measured in different units without converting them first,540 \div(8 \times 5)=13.5,ok,ok,,7,False,False,False,,True,1,"{""student_id"": 5, ""student_answer"": ""14"", ""correct_or_not"": ""wrong"", ""the_reason_why_student_cant_solve_ch"": """", ""the_reason_why_student_cant_solve_en"": """", ""mathedu_id"": 13427, ""mathedu_split_file"": ""train"", ""error_counts"": 1, ""teacher_review_errors"": [{""error_type"": ""Measurement error"", ""error_equation"": ""540 \\div(8 \\times 5)=13.5"", ""teacher_advice_ch"": ""運算前應先進行單位轉換，轉換的比值為1 m為 10dm，因此正確運算方法為540/(0.8*0.5)=1350"", ""teacher_advice_en"": ""Before calculation, unit conversion should be done first. The conversion ratio is 1 m to 10 dm. Therefore, the correct calculation method is 540/(0.8*0.5)=1350.""}], ""mathqa_options"": ""a ) 180 , b ) 1800 , c ) 18 , d ) 18000 , e ) 1350"", ""mathqa_correct"": ""e"", ""mathqa_category"": ""physics"", ""mathqa_rationale"": ""\""area of the hall = 3600 * 1500 area of each stone = ( 80 * 50 ) therefore , number of stones = ( 3600 * 1500 / 80 * 50 ) = 1350 answer : e\"""", ""error_equation"": ""540 \\div(8 \\times 5)=13.5"", ""teacher_advice_en"": ""Before calculation, unit conversion should be done first. The conversion ratio is 1 m to 10 dm. Therefore, the correct calculation method is 540/(0.8*0.5)=1350."", ""teacher_advice_ch"": ""運算前應先進行單位轉換，轉換的比值為1 m為 10dm，因此正確運算方法為540/(0.8*0.5)=1350""}",,,,
+mathedu,mathedu:948a148769331105,dev,Careless error,"a rectangular field is to be fenced on three sides leaving a side of 20 feet uncovered . if the area of the field is 210 sq . feet , how many feet of fencing will be required ?",\begin{aligned} & 210 \div 20=10.5 \\ & 10.5+10.5+21=42 \end{aligned},Uses an incorrect side length in the perimeter calculation,Uses the area to infer side lengths incorrectly,Changes a given measurement during the final addition,Uses an incorrect side length when adding the fenced sides.,Uses an incorrect side length when adding the fenced sides,10.5+10.5+21=42,ok,ok,,9,False,False,False,side,True,1,"{""student_id"": 6, ""student_answer"": ""42"", ""correct_or_not"": ""wrong"", ""the_reason_why_student_cant_solve_ch"": """", ""the_reason_why_student_cant_solve_en"": """", ""mathedu_id"": 16101, ""mathedu_split_file"": ""train"", ""error_counts"": 1, ""teacher_review_errors"": [{""error_type"": ""Careless error"", ""error_equation"": ""10.5+10.5+21=42"", ""teacher_advice_ch"": ""看錯題目數字導致錯誤，長方形的邊為20英尺不是21英尺，因此正確過程為10.5*2+20=41"", ""teacher_advice_en"": ""The student made a mistake in reading the problem. The length of the rectangular field is 20 feet, not 21 feet. Therefore, the correct solution is: 10.5 * 2 + 20 = 41""}], ""mathqa_options"": ""a ) 34 , b ) 41 , c ) 68 , d ) 88 , e ) none"", ""mathqa_correct"": ""b"", ""mathqa_category"": ""geometry"", ""mathqa_rationale"": ""\""explanation we have : l = 20 ft and lb = 210 sq . ft . so , b = 10.5 ft . length of fencing = ( l + 2 b ) = ( 20 + 21 ) ft = 41 ft . answer b\"""", ""error_equation"": ""10.5+10.5+21=42"", ""teacher_advice_en"": ""The student made a mistake in reading the problem. The length of the rectangular field is 20 feet, not 21 feet. Therefore, the correct solution is: 10.5 * 2 + 20 = 41"", ""teacher_advice_ch"": ""看錯題目數字導致錯誤，長方形的邊為20英尺不是21英尺，因此正確過程為10.5*2+20=41""}",,,,
+mathedu,mathedu:94d996d1af0f0a3f,dev,Lack of necessary mathematical concepts,the present worth of a certain bill due sometime hence is rs . 1296 and the true discount is rs . 72 . what is the banker ' s discount ?,1296-72=1224,Uses subtraction instead of the relationship between true and banker’s discounts,Subtracts the discount from present worth instead of using the proper discount relation,Subtracts true discount from present worth instead of calculating banker’s discount,Subtracts the discount from present worth instead of finding banker's discount.,Subtracts true discount from present value to find banker’s discount,1296-72=1224,ok,ok,,11,False,False,False,"banker, true",True,1,"{""student_id"": 6, ""student_answer"": ""none"", ""correct_or_not"": ""wrong"", ""the_reason_why_student_cant_solve_ch"": ""不知道後續怎麼解"", ""the_reason_why_student_cant_solve_en"": ""Not knowing how to proceed with the calculation"", ""mathedu_id"": 37222, ""mathedu_split_file"": ""train"", ""error_counts"": 1, ""teacher_review_errors"": [{""error_type"": ""Lack of necessary mathematical concepts"", ""error_equation"": ""None"", ""teacher_advice_ch"": ""這題所使用到的計算公式為 banker's gain =  (true discount)^ 2 / present worth和banker's gain = banker's discount – true discount，因此計算過程應為722 / 1296 = 72 × 72 / 1296 = 12 × 12 / 36 = 12 / 3 = rs . 4， 72+4=76"", ""teacher_advice_en"": ""The formula used in this question is: banker's gain = (true discount)^ 2 / present worth and banker's gain = banker's discount – true discount, so the calculation process should be 722 / 1296 = 72 × 72 / 1296 = 12 × 12 / 36 = 12 / 3 = rs . 4, 72+4=76""}], ""mathqa_options"": ""a ) rs . 76 , b ) rs . 72 , c ) rs . 74 , d ) rs . 4 , e ) none of these"", ""mathqa_correct"": ""a"", ""mathqa_category"": ""gain"", ""mathqa_rationale"": ""explanation : bg = ( td ) 2 / pw = 722 / 1296 = 72 × 72 / 1296 = 12 × 12 / 36 = 12 / 3 = rs . 4 bg = bd – td = > 4 = bd - 72 = > bd = 72 + 4 = rs . 76 answer : option a"", ""error_equation"": ""None"", ""teacher_advice_en"": ""The formula used in this question is: banker's gain = (true discount)^ 2 / present worth and banker's gain = banker's discount – true discount, so the calculation process should be 722 / 1296 = 72 × 72 / 1296 = 12 × 12 / 36 = 12 / 3 = rs . 4, 72+4=76"", ""teacher_advice_ch"": ""這題所使用到的計算公式為 banker's gain =  (true discount)^ 2 / present worth和banker's gain = banker's discount – true discount，因此計算過程應為722 / 1296 = 72 × 72 / 1296 = 12 × 12 / 36 = 12 / 3 = rs . 4， 72+4=76""}",,,,
+mathedu,mathedu:a471cc9af71232d7,dev,Algebraic error,"a line that passes through ( – 1 , – 4 ) and ( 2 , k ) has a slope = k . what is the value of k ?",\begin{aligned} & \frac{-4-k}{-1-2}=k \\ & -3 k=-4-k \\ & 2 k=-4 \\ & k=-2 \end{aligned},Makes a sign error when rearranging an equation,Fails to isolate the variable correctly after setting up the slope equation,Makes a sign error when rearranging the equation,Makes a sign error when rearranging a linear equation,Loses a negative sign when combining like terms,& 2 k=-4,ok,ok,,7,False,False,False,,True,1,"{""student_id"": 5, ""student_answer"": ""-2"", ""correct_or_not"": ""wrong"", ""the_reason_why_student_cant_solve_ch"": """", ""the_reason_why_student_cant_solve_en"": """", ""mathedu_id"": 36298, ""mathedu_split_file"": ""train"", ""error_counts"": 1, ""teacher_review_errors"": [{""error_type"": ""Algebraic error"", ""error_equation"": ""-3 k=-4-k \\\\ & 2 k=-4"", ""teacher_advice_ch"": ""方程式運算錯誤，-3k=-4-k正確應為2k=4，而不是2k=-4"", ""teacher_advice_en"": ""The equation is incorrect. -3k=-4-k should be 2k=4, not 2k=-4.""}], ""mathqa_options"": ""a ) 3 / 4 , b ) 1 , c ) 4 / 3 , d ) 2 , e ) 7 / 2"", ""mathqa_correct"": ""d"", ""mathqa_category"": ""general"", ""mathqa_rationale"": ""\""slope = ( y 2 - y 1 ) / ( x 2 - x 1 ) = > k = ( k + 4 ) / ( 2 + 1 ) = > 3 k = k + 4 = > k = 2 ans d it is !\"""", ""error_equation"": ""-3 k=-4-k \\\\ & 2 k=-4"", ""teacher_advice_en"": ""The equation is incorrect. -3k=-4-k should be 2k=4, not 2k=-4."", ""teacher_advice_ch"": ""方程式運算錯誤，-3k=-4-k正確應為2k=4，而不是2k=-4""}",,,,
+mathedu,mathedu:b5f53761609669b9,dev,Wrong mathematical operation/concept,"in a certain alphabet , 8 letters contain a dot and a straight line . 24 letters contain a straight line but do not contain a dot . if that alphabet has 40 letters , all of which contain either a dot or a straight line or both , how many letters contain a dot but do not contain a straight line ?",Only dot : $x$ $$ \begin{aligned} & x+24-8=40 \\ & x=24 \end{aligned} $$,Subtracts the overlap instead of adding all disjoint categories,Treats the overlap adjustment with the wrong operation,Subtracts the overlap when counting mutually exclusive categories,Subtracts the overlap instead of adding it when finding the total.,Subtracts the intersection when adding categories that already exclude it.,x+24-8=40,ok,ok,,9,False,False,False,,True,1,"{""student_id"": 1, ""student_answer"": ""24"", ""correct_or_not"": ""wrong"", ""the_reason_why_student_cant_solve_ch"": """", ""the_reason_why_student_cant_solve_en"": """", ""mathedu_id"": 2620, ""mathedu_split_file"": ""train"", ""error_counts"": 1, ""teacher_review_errors"": [{""error_type"": ""Wrong mathematical operation/concept"", ""error_equation"": ""x+24-8=40"", ""teacher_advice_ch"": ""學生搞錯集合之間的關係，包含一個點和一條直線的8個字母並不是包含一條直線但不包含點的24個字母和包含點但不包含直線的交集，他們彼此之間是互斥的，正確算式為 x+24+8=40"", ""teacher_advice_en"": ""The student has misunderstood the relationship between the sets. The 8 letters that contain both a dot and a straight line are not the intersection of the 24 letters that contain a straight line but not a dot and the letters that contain a dot but not a straight line. They are mutually exclusive. The correct equation is x + 24 + 8 = 40.""}], ""mathqa_options"": ""a ) 4 , b ) 8 , c ) 14 , d ) 20 , e ) 28"", ""mathqa_correct"": ""b"", ""mathqa_category"": ""other"", ""mathqa_rationale"": ""\""we are told that all of the letters contain either a dot or a straight line or both , which implies that there are no letters without a dot and a line ( no line / no dot box = 0 ) . first we find the total # of letters with lines : 8 + 24 = 32 ; next , we find the total # of letters without line : 40 - 32 = 8 ; finally , we find the # of letters that contain a dot but do not contain a straight line : 8 - 0 = 8 . b\"""", ""error_equation"": ""x+24-8=40"", ""teacher_advice_en"": ""The student has misunderstood the relationship between the sets. The 8 letters that contain both a dot and a straight line are not the intersection of the 24 letters that contain a straight line but not a dot and the letters that contain a dot but not a straight line. They are mutually exclusive. The correct equation is x + 24 + 8 = 40."", ""teacher_advice_ch"": ""學生搞錯集合之間的關係，包含一個點和一條直線的8個字母並不是包含一條直線但不包含點的24個字母和包含點但不包含直線的交集，他們彼此之間是互斥的，正確算式為 x+24+8=40""}",,,,
+mathedu,mathedu:ba54115698d61b80,dev,Arithmetical error,a river 2 m deep and 45 m wide is flowing at the rate of 7 kmph the amount of water that runs into the sea per minute is ?,\begin{aligned} & 7 \mathrm{~km} / \mathrm{hr} \\ = & 7000 \mathrm{~m} / \mathrm{hr} \\ = & \frac{7000}{60} \mathrm{~m} / \mathrm{min}=\frac{350}{3} \mathrm{~m} / \mathrm{min} \\ & 2 \times 45 \times \frac{350}{3} \\ = & 2 \times 15 \times 350=30 \times 350=1050 \mathrm{~m}^3 \end{aligned},Makes an arithmetic error when multiplying,Makes an arithmetic multiplication error,Makes an arithmetic error when multiplying the final factors,Makes an arithmetic error when multiplying the final factors.,Drops a zero when multiplying whole numbers,30 \times 350=1050,ok,ok,,6,False,False,False,,True,1,"{""student_id"": 2, ""student_answer"": ""1050"", ""correct_or_not"": ""wrong"", ""the_reason_why_student_cant_solve_ch"": """", ""the_reason_why_student_cant_solve_en"": """", ""mathedu_id"": 4512, ""mathedu_split_file"": ""train"", ""error_counts"": 1, ""teacher_review_errors"": [{""error_type"": ""Arithmetical error"", ""error_equation"": ""30 \\times 350=1050"", ""teacher_advice_ch"": ""計算錯誤，正確計算結果為10500"", ""teacher_advice_en"": ""The calculation is incorrect. The correct answer should be 10500.""}], ""mathqa_options"": ""a ) 4500 m 3 , b ) 4580 m 3 , c ) 10500 m 3 , d ) 4900 m 3 , e ) 4700 m 3"", ""mathqa_correct"": ""c"", ""mathqa_category"": ""physics"", ""mathqa_rationale"": ""\""explanation : ( 7000 * 2 * 45 ) / 60 = 10500 m 3 answer : option c\"""", ""error_equation"": ""30 \\times 350=1050"", ""teacher_advice_en"": ""The calculation is incorrect. The correct answer should be 10500."", ""teacher_advice_ch"": ""計算錯誤，正確計算結果為10500""}",,,,
+mathedu,mathedu:df84fe6066640d86,dev,Unfinished answer,"the amount of time that three people worked on a special project was in the ratio of 2 to 4 to 6 . if the project took 144 hours , how many more hours did the hardest working person work than the person who worked the least ?",144 \times \frac{6}{2+4+6}=72,Finds one part instead of the difference between two parts,Finds only one ratio share instead of the difference between shares,Finds a component amount but does not calculate the requested difference,Stops after finding one person's share without computing the requested difference.,Finds the largest share but does not subtract the smallest share.,144 \times \frac{6}{2+4+6}=72,ok,ok,,10,False,False,False,,True,1,"{""student_id"": 5, ""student_answer"": ""72"", ""correct_or_not"": ""wrong"", ""the_reason_why_student_cant_solve_ch"": """", ""the_reason_why_student_cant_solve_en"": """", ""mathedu_id"": 36472, ""mathedu_split_file"": ""test"", ""error_counts"": 1, ""teacher_review_errors"": [{""error_type"": ""Unfinished answer"", ""error_equation"": ""None"", ""teacher_advice_ch"": ""還需計算出工時最低的人後相減得出工作最努力的人比工作最少的人多工作了多少小時"", ""teacher_advice_en"": ""You also need to calculate the hours worked by the person who worked the least and then subtract that value from the hours worked by the person who worked the most to find the difference in hours worked between the hardest working person and the person who worked the least.""}], ""mathqa_options"": ""a ) 47 hours , b ) 45 hours , c ) 48 hours , d ) 49 hours , e ) 50 hours"", ""mathqa_correct"": ""c"", ""mathqa_category"": ""physics"", ""mathqa_rationale"": ""let the persons be a , b , c . hours worked : a = 2 * 144 / 12 = 24 hours b = 4 * 144 / 12 = 48 hours c = 6 * 144 / 12 = 72 hours c is the hardest worker and a worked for the least number of hours . so the difference is 72 - 24 = 48 hours . answer : c"", ""error_equation"": ""None"", ""teacher_advice_en"": ""You also need to calculate the hours worked by the person who worked the least and then subtract that value from the hours worked by the person who worked the most to find the difference in hours worked between the hardest working person and the person who worked the least."", ""teacher_advice_ch"": ""還需計算出工時最低的人後相減得出工作最努力的人比工作最少的人多工作了多少小時""}",,,,
+mathedu,mathedu:e6503b2efa8c04e9,dev,Wrong mathematical operation/concept,a can do a piece of work in 4 days . b can do it in 9 days . with the assistance of c they completed the work in 2 days . find in how many days can c alone do it ?,\begin{aligned} & \frac{1}{4} a+\frac{1}{9} a+x=2 a \\ & \frac{13}{36} a+x=2 a \\ & x=\frac{59}{36} a \\ & 4 \times \frac{36}{59}=\frac{144}{59} \end{aligned},Confuses elapsed time with completed work when setting up a work-rate equation,Treats work rates as if they were measured in days,Confuses total completion time with the corresponding daily work rate,Equates combined work rates to elapsed time instead of total work.,Uses completion time instead of its reciprocal as the combined work rate,\frac{1}{4} a+\frac{1}{9} a+x=2 a,ok,ok,,11,False,False,False,"completed, with, work",True,1,"{""student_id"": 6, ""student_answer"": ""144/59"", ""correct_or_not"": ""wrong"", ""the_reason_why_student_cant_solve_ch"": """", ""the_reason_why_student_cant_solve_en"": """", ""mathedu_id"": 18095, ""mathedu_split_file"": ""train"", ""error_counts"": 1, ""teacher_review_errors"": [{""error_type"": ""Wrong mathematical operation/concept"", ""error_equation"": ""\\frac{1}{4} a+\\frac{1}{9} a+x=2 a"", ""teacher_advice_ch"": ""題目假設錯誤，可以假設總工作量為1後列式，c = 1 / 2 - 1 / 4 - 1 / 9 = 5 / 36 ，因此c單獨工作所需天數為1/(5/36)=36/5=7.2"", ""teacher_advice_en"": ""The problem statement is incorrect. We can assume the total amount of work to be 1 and then set up the equation:\n\nc = 1 / 2 - 1 / 4 - 1 / 9 = 5 / 36\n\nTherefore, the number of days it takes c to complete the work alone is 1 / (5 / 36) = 36 / 5 = 7.2""}], ""mathqa_options"": ""a ) 22 days , b ) 36 / 5 days , c ) 67 days , d ) 17 / 7 days , e ) 18 days"", ""mathqa_correct"": ""b"", ""mathqa_category"": ""physics"", ""mathqa_rationale"": ""\""c = 1 / 2 - 1 / 4 - 1 / 9 = 5 / 36 = > 36 / 5 days answer : b\"""", ""error_equation"": ""\\frac{1}{4} a+\\frac{1}{9} a+x=2 a"", ""teacher_advice_en"": ""The problem statement is incorrect. We can assume the total amount of work to be 1 and then set up the equation:\n\nc = 1 / 2 - 1 / 4 - 1 / 9 = 5 / 36\n\nTherefore, the number of days it takes c to complete the work alone is 1 / (5 / 36) = 36 / 5 = 7.2"", ""teacher_advice_ch"": ""題目假設錯誤，可以假設總工作量為1後列式，c = 1 / 2 - 1 / 4 - 1 / 9 = 5 / 36 ，因此c單獨工作所需天數為1/(5/36)=36/5=7.2""}",,,,
+stepwise,stepwise:231586f8d27166cb,dev,Reached correct solution but proceeded further,Ralph has a record store where people can trade their own records for new ones. People can trade 2 old records for 1 new one. 5 people come in with old records and leave with 7 new records between them. How many old records did the 5 people bring in?,"Each new record is worth 2 old records.
+So, the 7 new records are worth 7 x 2 = 14 old records.
+The 5 people brought in a total of 14 old records, so each person brought in an average of 14/5 = 2.8 old records.
+Since each person can only trade in whole records, each person brought in 2 old records.
+Therefore, the 5 people brought in a total of 2 x 5 = 10 old records.
+ 10",Treats a rounded average as each individual’s contribution,Adds an unnecessary extra step after finding the correct total,Rounds a non-integer average down and uses it for every individual amount,Continues after finding the total and replaces it with a truncated average.,Rounds an average to a whole-number individual amount and changes the total.,"Since each person can only trade in whole records, each person brought in 2 old records.",ok,ok,,7,False,False,False,,True,1,"{""incorrect_index"": 2, ""incorrect_step"": ""The 5 people brought in a total of 14 old records, so each person brought in an average of 14/5 = 2.8 old records."", ""error_description"": null, ""reference_solution"": ""People can bring in 2 old records = get 1 new record.\n5 people come in with old records and leave with 7 new records, 7 new records x 2 old records traded for each = 14 old records that the 5 people brought in.\n 14"", ""dialog_history"": [{""text"": ""Hi , could you please walk me through your solution?"", ""user"": ""Teacher""}, {""text"": ""Sure! I started by figuring out that each new record is worth 2 old records. So, the 7 new records are worth 7 x 2 = 14 old records. Then I figured out that the 5 people brought in a total of 14 old records, so each person brought in an average of 14/5 = 2.8 old records. Since each person can only trade in whole records, each person brought in 2 old records. Therefore, the 5 people brought in a total of 2 x 5 = 10 old records."", ""user"": ""Student""}, {""text"": ""stephanie you see you just need to calculate the total number of records brought by them. you dont need to calculate how many each of them brought. so 14 is our required answer."", ""user"": ""Teacher""}], ""student_correct_response"": ""In this scenario, each person can trade 2 old records for 1 new record. So, for the 5 people who came in and left with 7 new records, they must have brought in a total of 7 new records x 2 old records traded for each = 14 old records altogether."", ""topic"": ""Math Word Problem"", ""student_incorrect_solution_steps"": [""Each new record is worth 2 old records."", ""So, the 7 new records are worth 7 x 2 = 14 old records."", ""The 5 people brought in a total of 14 old records, so each person brought in an average of 14/5 = 2.8 old records."", ""Since each person can only trade in whole records, each person brought in 2 old records."", ""Therefore, the 5 people brought in a total of 2 x 5 = 10 old records."", "" 10""]}",,,,
+stepwise,stepwise:399820e1cec11c17,dev,Missing / Wrong factual knowledge,Carla bought 2 bags of mini peanut butter cups on clearance.  Each bag was $6.00 but was 75% off. How much did she spend on 2 bags of candy?,"Each bag was discounted by 75%, so the discounted price is 25% of the original price. 
+25% of $6.00 is (0.25 x 6) = $1.5 discount per bag. 
+So the price of each bag after the discount is $6.00 - $1.50 = $4.5. 
+Carla bought 2 bags, so the total cost is 2 x $4.50 = $9. 
+Therefore, Carla spent $9.00 on 2 bags of mini peanut butter cups on clearance. 
+ 9",Confuses the discounted price percentage with the discount amount,Computes the discounted price using the wrong percent of the original,Confuses the discounted price with the discount amount,Confuses the remaining sale price with the discount amount.,Confuses the remaining percentage of a price with the discount percentage,25% of $6.00 is (0.25 x 6) = $1.5 discount per bag.,ok,ok,,9,False,False,False,,True,1,"{""incorrect_index"": 2, ""incorrect_step"": ""So the price of each bag after the discount is $6.00 - $1.50 = $4.5. "", ""error_description"": ""$1.50 is the cost of the bag after the discount, not $4.50."", ""reference_solution"": ""Each bag was $6.00 but was marked down 75% for clearance so that's 6*.75 = $4.50 discount\nEach bag was $6.00 and there is a $4.50 discount so each bag is 6-4.50 = $1.50\nEach bag was marked down to $1.50 a bag and she bought 2 bags for a total of 1.5*2 = $3.00\n 3"", ""dialog_history"": [{""text"": ""If the bag originally cost $6 but was 75% off, what is the new cost?"", ""user"": ""Teacher""}, {""text"": ""The new cost of the bag is 25% of the original cost, so it is $1.50. Therefore, the total cost for 2 bags is $9.00."", ""user"": ""Student""}, {""text"": ""You are right that the cost of the new bag is $1.50. But what is the cost of 2 bags if each bag costs $1.50?"", ""user"": ""Teacher""}], ""student_correct_response"": ""Each bag of mini peanut butter cups was originally $6.00, but they were on clearance for 75% off. To find the discount amount, I calculated 6 * 0.75 = $4.50. So, each bag was $6.00 - $4.50 = $1.50 after the discount. Carla bought 2 bags, so the total cost would be $1.50 * 2 = $3.00."", ""topic"": ""Math Word Problem"", ""student_incorrect_solution_steps"": [""Each bag was discounted by 75%, so the discounted price is 25% of the original price. "", ""25% of $6.00 is (0.25 x 6) = $1.5 discount per bag. "", ""So the price of each bag after the discount is $6.00 - $1.50 = $4.5. "", ""Carla bought 2 bags, so the total cost is 2 x $4.50 = $9. "", ""Therefore, Carla spent $9.00 on 2 bags of mini peanut butter cups on clearance. "", "" 9""]}",,,,
+stepwise,stepwise:3e87bc684837296d,dev,Extra quantity or Missing quantity,"Jorge and Giuliana each eat 7 croissants for breakfast, 18 cakes after school, and 30 pizzas before bedtime. What is the total number of croissants, cakes, and pizzas the two consume in a day?","Jorge and Giuliana each eat a total of 7 + 7 = 14 croissants for breakfast.
+In a day, they both eat 14 x 2 = 28 croissants.
+They eat a total of 18 x 2 = 36 cakes after school.
+They also eat a total of 30 x 2 = 60 pizzas before bedtime.
+Therefore, the total number of croissants, cakes, and pizzas they both consume in a day is 28 + 36 + 60 = 124. 
+ 124",Double-counts a quantity when calculating the combined total,Adds an unnecessary extra counting step,Double-counts one quantity by applying the number of people twice,Double-counts one category when combining equal individual amounts,Double-counts a quantity by multiplying an already combined total again,"In a day, they both eat 14 x 2 = 28 croissants.",ok,ok,,7,False,False,False,,True,1,"{""incorrect_index"": 1, ""incorrect_step"": ""In a day, they both eat 14 x 2 = 28 croissants."", ""error_description"": ""croissants were added twice"", ""reference_solution"": ""The number of croissants and cakes that each eats for breakfast and lunch respectively is 7+18=25\nAfter eating 30 pizzas before bedtime, the number of croissants, cakes, and pizzas that each person have in total for the day is 25+30=55\nSince each person eats a total of 55 croissants, cakes, and pizzas for the day, the two consume a total of 55+55=110 of the food in a day.\n 110"", ""dialog_history"": [{""text"": ""Hi Lakisha, could you please walk me through your solution?"", ""user"": ""Teacher""}, {""text"": ""Sure! I started by adding 7 + 7 = 14 croissants for breakfast, since Jorge and Giuliana each ate 7 croissants. Then, I multiplied 14 by 2 to get 28 croissants, since they both ate 14 croissants. After that, I multiplied 18 by 2 to get 36 cakes, since they each ate 18 cakes after school. Lastly, I multiplied 30 by 2 to get 60 pizzas, since they each ate 30 pizzas before bedtime. Finally, I added all of the numbers together to get 28 + 36 + 60 = 124."", ""user"": ""Student""}, {""text"": ""How do you get the 28 croissants? How many are Jorge and Guiliana eating each?"", ""user"": ""Teacher""}], ""student_correct_response"": ""To find the total number of croissants, cakes, and pizzas that Jorge and Giuliana consume in a day, I first added the number of croissants and cakes each person eats for breakfast and after school, which is 7+18=25. Then, I added the number of pizzas they eat before bedtime, which is 30. Adding these two totals together gives us 25+30=55. Since each person consumes a total of 55 croissants, cakes, and pizzas in a day, the two of them together consume 55+55=110 of these food items in a day."", ""topic"": ""Math Word Problem"", ""student_incorrect_solution_steps"": [""Jorge and Giuliana each eat a total of 7 + 7 = 14 croissants for breakfast."", ""In a day, they both eat 14 x 2 = 28 croissants."", ""They eat a total of 18 x 2 = 36 cakes after school."", ""They also eat a total of 30 x 2 = 60 pizzas before bedtime."", ""Therefore, the total number of croissants, cakes, and pizzas they both consume in a day is 28 + 36 + 60 = 124. "", "" 124""]}",,,,
+stepwise,stepwise:8def9bf33916f98a,dev,Misunderstanding of a question,"Bryan's score on a math exam is 20. Jen scored 10 more than Bryan while Sammy scored 2 fewer than Jen. If the math exam has 35 points in all, how many mistakes did Sammy make?","Jen scored 20 + 10 = 30.
+Sammy scored 30 - 2 = 28.
+Let x be the number of mistakes Sammy made.
+Then Sammy got 35 - 28 - x = 7 - x points.
+Since Sammy made mistakes, 7 - x must be less than or equal to 28.
+So, 7 - x <= 28.
+Thus, x >= -21.
+Since x must be a whole number, the smallest possible value of x is 0.
+Therefore, Sammy made 0 mistakes.
+ 0",Confuses points earned with points lost when calculating mistakes,Treats the requested number of mistakes as the score itself,Subtracts mistakes from the score deficit instead of equating mistakes to it,Subtracts the mistakes variable from an already computed score.,Subtracts the mistake count from the score shortfall instead of equating them,Then Sammy got 35 - 28 - x = 7 - x points.,ok,ok,,9,False,False,False,"mistakes, points",True,1,"{""incorrect_index"": 3, ""incorrect_step"": ""Then Sammy got 35 - 28 - x = 7 - x points."", ""error_description"": ""The student only needed to subtract 28 from 25 to get the number of mistakes Sammy made."", ""reference_solution"": ""Jen scored 20 + 10 = 30 on the exam.\nSammy scored two less, so his score was30 - 2 = 28.\nThus, Sammy made 35 - 28 = 7 mistakes.\n 7"", ""dialog_history"": [{""text"": ""Hi Ayisha, can you tell me how you got your answer?"", ""user"": ""Teacher""}, {""text"": ""Sure. I started by figuring out how many points Jen and Sammy got. Jen got 20 + 10 = 30 points and Sammy got 30 - 2 = 28 points. Then I set up an equation to find out how many mistakes Sammy made. I let x be the number of mistakes Sammy made and then I got 7 - x points. Since Sammy made mistakes, 7 - x must be less than or equal to 28. So, 7 - x <= 28. Thus, x >= -21. Since x must be a whole number, the smallest possible value of x is 0. Therefore, Sammy made 0 mistakes."", ""user"": ""Student""}, {""text"": ""Okay, so we know that Sammy scored 2 fewer than Jen, and Jen scored 30.  If the math exam has 35 points in all, and Sammy scored 28, how many mistakes did he make?"", ""user"": ""Teacher""}], ""student_correct_response"": ""Bryan scored 20 on the math exam. Jen scored 10 more than Bryan, which is 20 + 10 = 30. Sammy scored 2 fewer than Jen, so his score was 30 - 2 = 28. Since the math exam has a total of 35 points, Sammy made 35 - 28 = 7 mistakes."", ""topic"": ""Math Word Problem"", ""student_incorrect_solution_steps"": [""Jen scored 20 + 10 = 30."", ""Sammy scored 30 - 2 = 28."", ""Let x be the number of mistakes Sammy made."", ""Then Sammy got 35 - 28 - x = 7 - x points."", ""Since Sammy made mistakes, 7 - x must be less than or equal to 28."", ""So, 7 - x <= 28."", ""Thus, x >= -21."", ""Since x must be a whole number, the smallest possible value of x is 0."", ""Therefore, Sammy made 0 mistakes."", "" 0""]}",,,,
+stepwise,stepwise:a4cfc51315961b61,dev,Calculation error easily solved by a calculator,"Bill composes 20 total math questions for money.  Ryan composes twice as many problems as Bill, and Frank composes 3 times as many as Ryan.  Assuming each person has to compose 4 different types of math problems in equal proportion out of the total amount, how many problems of each type does Frank compose?","Ryan composes 2 x 20 = 40 problems.
+Frank composes 3 x 40 = 120 problems.
+The total number of problems composed is 20 + 40 + 120 = 180.
+If each person has to compose 4 different types of math problems in equal proportion, then each type will have 180/4 = 45 problems.
+Therefore, Frank composes 3 x 45 = 135 problems of each type.
+ 135",Confuses combined per-type totals with one person's per-type share,Applies the equal-proportion division to the wrong total,Divides the combined total by types instead of dividing Frank's total,Uses the combined total instead of an individual's total when dividing equally.,Multiplies the overall per-type count to find one person's per-type count,"each type will have 180/4 = 45 problems. Therefore, Frank composes 3 x 45 = 135 problems of each type.",label_conflict,ok,,9,False,False,False,,True,1,"{""incorrect_index"": 2, ""incorrect_step"": ""The total number of problems composed is 20 + 40 + 120 = 180."", ""error_description"": null, ""reference_solution"": ""Since Ryan composes twice as many problems as Bill's total of 20, this means Ryan composes 20*2=40 problems\nFrank composes 3 times as many as Ryan does, so this means Frank composes 40*3=120 problems.\nSince Frank needs to submit 4 types of problems in equal proportion out of his total, this means he needs to make 120/4= 30 problems of each type.\n 30"", ""dialog_history"": [{""text"": ""Hi Stephanie, can you talk me through your solution?"", ""user"": ""Teacher""}, {""text"": ""Sure! I started by calculating the total number of problems composed by each person. Bill composed 20, Ryan composed 40, and Frank composed 120. Then, I realized that since each person had to compose 4 different types of math problems in equal proportion, the total number of problems for each type would be 180/4 = 45. So, Frank composed 3 x 45 = 135 problems of each type."", ""user"": ""Student""}, {""text"": ""Ok, we know that Bill composed20, Ryan 40 and Frank 120.  The question asks us to focus on Frank"", ""user"": ""Teacher""}], ""student_correct_response"": ""First, I calculated that Ryan composes twice as many problems as Bill, which is 20*2=40 problems. Then, I found out that Frank composes 3 times as many problems as Ryan, which is 40*3=120 problems. Since Frank needs to submit 4 types of problems in equal proportion out of his total, I divided 120 by 4 to find out that Frank composes 30 problems of each type."", ""topic"": ""Math Word Problem"", ""student_incorrect_solution_steps"": [""Ryan composes 2 x 20 = 40 problems."", ""Frank composes 3 x 40 = 120 problems."", ""The total number of problems composed is 20 + 40 + 120 = 180."", ""If each person has to compose 4 different types of math problems in equal proportion, then each type will have 180/4 = 45 problems."", ""Therefore, Frank composes 3 x 45 = 135 problems of each type."", "" 135""]}",,,,
+stepwise,stepwise:aa3c4787242df63d,dev,Unit conversion error,"On her birthday, Avianna bought red candles and blue candles in the ratio of 5:3. If Avianna had 45 red candles on her birthday, how many blue candles did she have?","The ratio of red candles to blue candles is 5:3, which means for every 5 red candles, there are 3 blue candles.
+If Avianna had 45 red candles, then she had 45/(5+3) = 5.625 sets of 5 red and 3 blue candles.
+To find the total number of blue candles, we multiply the number of sets by the number of blue candles per set, which is 3.
+So, Avianna had 5.625 x 3 = 16.875 blue candles, which we can round to 17.
+ 17",Uses total ratio parts instead of the corresponding part to scale.,Uses the total ratio instead of the corresponding part,Divides the given part by the sum of ratio parts instead of its ratio part,Divides a known ratio part by the total number of ratio parts,Divides a part by the total of the ratio parts to find the scale factor,45/(5+3) = 5.625 sets of 5 red and 3 blue candles,label_conflict,ok,,11,False,False,False,,True,1,"{""incorrect_index"": 1, ""incorrect_step"": ""If Avianna had 45 red candles, then she had 45/(5+3) = 5.625 sets of 5 red and 3 blue candles."", ""error_description"": ""Dividing by 8"", ""reference_solution"": ""If the ratio of red candles to blue candles Avianna bought was 5:3, then the total ratio was 5+3 = 8.\nIf 5 represented 45 candles in the total ratio, then 8, the actual ratio, represents 8*45 = 360 divided by 5 is 360/5 = 72 candles.\nIf the total number of candles was 72, then the number of blue candles is 72 candles - 45 candles = 27 candles\n 27"", ""dialog_history"": [{""text"": ""Hello Cody, please can you walk me through your workings?"", ""user"": ""Teacher""}, {""text"": ""Sure, I started by looking at the ratio of the red candles to the blue candles, which was 5:3. That means for every 5 red candles, there are 3 blue candles. So, I took the number of red candles (45) and divided it by the total number of candles (5+3) which gave me 5.625 sets of 5 red and 3 blue candles. To find the total number of blue candles, I multiplied the number of sets by the number of blue candles per set, which was 3. So, 5.625 x 3 = 16.875 blue candles, which I rounded to 17."", ""user"": ""Student""}, {""text"": ""Great. So we know that there are 45 red candles and a total of 8 in the actual ratio. So now lets look at the equation. We need to find the total number of candles to the total ration. For example If I had a ratio of red candles to blue candles as 3:2 and there were 6 red candles, we would know that there must be a total of 15 candles as 3x5=15. To find the number of blue candles we would divide 15 by 3 to make 5 which leaves us with subtracting 5 from 6 to make 1. Can you apply this to our equation?"", ""user"": ""Teacher""}], ""student_correct_response"": ""If the ratio of red candles to blue candles Avianna bought was 5:3, then the total ratio was 5+3 = 8. If 5 represented 45 candles in the total ratio, then the actual ratio, 8, represents 8*45 = 360 candles. To find the number of blue candles, we subtract the number of red candles from the total, which is 360 - 45 = 315 candles. So, Avianna had 315/8 = 27 blue candles."", ""topic"": ""Math Word Problem"", ""student_incorrect_solution_steps"": [""The ratio of red candles to blue candles is 5:3, which means for every 5 red candles, there are 3 blue candles."", ""If Avianna had 45 red candles, then she had 45/(5+3) = 5.625 sets of 5 red and 3 blue candles."", ""To find the total number of blue candles, we multiply the number of sets by the number of blue candles per set, which is 3."", ""So, Avianna had 5.625 x 3 = 16.875 blue candles, which we can round to 17."", "" 17""]}",,,,
+stepwise,stepwise:add543d19b488b59,dev,Calculation error easily solved by a calculator,"A pack of dogs found a pile of bones in the dumpster behind the butcher shop.  One by one, the dogs crawled into the dumpster, grabbed a mouthful of bones, and ran off with their newfound treasure.  In all, there were 5 dogs.  The first dog carried off 3 bones.  The second dog carried off 1 less bone than the first dog.  The third dog carried off twice as many as the second dog.  The fourth dog carried off one bone, and the fifth dog carried off twice the number of bones as the fourth dog carried, leaving no remaining bones in the dumpster.  How many bones were in the original pile of bones?","Let's work backwards from the fifth dog. If the fifth dog carried off twice as many bones as the fourth dog, and the fourth dog carried off only one bone, then the fifth dog carried off 2 x 1 = 2 bones.
+The total number of bones carried off by the first five dogs is 3 + (3-1) + 2(3-1) + 1 + 2 = 10.
+Therefore, there were 10 bones in the original pile of bones.
+ 10",Makes an arithmetic error when summing quantities,Arithmetic mistake in totaling the quantities,Makes an arithmetic error when adding the quantities,Incorrectly adds the terms in the total.,Adds the terms in a sum incorrectly,3 + (3-1) + 2(3-1) + 1 + 2 = 10,ok,ok,,7,False,False,False,,True,1,"{""incorrect_index"": 1, ""incorrect_step"": ""The total number of bones carried off by the first five dogs is 3 + (3-1) + 2(3-1) + 1 + 2 = 10."", ""error_description"": null, ""reference_solution"": ""The second dog carried off 1 less bone than the first dog, or 3-1=2 bones.\nThe third dog carried off twice as many bones as the third dog, or 2*2=4 bones.\nThe fifth dog carried off twice the number of bones as the fourth dog carried, or 2*1=2 bones.\nTherefore, the original pile of bones contained 3+2+4+1+2=12 bones.\n 12"", ""dialog_history"": [{""text"": ""Hi, can you explain your solution?"", ""user"": ""Teacher""}, {""text"": ""Yes, I started by working backwards from the fifth dog. The fifth dog carried off twice as many bones as the fourth dog, so the fifth dog had 2 bones. Then I added the number of bones carried off by the first four dogs, which was 3 + (3-1) + 2(3-1) + 1 = 10. So the original pile of bones had 10 bones."", ""user"": ""Student""}, {""text"": ""Nearly perfect, let's simplify your sum so we can add the whole numbers together. Can you do that?"", ""user"": ""Teacher""}], ""student_correct_response"": ""The first dog carried off 3 bones. The second dog carried off 1 less bone than the first dog, so it carried off 3-1=2 bones. The third dog carried off twice as many bones as the second dog, so it carried off 2*2=4 bones. The fourth dog carried off one bone. The fifth dog carried off twice the number of bones as the fourth dog, so it carried off 2*1=2 bones. Adding up all the bones carried off by each dog, we get 3+2+4+1+2=12 bones in the original pile."", ""topic"": ""Math Word Problem"", ""student_incorrect_solution_steps"": [""Let's work backwards from the fifth dog. If the fifth dog carried off twice as many bones as the fourth dog, and the fourth dog carried off only one bone, then the fifth dog carried off 2 x 1 = 2 bones."", ""The total number of bones carried off by the first five dogs is 3 + (3-1) + 2(3-1) + 1 + 2 = 10."", ""Therefore, there were 10 bones in the original pile of bones."", "" 10""]}",,,,
+stepwise,stepwise:b5399468ec42c098,dev,Missing / Wrong factual knowledge,"Ignatius owns 4 bicycles.  A friend of his owns different types of cycles, which have three times are many tires as Ignatius's bikes have. He has one unicycle, a tricycle, and the rest are bikes. How many bicycles does the friend own?","Since Ignatius owns 4 bicycles, and his friend has more tires, then his friend must have 3 x 4 = 12 bicycle tires.
+The unicycle has 1 tire, and the tricycle has 3 tires, so the total number of tires accounted for is 1 + 3 = 4.
+Therefore, the friend must have a total of 12 - 4 = 8 bicycle tires from the remaining cycles.
+Since each bike has 2 tires, then the friend must have 8/2 = 4 bicycles.
+ 4",Applies a multiplier to the number of objects instead of their countable parts,Confuses total tires with number of bicycles,Multiplies the number of bicycles instead of the number of tires,Treats the multiplier as applying to bicycles instead of total tires,Multiplies the number of bicycles instead of their total tires,his friend has 3 x 4 = 12 bicycle tires,ok,ok,,12,False,False,False,,False,1,"{""incorrect_index"": 0, ""incorrect_step"": ""Since Ignatius owns 4 bicycles, and his friend has more tires, then his friend must have 3 x 4 = 12 bicycle tires."", ""error_description"": ""Student mix bicycles and tires."", ""reference_solution"": ""Ignatius has 8 tires because 2 x 4 = 8\nHis friend has 24 tires because 3 x 8 = 24\nThere are 20 bicycle wheels because 24-1-3 = 20\nHe has 10 bicycles because 20 / 2 = 10\n 10"", ""dialog_history"": [{""text"": ""Tell me your solution"", ""user"": ""Teacher""}, {""text"": ""I think the friend has 4 bicycles. Since Ignatius owns 4 bicycles, and his friend has more tires, then his friend must have 3 x 4 = 12 bicycle tires. The unicycle has 1 tire, and the tricycle has 3 tires, so the total number of tires accounted for is 1 + 3 = 4. Therefore, the friend must have a total of 12 - 4 = 8 bicycle tires from the remaining cycles. Since each bike has 2 tires, then the friend must have 8/2 = 4 bicycles."", ""user"": ""Student""}, {""text"": ""How do you know his friend has 12 tyres?"", ""user"": ""Teacher""}], ""student_correct_response"": ""Ignatius owns 4 bicycles, which means he has 4 x 2 = 8 tires in total. His friend's cycles have three times as many tires as Ignatius's bikes, so his friend has 8 x 3 = 24 tires in total. Since his friend has one unicycle and a tricycle, that's a total of 1 + 3 = 4 tires accounted for. The remaining tires must belong to bicycles, which is 24 - 4 = 20 tires. Since each bicycle has 2 tires, his friend must have 20 / 2 = 10 bicycles in total."", ""topic"": ""Math Word Problem"", ""student_incorrect_solution_steps"": [""Since Ignatius owns 4 bicycles, and his friend has more tires, then his friend must have 3 x 4 = 12 bicycle tires."", ""The unicycle has 1 tire, and the tricycle has 3 tires, so the total number of tires accounted for is 1 + 3 = 4."", ""Therefore, the friend must have a total of 12 - 4 = 8 bicycle tires from the remaining cycles."", ""Since each bike has 2 tires, then the friend must have 8/2 = 4 bicycles."", "" 4""]}",,,,
+stepwise,stepwise:d2de3b3537c6525b,dev,Misunderstanding of a question,"Oliver wonders how much water his bathtub can hold. So he takes a bucket that holds 120 ounces and starts filling the bathtub. When it reaches the top, he sees that he filled it 14 times. Then he wonders how much bathwater he uses, so he starts taking away buckets until it gets to the level he puts it at. He needs to take away 3 buckets to do this. Finally, he wonders how much water he uses in a week for his baths, which he takes every day. How much water does he use each week?","Oliver fills the bathtub with 120 x 14 = 1680 ounces of water.
+To get to the level he puts it at, he uses 120 x 11 = 1320 ounces of water.
+So he uses 1680 - 1320 = 360 ounces of water per bath.
+In a week, he uses 360 x 7 = 2520 ounces of water for his baths.
+ 2520",Confuses a removed quantity with the remaining quantity,Subtracts the two fill amounts instead of using the change in buckets,Confuses the removed quantity with the remaining quantity used,Treats the amount removed as the amount used instead of the amount remaining.,Confuses the amount removed with the amount remaining.,So he uses 1680 - 1320 = 360 ounces of water per bath.,ok,ok,,7,False,False,False,,True,1,"{""incorrect_index"": 2, ""incorrect_step"": ""So he uses 1680 - 1320 = 360 ounces of water per bath."", ""error_description"": ""This is the difference in the amounts of water between the full tub and the usual level."", ""reference_solution"": ""He uses 11 buckets to fill his bath normally because 14 - 3 = 11\nHe uses 1, 320 ounces a day for his baths because 11 x 120 = 1,320\nHe uses 9, 240 ounces a week for his baths because 7 x 1,320 = 9,240\n 9,240"", ""dialog_history"": [{""text"": ""How many ounces of water did he fill the tub with?"", ""user"": ""Teacher""}, {""text"": ""Oliver filled the tub with 1680 ounces of water."", ""user"": ""Student""}, {""text"": ""That's right. And how many ounces of water did he remove?"", ""user"": ""Teacher""}], ""student_correct_response"": ""To find out how much water Oliver uses each week for his baths, I first calculated that he uses 11 buckets to fill his bath normally by subtracting the buckets he takes away (3) from the total buckets he fills the bath with (14), which equals 11 buckets. Then, I multiplied the number of buckets (11) by the capacity of each bucket (120 ounces) to find out that he uses 1,320 ounces a day for his baths. Finally, I multiplied the amount of water he uses in a day (1,320 ounces) by the number of days in a week (7) to calculate that he uses 9,240 ounces a week for his baths."", ""topic"": ""Math Word Problem"", ""student_incorrect_solution_steps"": [""Oliver fills the bathtub with 120 x 14 = 1680 ounces of water."", ""To get to the level he puts it at, he uses 120 x 11 = 1320 ounces of water."", ""So he uses 1680 - 1320 = 360 ounces of water per bath."", ""In a week, he uses 360 x 7 = 2520 ounces of water for his baths."", "" 2520""]}",,,,
+stepwise,stepwise:eae97714199818c2,dev,Extra quantity or Missing quantity,Eric spent 2 hours removing wallpaper from just 1 wall of his 4 walled dining room.  He also needs to remove wallpaper from his 4 walled living room.  How many hours will it take him to remove the remaining wallpaper?,"If Eric spent 2 hours removing wallpaper from just 1 wall of his 4 walled dining room, then it will take him 2 x 4 = 8 hours to remove the wallpaper from his entire dining room.
+To remove wallpaper from his 4 walled living room, it will take him another 2 x 4 = 8 hours.
+Therefore, it will take him a total of 8 + 8 = 16 hours to remove the remaining wallpaper. 
+ 16",Counts completed work again when calculating what remains,Counts all walls instead of the remaining wallpaper only,Includes a completed part when calculating the remaining total,Includes an already completed quantity in the remaining total.,Counts already completed work as part of the remaining work.,it will take him 2 x 4 = 8 hours to remove the wallpaper from his entire dining room,ok,ok,,8,False,False,False,,True,1,"{""incorrect_index"": 2, ""incorrect_step"": ""Therefore, it will take him a total of 8 + 8 = 16 hours to remove the remaining wallpaper. "", ""error_description"": ""The student didn't subtract the wall Eric already removed paper from in the dining room"", ""reference_solution"": ""His dining room is 4 walls and he has already removed 1 wall of wallpaper so that leaves 4-1 = 3 walls in the dining room\nHe has 3 walls left in the dining room and 4 in his living room for a total of 3+4 = 7 walls\nIt takes 2 hours to remove wallpaper from just 1 wall and he has 7 more to go so it will take him 2*7 = 14 hours\n 14"", ""dialog_history"": [{""text"": ""Hi DeAndre, can you tell me how you got your answer?"", ""user"": ""Teacher""}, {""text"": ""Hi, I got my answer by multiplying 2 hours by 4 walls for the dining room, which gave me 8 hours. Then I multiplied 2 hours by 4 walls for the living room, which gave me 8 hours. Then I added the two numbers together to get 16 hours total."", ""user"": ""Student""}, {""text"": ""Okay, but Eric has already spent 2 hours removing the paper from one wall of his dining room?"", ""user"": ""Teacher""}], ""student_correct_response"": ""In Eric's dining room, he has 4 walls, and he has already removed wallpaper from 1 wall, so he has 4-1 = 3 walls left in the dining room. In addition to the 3 walls in the dining room, he also needs to remove wallpaper from his 4 walled living room, which makes a total of 3+4 = 7 walls. Since it takes him 2 hours to remove wallpaper from just 1 wall, it will take him 2*7 = 14 hours to remove the remaining wallpaper from all 7 walls."", ""topic"": ""Math Word Problem"", ""student_incorrect_solution_steps"": [""If Eric spent 2 hours removing wallpaper from just 1 wall of his 4 walled dining room, then it will take him 2 x 4 = 8 hours to remove the wallpaper from his entire dining room."", ""To remove wallpaper from his 4 walled living room, it will take him another 2 x 4 = 8 hours."", ""Therefore, it will take him a total of 8 + 8 = 16 hours to remove the remaining wallpaper. "", "" 16""]}",,,,

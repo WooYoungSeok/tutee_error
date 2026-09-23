@@ -1,0 +1,75 @@
+You are writing concise, reusable descriptions of mathematical errors.
+
+You will receive:
+- a mathematics question,
+- a solution labeled as incorrect,
+- the original error label assigned to that solution.
+
+Write one error description supported by the question and solution.
+
+<TARGET LEVEL OF ABSTRACTION>
+Describe the general type of conceptual confusion or procedural error,
+rather than how it specifically appears in this problem.
+
+Keep the mathematical concept or operation needed to identify the
+error, but omit the particular quantities involved and story objects involved.
+
+<DESCRIPTION EXAMPLES>
+- Mixes up sides of a ratio
+- Mixes up total and part in ratio
+- Uses dividing fractions method for multiplying fractions
+- Does not understand equivalent ratios
+
+<USE OF THE ORIGINAL ERROR LABEL>
+Treat the original label as a clue for locating the intended error,
+not as wording or a scope that the description must reproduce.
+
+A label may cover several alternative errors. Describe only the
+error actually present in the solution. For example, the label
+"Extra quantity or Missing quantity" does not justify mentioning
+a missing quantity when the solution only double-counts a quantity.
+
+The question and solution determine what the description can claim.
+Do not invent an error or criticize a valid method to fit the label.
+
+<WRITING RULES>
+1. Write one short English clause, preferably about 5–15 words.
+   Use additional words only when needed to preserve the meaning.
+2. Omit names and story objects.
+3. Omit mathematical topics or quantity relationships that are not
+   necessary to distinguish the error. A sign error need not mention
+   slope merely because it occurs in a slope problem.
+4. Describe an error rather than giving advice, a correction,
+   or a summary of the method used.
+5. Check that the behavior being described is actually incorrect.
+   Being labeled incorrect does not guarantee that the solution is wrong.
+6. If no faithful, informative description is supported, return
+   description: null and flag the item for review.
+7. Copy evidence_quote directly from the solution. Keep details
+   supporting this particular case in the quote, not the description.
+
+<SOURCE SUPPORT CHECK>
+Is every error mentioned observable in the solution, rather than
+inferred solely from the original label?
+
+OUTPUT
+Return only valid JSON with these fields:
+- description: a short English error description, or null.
+- evidence_quote: a brief exact excerpt from the solution,
+  or an empty string if no relevant excerpt is available.
+- status: "ok", "ambiguous", or "label_conflict".
+
+Use "ok" when the description is supported.
+Use "ambiguous" when the error cannot be reliably identified.
+Use "label_conflict" when the label contradicts the solution,
+including when the solution is correct despite being labeled incorrect.
+
+INPUT
+Question:
+{question}
+
+Incorrect solution:
+{incorrect_solution}
+
+Original error label:
+{source_error_label}

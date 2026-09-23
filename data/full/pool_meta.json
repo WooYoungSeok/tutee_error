@@ -1,0 +1,115 @@
+{
+  "created_at_utc": "2026-09-23T11:24:26Z",
+  "config_path": "C:\\Users\\user\\OneDrive\\문서\\카카오톡 받은 파일\\tutee_error\\config\\full.json",
+  "datasets": [
+    "mathedu",
+    "stepwise",
+    "mathclean",
+    "eic"
+  ],
+  "eic_benchmarks": [
+    "GSM8K",
+    "MathQA"
+  ],
+  "unique_requests": 3986,
+  "records_indexed": 8276,
+  "per_dataset": {
+    "mathedu": {
+      "records_read": 4048,
+      "eligible_records": 890,
+      "unique_requests": 888,
+      "duplicate_records": 2,
+      "exclusions": {
+        "missing_field:incorrect_solution": 82,
+        "multiple_annotated_errors:2": 23,
+        "multiple_annotated_errors:3": 3,
+        "not_an_incorrect_answer:correct": 3050
+      },
+      "labels": {
+        "Algebraic error": 41,
+        "Arithmetical error": 72,
+        "Careless error": 28,
+        "Comprehension error": 168,
+        "Lack of necessary mathematical concepts": 14,
+        "Measurement error": 12,
+        "Unfinished answer": 116,
+        "Wrong mathematical operation/concept": 437
+      }
+    },
+    "stepwise": {
+      "records_read": 1002,
+      "eligible_records": 915,
+      "unique_requests": 766,
+      "duplicate_records": 149,
+      "exclusions": {
+        "non_error_label": 87
+      },
+      "labels": {
+        "Calculation error easily solved by a calculator": 112,
+        "Extra quantity or Missing quantity": 189,
+        "Missing / Wrong factual knowledge": 131,
+        "Misunderstanding of a question": 234,
+        "Reached correct solution but proceeded further": 55,
+        "Unit conversion error": 45
+      }
+    },
+    "mathclean": {
+      "records_read": 610,
+      "eligible_records": 610,
+      "unique_requests": 610,
+      "duplicate_records": 0,
+      "exclusions": {},
+      "labels": {
+        "computing error": 232,
+        "expression error": 64,
+        "logic error": 314
+      }
+    },
+    "eic": {
+      "records_read": 2616,
+      "eligible_records": 1798,
+      "unique_requests": 1722,
+      "duplicate_records": 76,
+      "exclusions": {
+        "label_outside_canonical_set:arithmetic_error": 5,
+        "label_outside_canonical_set:calculation_error_fixed_addition": 1,
+        "label_outside_canonical_set:calculation_simple_arithmetic_error": 1,
+        "label_outside_canonical_set:calculational_error": 1,
+        "label_outside_canonical_set:confusing_numbers_error": 1,
+        "label_outside_canonical_set:confusing_ratio_error": 1,
+        "label_outside_canonical_set:exponent_error": 1,
+        "label_outside_canonical_set:logical_error": 1,
+        "label_outside_canonical_set:operation_error": 1,
+        "label_outside_canonical_set:referencing_value": 1,
+        "label_outside_canonical_set:rounding_error": 1,
+        "label_outside_canonical_set:simplification_error": 1,
+        "label_outside_canonical_set:specific_detail_error": 1,
+        "label_outside_canonical_set:wrong_transformation": 1,
+        "non_error_type_directory:wrong_step_calculation_error": 800
+      },
+      "labels": {
+        "adding_irrelevant_information": 200,
+        "calculation_error": 221,
+        "confusing_formula_error": 190,
+        "counting_error": 159,
+        "missing_step": 190,
+        "operator_error": 197,
+        "referencing_context_value_error": 202,
+        "referencing_previous_step_value_error": 182,
+        "unit_conversion_error": 181
+      },
+      "by_benchmark": {
+        "GSM8K": 828,
+        "MathQA": 894
+      }
+    }
+  },
+  "fixed_sample_cases_in_pool": 200,
+  "fixed_sample_cases_missing_from_pool": [],
+  "source_revisions": {
+    "mathedu": "acb1873f1569048d72c90855febc6f367b1e3356",
+    "stepwise": "161019e6cc29968bb9a9ae7f261daf63f00e6fc7",
+    "mathclean": "27e7028b31196cca06c62686b69ab4d1040a11d3",
+    "eic": "be8132a826dd7890d5ba92bd0c87451a3275874a"
+  }
+}
