@@ -1,0 +1,4 @@
+# Keep LF everywhere: data hashes in meta files and the byte-identical export assume LF.
+* text=auto eol=lf
+*.png binary
+*.zip binary
