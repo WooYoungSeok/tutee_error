@@ -58,7 +58,7 @@
   },
   "training": {
     "checkpoint_dir": "checkpoints",
-    "num_train_epochs": 8,
+    "num_train_epochs": 5,
     "learning_rate": 1e-05,
     "weight_decay": 0.01,
     "warmup_ratio": 0.1,

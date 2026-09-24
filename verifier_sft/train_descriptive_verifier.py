@@ -24,7 +24,9 @@ from datetime import datetime
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
+sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
 
+from errdesc.runner import load_dotenv  # noqa: E402
 from verifier_common import (  # noqa: E402
     build_messages,
     encode_example,
@@ -65,6 +67,7 @@ def encode_file(path: Path, tokenizer, prompt: dict, max_len: int, limit: int | 
 
 def main() -> int:
     args = parse_args()
+    load_dotenv(Path(__file__).resolve().parents[1] / ".env")  # WANDB_API_KEY / WANDB_PROJECT for report_to=wandb
     config = load_config(args.config)
     tcfg = config["training"]
     seed = config["seed"]

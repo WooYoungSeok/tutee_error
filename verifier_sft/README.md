@@ -15,7 +15,7 @@
 | v1 학습 | 2026-09-24 서버에서 시작, 214/1488 step에서 중단(v2로 전환). `checkpoint-186`(1 epoch)만 서버에 있음 |
 | v1 평가 (test 744행) | gpt-5.6-sol 0.9718 · SFT checkpoint-186 0.9543 · Qwen 학습 전 0(invalid 100%), gpt-4o-mini 추출 시 0.7849 — `reports/eval_*.md` |
 | v2 데이터 | 완료 — 라벨이 여러 개인 풀이 제외, 점검 11개 통과, 형식 점검 6,818개 실패 0, `reports/descriptive_v2/` |
-| v2 학습 / 평가 | 예정 (`--config config/descriptive_verifier_v2.json`) |
+| v2 학습 / 평가 | 예정 (`--config config/descriptive_verifier_v2.json`, 5 epoch = 855 step, wandb 기록) |
 
 ## v2 데이터 (현재 기준, `config/descriptive_verifier_v2.json`)
 
@@ -24,6 +24,7 @@ v1에서 **같은 풀이에 정규화한 원본 라벨이 2종류 이상 달린 
 라벨만 뺀 기준이고, 라벨은 다른 이유로 이미 빠진 레코드까지 포함한 원본 풀 전체에서 모은다. MathEdu처럼 풀이 하나에
 라벨 하나가 되도록 하기 위한 것이다. 해당 풀이: Stepwise 145개(레코드 328, 새로 제외 289), EIC 2개(레코드 4).
 그 외 규칙(분할·negative·길이)은 v1과 같고, 분할과 negative는 줄어든 범위에서 다시 계산된다.
+학습은 v1의 8 epoch 대신 5 epoch(`training.num_train_epochs`)이다.
 
 | split | 원본 사례(anchor) | 학습 입력 | stepwise anchor |
 | --- | --- | --- | --- |
@@ -135,7 +136,8 @@ CUDA_VISIBLE_DEVICES=1 python eval_gpt_parsing.py --model_path Qwen/Qwen2.5-Math
 - transformers 5는 `warmup_ratio`를 없앴다. 학습 스크립트는 5.x에서 config의 `warmup_ratio` 값을
   `warmup_steps`에 넘기며, 1 미만 float는 비율로 해석되어 4.x와 같은 `ceil(전체 step × 0.1)`이 된다.
   체크포인트의 `training_args.bin`에는 `warmup_steps=0.1`로 기록된다.
-- `report_to`는 기존과 같이 `wandb`. 로그인이 없으면 `--report_to none`.
+- `report_to`는 기존과 같이 `wandb`. 학습 스크립트는 시작할 때 `../.env`를 읽으므로 `.env`에 `WANDB_API_KEY`,
+  `WANDB_PROJECT`(선택: `WANDB_ENTITY`)를 적는다. run 이름은 체크포인트 폴더 이름이다. 키가 없으면 `--report_to none`.
 - 기존 코드와의 차이: 평가 샘플을 실행 때마다 새로 뽑지 않고 파일로 고정, 학습 중 평가는 validation만,
   4096 초과 입력을 자르지 않고 중단, 응답 판정은 정규식이 아니라 정확 일치(나머지는 invalid).
 - 데이터를 다시 만들 때는 `prepare_descriptive_pairs.py`(`../data/full/pool.jsonl`,
