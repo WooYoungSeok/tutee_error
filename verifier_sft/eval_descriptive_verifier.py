@@ -11,7 +11,8 @@ Usage (from verifier_sft/):
     # auxiliary shortcut diagnostics (not part of the main comparison)
     python eval_descriptive_verifier.py --model_path checkpoints/<run>/final --name sft_no_solution --ablation no_solution
 
-Writes outputs/<name>/predictions.jsonl, outputs/<name>/metrics.json and reports/eval_<name>.md.
+Writes <evaluation.output_dir>/<name>/{predictions.jsonl,metrics.json} and <output.report_dir>/eval_<name>.md
+(<name>_limit<N> for a --limit run).
 """
 
 from __future__ import annotations
@@ -121,6 +122,26 @@ def main() -> int:
         raw_outputs += tokenizer.batch_decode(new_tokens, skip_special_tokens=True)
         print(f"  {min(start + batch_size, len(prompts))}/{len(prompts)}", flush=True)
 
+    score_and_report(
+        config, rows, raw_outputs, name=args.name, model=args.model_path, split=split, data_path=data_path,
+        limit=args.limit, prompt=prompt,
+        decoding={"greedy": True, "max_new_tokens": ecfg["max_new_tokens"], "batch_size": batch_size},
+    )
+    return 0
+
+
+def score_and_report(
+    config: dict[str, Any], rows: list[dict[str, Any]], raw_outputs: list[str], *, name: str, model: str,
+    split: str, data_path: Path, limit: int | None, prompt: dict[str, str], decoding: dict[str, Any],
+    extra: dict[str, Any] | None = None,
+) -> dict[str, Any]:
+    """Exact-match scoring, metrics, bootstrap CI; writes predictions, metrics.json and the report.
+
+    A --limit run is written under <name>_limit<N> so it never overwrites the full-split results.
+    """
+    ecfg = config["evaluation"]
+    if limit:
+        name = f"{name}_limit{limit}"
     predictions = []
     for row, raw in zip(rows, raw_outputs):
         pred = parse_prediction(raw)
@@ -137,18 +158,19 @@ def main() -> int:
     )
     ci = bootstrap_ci(predictions, n_samples=ecfg["bootstrap_samples"], seed=config["seed"])
 
-    out_dir = resolve(ecfg["output_dir"]) / args.name
+    out_dir = resolve(ecfg["output_dir"]) / name
     write_jsonl(out_dir / "predictions.jsonl", predictions)
     result = {
-        "name": args.name,
+        "name": name,
         "created_at": datetime.now().isoformat(timespec="seconds"),
-        "model_path": args.model_path,
+        "model_path": model,
         "split": split,
-        "ablation": args.ablation,
+        "ablation": prompt["ablation"],
         "data_sha256": sha256_file(data_path),
-        "limit": args.limit,
+        "limit": limit,
         "prompt": {"system_sha256": prompt["system_sha256"], "user_sha256": prompt["user_sha256"]},
-        "decoding": {"greedy": True, "max_new_tokens": ecfg["max_new_tokens"], "batch_size": batch_size},
+        "decoding": decoding,
+        **(extra or {}),
         "overall": overall,
         "bootstrap_ci_question_groups": ci,
         "by_dataset": by_dataset,
@@ -160,8 +182,8 @@ def main() -> int:
     }
     write_json(out_dir / "metrics.json", result)
 
-    L = [f"# Verifier evaluation — {args.name}", ""]
-    L += [f"model `{args.model_path}` · split `{split}` · ablation `{args.ablation}` · {len(predictions)} rows "
+    L = [f"# Verifier evaluation — {name}", ""]
+    L += [f"model `{model}` · split `{split}` · ablation `{prompt['ablation']}` · {len(predictions)} rows "
           f"({overall['pairs']} pairs) · data sha256 `{result['data_sha256'][:16]}`", ""]
     L += ["Targets are automatic (other-label negatives, no semantic review): these are agreement rates with "
           "the automatic targets. Invalid outputs count as wrong.", ""]
@@ -176,14 +198,14 @@ def main() -> int:
     L += ["## By anchor source label", "", md_table(HEADERS, metric_rows(by_label)), ""]
     L += [f"## Negatives by anchor <- donor label (n >= {ecfg['min_support_for_label_pairs']})", "",
           md_table(HEADERS, metric_rows(by_pair_label)) if by_pair_label else "No combination reaches the minimum support.", ""]
-    report = resolve("reports") / f"eval_{args.name}.md"
+    report = resolve(config["output"].get("report_dir", "reports")) / f"eval_{name}.md"
     report.parent.mkdir(parents=True, exist_ok=True)
     report.write_text("\n".join(L) + "\n", encoding="utf-8", newline="\n")
 
     print(f"accuracy {fmt(overall['accuracy'])} · macro-F1 {fmt(overall['macro_f1'])} · "
           f"pair accuracy {fmt(overall['pair_accuracy'])} · invalid {fmt(overall['invalid_rate'])}")
     print(f"predictions -> {out_dir / 'predictions.jsonl'}\nreport -> {report}")
-    return 0
+    return result
 
 
 if __name__ == "__main__":

@@ -9,7 +9,8 @@ For every example (default: all pairs of every split):
     model sees at inference what it saw in training;
   * nothing is truncated (length <= max_seq_length).
 
-No model weights are loaded. Writes reports/format_check.md with one rendered example.
+No model weights are loaded. Writes <output.report_dir>/format_check.md (default reports/) with one
+rendered example; a --limit run writes format_check_limit<N>.md instead so the full-run report is kept.
 """
 
 from __future__ import annotations
@@ -97,7 +98,8 @@ def main() -> int:
         lines += [f"`{row['pair_id']}` · donor `{row['donor_sample_id']}` · {len(enc['input_ids'])} tokens, "
                   f"{n_loss} with loss · loss tokens decode to `{answer!r}`", ""]
         lines += ["```text", text, "```", ""]
-    out = resolve("reports/format_check.md")
+    report_dir = resolve(config["output"].get("report_dir", "reports"))
+    out = report_dir / (f"format_check_limit{args.limit}.md" if args.limit else "format_check.md")
     out.parent.mkdir(parents=True, exist_ok=True)
     out.write_text("\n".join(lines) + "\n", encoding="utf-8", newline="\n")
 

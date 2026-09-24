@@ -1,9 +1,11 @@
 #!/usr/bin/env python3
 """Build the fixed positive/negative pairs for the descriptive verifier SFT.
 
-Order (plan section 5): cases whose description status is ok -> duplicate
-removal and question groups -> train/validation/test split by question group ->
-one negative per case inside each split -> length check.
+Order (plan section 5): cases whose description status is ok -> (optional,
+filters.exclude_multi_label_solutions) drop every case of a solution that carries
+several source labels -> duplicate removal and question groups ->
+train/validation/test split by question group -> one negative per case inside
+each split -> length check.
 
 Negative for case i: the description of a case j drawn uniformly from the cases
 in the same split and dataset whose normalized source label differs and whose
@@ -105,6 +107,38 @@ def build_cases(
             case["exclusion_reason"] = "missing_essential_information"
         cases.append(case)
     return cases
+
+
+def solution_key(case: dict[str, Any]) -> tuple[str, str, str] | None:
+    """The duplicate-record key without the label: same dataset, question and solution."""
+    if not all(isinstance(case[k], str) and case[k].strip() for k in ("question", "solution")):
+        return None
+    return case["dataset"], text_key(case["question"]), text_key(case["solution"])
+
+
+def exclude_multi_label_solutions(cases: list[dict[str, Any]]) -> dict[str, Any]:
+    """Drop every case of a solution whose pool records carry more than one normalized source label.
+
+    Labels are collected over all pool records, including those already excluded for another
+    reason, so the rule depends on the source annotations only. An already excluded case keeps
+    its first reason.
+    """
+    labels: dict[tuple, set[str]] = defaultdict(set)
+    for case in cases:
+        key = solution_key(case)
+        if key is not None and isinstance(case["source_error_label"], str) and case["source_error_label"].strip():
+            labels[key].add(label_key(case["source_error_label"]))
+    multi = {k for k, v in labels.items() if len(v) > 1}
+    stats: dict[str, Counter] = {"solutions": Counter(), "cases": Counter(), "newly_excluded": Counter()}
+    for key in multi:
+        stats["solutions"][key[0]] += 1
+    for case in cases:
+        if solution_key(case) in multi:
+            stats["cases"][case["dataset"]] += 1
+            if not case["exclusion_reason"]:
+                case["exclusion_reason"] = "multi_label_solution"
+                stats["newly_excluded"][case["dataset"]] += 1
+    return {k: dict(sorted(v.items())) for k, v in stats.items()}
 
 
 def remove_duplicates(cases: list[dict[str, Any]]) -> None:
@@ -384,6 +418,12 @@ def write_report(
               "references without [asy] code, then read manually):", ""]
         L += [f"- `{k}`: {v}" for k, v in held.items()]
         L += [""]
+    ml = meta.get("multi_label_solutions_excluded")
+    if ml:
+        L += ["multi_label_solution: every case of a solution whose pool records carry more than one normalized "
+              "source label (e.g. Stepwise annotated by several teachers) is dropped before splitting, so each kept "
+              f"solution has one label as in MathEdu. Solutions {ml['solutions']}, their pool records {ml['cases']}, "
+              f"of which not already excluded for another reason {ml['newly_excluded']}.", ""]
     dups = [c for c in cases if c["exclusion_reason"].startswith("duplicate_record_of")]
     L += [f"Duplicate records removed: {len(dups)} (same dataset, question and solution after NFKC/lowercase/"
           "whitespace removal, same normalized label; the smallest sample_id is kept).", ""]
@@ -405,8 +445,12 @@ def write_report(
           f"the description pipeline's key (case and whitespace only) gives {len(old)}"]
     L += [f"- cases per group: {dict(sorted(sizes.items()))}"]
     L += [f"- groups spanning sources: {dict(cross)}"]
-    L += [f"- groups where one solution carries several source labels (e.g. Stepwise annotated by several teachers): {same_solution}. "
-          "Each such case keeps its own positive; they share a group, so they never serve as each other's negative."]
+    if ml:
+        L += [f"- groups where one solution carries several source labels: {same_solution} "
+              "(multi-label solutions are excluded; see section 2)"]
+    else:
+        L += [f"- groups where one solution carries several source labels (e.g. Stepwise annotated by several teachers): {same_solution}. "
+              "Each such case keeps its own positive; they share a group, so they never serve as each other's negative."]
     L += [""]
 
     L += ["## 4. Split", ""]
@@ -508,6 +552,9 @@ def main() -> int:
     dev_keys = {question_key(r["question"]) for r in dev_rows}
 
     cases = build_cases(pool, descriptions, config)
+    multi_label = None
+    if config["filters"].get("exclude_multi_label_solutions"):
+        multi_label = exclude_multi_label_solutions(cases)
     remove_duplicates(cases)
     eligible = [c for c in cases if not c["exclusion_reason"]]
     split_info = assign_splits(eligible, config["split"]["ratios"], dev_keys, seed)
@@ -562,6 +609,7 @@ def main() -> int:
         "tokenizer": tokenizer_name,
         "max_seq_length": max_len,
         "prompt_dev_sample_ids": sorted(r["sample_id"] for r in dev_rows),
+        **({"multi_label_solutions_excluded": multi_label} if multi_label is not None else {}),
         "cases": len(cases),
         "eligible_cases": len(eligible),
         "question_groups": split_info["groups"],

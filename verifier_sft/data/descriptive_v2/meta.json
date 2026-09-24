@@ -1,0 +1,120 @@
+{
+  "created_at_utc": "2026-09-24T05:28:07Z",
+  "experiment": "descriptive_verifier_v2",
+  "seed": 42,
+  "config": {
+    "path": "config/descriptive_verifier_v2.json",
+    "sha256": "c91041c2b366a39c050ab4ac5891010d9ab3a4d9f74f0a5a735eccbd60815fce"
+  },
+  "inputs": {
+    "pool": {
+      "path": "../data/full/pool.jsonl",
+      "sha256": "7ee70b28469dac44a48406fc34acd1b2cb9bbb993562c410b6d7f23054e0cf3e"
+    },
+    "descriptions": {
+      "path": "../outputs/runs/v4__gpt-5.6-luna__full/parsed.jsonl",
+      "sha256": "bab3fe4e1dd0f8541d300867aa8577e477e714db7c84a9cb30edaf15b37b2cf2"
+    },
+    "description_run_meta": {
+      "path": "../outputs/runs/v4__gpt-5.6-luna__full/run_meta.json",
+      "sha256": "9054cf276d2fc0edaa9289a0352af6d5a74936a0d0c0b56c06a0c4b41053d163"
+    },
+    "prompt_dev_manifest": {
+      "path": "../data/manifest/sample_manifest.jsonl",
+      "sha256": "2f14aebb4473b2845641b69e6857ce949c27cd2678fc46bee8bec6fa4216667e"
+    }
+  },
+  "description_run": {
+    "run_id": "v4__gpt-5.6-luna__full",
+    "model": "gpt-5.6-luna",
+    "prompt_version": "v4",
+    "prompt_sha256": "28ef5467bbbac5cec81290d4f0bd9d7cf83d2efe80efe1f858600916cb4f0a7c",
+    "generation": {
+      "model": "gpt-5.6-luna",
+      "max_output_tokens": 4000,
+      "temperature": null,
+      "reasoning_effort": null,
+      "response_format_json": true
+    }
+  },
+  "prompt": {
+    "system_sha256": "8873b8bcb1a596d72028d9444a4cad0748d37ff6bf5f36bfbac021ce857be16a",
+    "user_sha256": "e1fb1b93fbe7bf8b3d4a808ca8fa97b603b818928d70cbbc9543b23b79f1d60f"
+  },
+  "tokenizer": "Qwen/Qwen2.5-Math-7B-Instruct",
+  "max_seq_length": 4096,
+  "prompt_dev_sample_ids": [
+    "eic:0a162aced962b612",
+    "eic:10640910a93765fb",
+    "eic:1822ba27069405ba",
+    "eic:2af2c3486527eec9",
+    "eic:42079892bb47dd6c",
+    "eic:96a16a341bbe0856",
+    "eic:b99acb77b6f3f1cc",
+    "eic:d2a9f749ca02b9a6",
+    "eic:f74af932f863bb52",
+    "eic:fa4e846ad3902c4d",
+    "mathclean:021b0bf3e810c899",
+    "mathclean:49d0c9b1827cc310",
+    "mathclean:4c014f9227789706",
+    "mathclean:4f4f06b721d19046",
+    "mathclean:58c90e44dcbf9643",
+    "mathclean:6c8605b2eb64ed2b",
+    "mathclean:761b74e99ae62496",
+    "mathclean:8351714360a1cde0",
+    "mathclean:9ac6eb03c135487d",
+    "mathclean:ac388a1e13e59c4a",
+    "mathedu:60261eb873f04768",
+    "mathedu:68ba79b4b13409c8",
+    "mathedu:6c489513c81f01f3",
+    "mathedu:948a148769331105",
+    "mathedu:94d996d1af0f0a3f",
+    "mathedu:a471cc9af71232d7",
+    "mathedu:b5f53761609669b9",
+    "mathedu:ba54115698d61b80",
+    "mathedu:df84fe6066640d86",
+    "mathedu:e6503b2efa8c04e9",
+    "stepwise:231586f8d27166cb",
+    "stepwise:399820e1cec11c17",
+    "stepwise:3e87bc684837296d",
+    "stepwise:8def9bf33916f98a",
+    "stepwise:a4cfc51315961b61",
+    "stepwise:aa3c4787242df63d",
+    "stepwise:add543d19b488b59",
+    "stepwise:b5399468ec42c098",
+    "stepwise:d2de3b3537c6525b",
+    "stepwise:eae97714199818c2"
+  ],
+  "multi_label_solutions_excluded": {
+    "solutions": {
+      "eic": 2,
+      "stepwise": 145
+    },
+    "cases": {
+      "eic": 4,
+      "stepwise": 328
+    },
+    "newly_excluded": {
+      "eic": 4,
+      "stepwise": 289
+    }
+  },
+  "cases": 3986,
+  "eligible_cases": 3409,
+  "question_groups": 2992,
+  "splits": {
+    "train": {
+      "pair_records": 5448,
+      "anchors": 2724
+    },
+    "validation": {
+      "pair_records": 682,
+      "anchors": 341
+    },
+    "test": {
+      "pair_records": 688,
+      "anchors": 344
+    }
+  },
+  "checks_passed": true
+}

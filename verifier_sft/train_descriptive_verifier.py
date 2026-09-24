@@ -117,7 +117,6 @@ def main() -> int:
         gradient_accumulation_steps=tcfg["gradient_accumulation_steps"],
         learning_rate=tcfg["learning_rate"],
         weight_decay=tcfg["weight_decay"],
-        warmup_ratio=tcfg["warmup_ratio"],
         bf16=tcfg["bf16"],
         bf16_full_eval=tcfg["bf16"],
         gradient_checkpointing=tcfg["gradient_checkpointing"],
@@ -136,6 +135,8 @@ def main() -> int:
     )
     # transformers renamed evaluation_strategy -> eval_strategy (4.41)
     kwargs["eval_strategy" if "eval_strategy" in arg_fields else "evaluation_strategy"] = strategy
+    # transformers 5 dropped warmup_ratio; warmup_steps takes a float in [0, 1) as a ratio
+    kwargs["warmup_ratio" if "warmup_ratio" in arg_fields else "warmup_steps"] = tcfg["warmup_ratio"]
     if args.max_steps:
         kwargs["max_steps"] = args.max_steps
         if strategy == "epoch":  # a smoke run may end before the first epoch

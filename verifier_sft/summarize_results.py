@@ -27,7 +27,7 @@ def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("names", nargs="+")
     parser.add_argument("--config", default=None)
-    parser.add_argument("--out", default="reports/verifier_results.md")
+    parser.add_argument("--out", default=None, help="default: <output.report_dir>/verifier_results.md")
     args = parser.parse_args()
     config = load_config(args.config)
     base = resolve(config["evaluation"]["output_dir"])
@@ -67,7 +67,7 @@ def main() -> int:
     for d in datasets:
         L += [f"| {d} | " + " | ".join(fmt((r["by_dataset"].get(d) or {}).get("accuracy")) for r in runs) + " |"]
     L += [""]
-    out = resolve(args.out)
+    out = resolve(args.out or f"{config['output'].get('report_dir', 'reports')}/verifier_results.md")
     out.parent.mkdir(parents=True, exist_ok=True)
     out.write_text("\n".join(L) + "\n", encoding="utf-8", newline="\n")
     print(f"-> {out}")

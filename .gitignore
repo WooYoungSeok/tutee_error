@@ -8,3 +8,9 @@ outputs/runs/*/raw.jsonl
 verifier_sft/checkpoints/
 wandb/
 .claude/settings.local.json
+verifier_sft/reports/**/format_check_limit*.md
+verifier_sft/outputs/**/*_limit*/
+verifier_sft/reports/**/eval_*_limit*.md
+verifier_sft/outputs/**/api_responses.jsonl
+verifier_sft/logs/
+verifier_sft/outputs/**/gpt_parsing.jsonl
