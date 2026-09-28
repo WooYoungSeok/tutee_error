@@ -102,9 +102,14 @@ def main() -> int:
     prompt = load_prompt(config)
     data_dir = resolve(config["output"]["data_dir"])
     train_path, val_path = data_dir / "train.jsonl", data_dir / "validation.jsonl"
+    # training.use_validation false: no evaluation during training, no best-model selection;
+    # every epoch is saved and the checkpoint is chosen afterwards
+    use_val = tcfg.get("use_validation", True)
     train_ds = Dataset.from_list(encode_file(train_path, tokenizer, prompt, max_len, args.limit))
-    val_ds = Dataset.from_list(encode_file(val_path, tokenizer, prompt, max_len, args.limit))
-    print(f"train examples {len(train_ds)} · validation examples {len(val_ds)} (test is not loaded)")
+    val_ds = Dataset.from_list(encode_file(val_path, tokenizer, prompt, max_len, args.limit)) if use_val else None
+    print(f"train examples {len(train_ds)} · "
+          + (f"validation examples {len(val_ds)}" if use_val else "no validation (training.use_validation false)")
+          + " (test is not loaded)")
 
     dtype_kw = "dtype" if int(transformers.__version__.split(".")[0]) >= 5 else "torch_dtype"
     model = AutoModelForCausalLM.from_pretrained(model_name, trust_remote_code=True, **{dtype_kw: torch.bfloat16})
@@ -126,9 +131,9 @@ def main() -> int:
         gradient_checkpointing_kwargs={"use_reentrant": False},
         logging_steps=tcfg["logging_steps"],
         save_strategy=strategy,
-        load_best_model_at_end=True,
-        metric_for_best_model=tcfg["metric_for_best_model"],
-        greater_is_better=False,
+        load_best_model_at_end=use_val,
+        metric_for_best_model=tcfg["metric_for_best_model"] if use_val else None,
+        greater_is_better=False if use_val else None,
         save_total_limit=tcfg["save_total_limit"],
         report_to=args.report_to or tcfg["report_to"],
         run_name=output_dir.name,
@@ -137,14 +142,18 @@ def main() -> int:
         dataloader_num_workers=tcfg["dataloader_num_workers"],
     )
     # transformers renamed evaluation_strategy -> eval_strategy (4.41)
-    kwargs["eval_strategy" if "eval_strategy" in arg_fields else "evaluation_strategy"] = strategy
+    kwargs["eval_strategy" if "eval_strategy" in arg_fields else "evaluation_strategy"] = strategy if use_val else "no"
+    if tcfg.get("save_only_model"):  # weights only (no optimizer state): ~15 GB per checkpoint, cannot resume
+        kwargs["save_only_model"] = True
     # transformers 5 dropped warmup_ratio; warmup_steps takes a float in [0, 1) as a ratio
     kwargs["warmup_ratio" if "warmup_ratio" in arg_fields else "warmup_steps"] = tcfg["warmup_ratio"]
     if args.max_steps:
         kwargs["max_steps"] = args.max_steps
         if strategy == "epoch":  # a smoke run may end before the first epoch
-            kwargs["eval_strategy" if "eval_strategy" in arg_fields else "evaluation_strategy"] = "steps"
-            kwargs.update(save_strategy="steps", eval_steps=args.max_steps, save_steps=args.max_steps)
+            if use_val:
+                kwargs["eval_strategy" if "eval_strategy" in arg_fields else "evaluation_strategy"] = "steps"
+                kwargs["eval_steps"] = args.max_steps
+            kwargs.update(save_strategy="steps", save_steps=args.max_steps)
     training_args = TrainingArguments(**kwargs)
 
     collator = DataCollatorForSeq2Seq(tokenizer=tokenizer, padding=True, label_pad_token_id=-100)
@@ -177,10 +186,11 @@ def main() -> int:
         "experiment": config["experiment"],
         "model": model_name,
         "config": {"path": config["_config_path"], "sha256": config["_config_sha256"]},
-        "data": {p.name: sha256_file(p) for p in (train_path, val_path)},
+        "data": {p.name: sha256_file(p) for p in ((train_path, val_path) if use_val else (train_path,))},
         "prompt": {"system_sha256": prompt["system_sha256"], "user_sha256": prompt["user_sha256"]},
         "train_examples": len(train_ds),
-        "validation_examples": len(val_ds),
+        "validation_examples": len(val_ds) if use_val else 0,
+        "use_validation": use_val,
         "limit": args.limit,
         "max_steps": args.max_steps,
         "versions": {"python": platform.python_version(), "torch": torch.__version__, "transformers": transformers.__version__},
@@ -191,17 +201,18 @@ def main() -> int:
 
     trainer.train(resume_from_checkpoint=args.resume_from_checkpoint)
 
-    final_dir = output_dir / "final"
-    trainer.save_model(str(final_dir))
-    tokenizer.save_pretrained(str(final_dir))
-    run_info.update(
-        finished_at=datetime.now().isoformat(timespec="seconds"),
-        best_model_checkpoint=trainer.state.best_model_checkpoint,
-        best_metric=trainer.state.best_metric,
-        log_history=trainer.state.log_history,
-    )
+    run_info.update(finished_at=datetime.now().isoformat(timespec="seconds"), log_history=trainer.state.log_history)
+    if use_val:
+        final_dir = output_dir / "final"
+        trainer.save_model(str(final_dir))
+        tokenizer.save_pretrained(str(final_dir))
+        run_info.update(best_model_checkpoint=trainer.state.best_model_checkpoint, best_metric=trainer.state.best_metric)
+        print(f"best checkpoint {trainer.state.best_model_checkpoint} (eval_loss {trainer.state.best_metric}) -> {final_dir}")
+    else:  # no final/: every epoch's checkpoint is kept for selection
+        ckpts = sorted(output_dir.glob("checkpoint-*"), key=lambda q: int(q.name.split("-")[-1]))
+        run_info["checkpoints"] = [q.name for q in ckpts]
+        print(f"checkpoints kept: {run_info['checkpoints']}")
     write_json(output_dir / "run_info.json", run_info)
-    print(f"best checkpoint {trainer.state.best_model_checkpoint} (eval_loss {trainer.state.best_metric}) -> {final_dir}")
     return 0
 
 

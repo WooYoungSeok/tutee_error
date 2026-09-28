@@ -16,7 +16,12 @@
 | v1 평가 (test 744행) | gpt-5.6-sol 0.9718 · SFT checkpoint-186 0.9543 · Qwen 학습 전 0(invalid 100%), gpt-4o-mini 추출 시 0.7849 — 지표는 `outputs/<name>/metrics.json` (v1 보고서 md는 삭제) |
 | v2 데이터 | 완료 — 라벨이 여러 개인 풀이 제외, 점검 11개 통과, 형식 점검 6,818개 실패 0, `reports/descriptive_v2/` |
 | v2 학습 | 완료 (2026-09-24, 5 epoch = 855 step, 8시간 18분, wandb `tutee_error_verifier`) — best epoch 3 (`checkpoint-513`, validation loss 0.0308) → `final/` |
-| v2 절반 A 학습 | 2026-09-28 02:50 UTC 시작 (`checkpoints/descriptive_verifier_v2_halfA_20260928_025029`, 5 epoch = 420 step, wandb run `i8owgavk`). 절반 B는 보류 |
+| v2 절반 A 학습 | 완료 (2026-09-28, `checkpoints/descriptive_verifier_v2_halfA_20260928_025029`, 5 epoch = 420 step, 2시간 16분, wandb run `i8owgavk`) — best epoch 2 (`checkpoint-168`, validation loss 0.0448) → `final/`. 절반 B는 보류 |
+| v2 절반 A 평가 (v2 test 688행) | accuracy 0.9477 [0.931, 0.963], macro-F1 0.9476, pair accuracy 0.8953 — `reports/descriptive_v2_halfA/eval_sft.md` |
+| v2 절반 B · DeepSeek-R1-0528-Qwen3-8B 학습 | 2026-09-28 06:29 UTC 시작, 39/435 step에서 중단 (validation을 학습에 합치는 방식으로 전환) |
+| v2 train+validation 절반 학습 (validation 없음, 5 epoch 모두 저장) | A · Qwen2.5-Math-7B-Instruct: `checkpoints/descriptive_verifier_v2_trval_halfA_20260928_065513` (475 step, wandb `y25uir47`) · B · DeepSeek-R1-0528-Qwen3-8B: `checkpoints/descriptive_verifier_v2_trval_halfB_dsr1qwen3_8b_20260928_090359` (490 step, wandb `y7hyokdk`). 순차 실행(RAM) |
+| v2 train+validation 절반 평가 (v2 test, epoch별) | A: 0.9520 / 0.9506 / 0.9637 / 0.9695 / 0.9695 · B: 0.9375 / 0.9535 / 0.9608 / 0.9622 / 0.9651 (epoch 1–5 accuracy) — `reports/descriptive_v2_trval_half*/verifier_results.md`, wandb `test/*`. epoch를 test로 고르면 그 점수는 낙관적이다 |
+| Hugging Face (private) | v2 전체 epoch 3: `WooYoungSeok/qwen2.5-math-7b-descriptive-verifier-v2` · A · Qwen epoch 4 (`checkpoint-380`): `WooYoungSeok/qwen2.5-math-7b-descriptive-verifier-v2-trval-halfA` · B · DeepSeek epoch 5 (`checkpoint-490`): `WooYoungSeok/deepseek-r1-0528-qwen3-8b-descriptive-verifier-v2-trval-halfB` |
 | v2 평가 (test 688행) | accuracy / macro-F1: SFT 0.9738 / 0.9738 · gpt-5.6-sol 0.9637 / 0.9636 · Qwen 학습 전 0 (invalid 99.9%), gpt-4o-mini 추출 시 0.7820 / 0.7808 — `reports/descriptive_v2/verifier_results.md` |
 
 ## v2 데이터 (현재 기준, `config/descriptive_verifier_v2.json`)
@@ -45,14 +50,26 @@ RL로 학습한 메인 모델을 평가할 verifier를 RL 쪽 verifier와 **학�
 | 절반 | 용도 | anchor | 학습 입력 | 문제 그룹 | eic / mathclean / mathedu / stepwise |
 | --- | --- | --- | --- | --- | --- |
 | **A** | **Qwen2.5-Math-7B-Instruct verifier 학습** (v2와 같은 학습 설정) | 1,343 | 2,686 | 1,198 | 647 / 189 / 345 / 162 |
-| **B** | **다른 base model의 verifier용으로 보류. Qwen verifier 학습에는 쓰지 않음** | 1,381 | 2,762 | 1,198 | 684 / 189 / 349 / 159 |
+| **B** | **`deepseek-ai/DeepSeek-R1-0528-Qwen3-8B` verifier 학습** (v2와 같은 학습 설정, `config/descriptive_verifier_v2_halfB_dsr1qwen3_8b.json`). Qwen verifier 학습에는 쓰지 않음 | 1,381 | 2,762 | 1,198 | 684 / 189 / 349 / 159 |
 
 - 문제 그룹 단위로 나눠 두 절반에 같은 문제가 없다. v2 분할과 같은 기준(dataset | benchmark | 라벨)으로 층화했다.
 - positive는 v2와 동일하고, negative는 **각 절반 안에서** v2 규칙으로 다시 뽑았다. 그래서 한 절반의 학습 데이터에
   다른 절반의 오류 설명이 들어가지 않는다.
 - validation·test는 v2 파일을 바이트 그대로 복사했다(checkpoint 선택과 평가는 두 절반이 공유).
+- DeepSeek-R1-0528-Qwen3-8B의 chat template은 `<｜begin▁of▁sentence｜>{system}<｜User｜>{user}<｜Assistant｜>`이고 생성 프롬프트에
+  `<think>`를 넣지 않는다. Qwen verifier와 같이 추론 없이 라벨만 답하도록 학습한다(loss: 라벨 + `<｜end▁of▁sentence｜>`).
+  이 저장소에는 `generation_config.json`이 없다.
 - 사례별 소속 절반: `manifests/descriptive_v2_halves/half_assignment.jsonl`, 분할 보고서와 점검 17개:
   `manifests/descriptive_v2_halves/split_report.md`. 데이터는 `data/descriptive_v2_half{A,B}/`, 결과는 `*_half{A,B}/` 하위.
+
+### train+validation 절반 (`config/descriptive_verifier_v2_trval_half*.json`)
+
+절반 데이터가 작아 v2 validation도 문제 그룹 단위로 A/B에 나눠 학습에 넣었다(`train_half.source_splits`).
+train 사례의 절반 배정은 위와 같고 validation 사례만 층화해 더했으며, negative는 합친 절반 안에서 다시 뽑았다.
+A 1,511 사례(train 1,343 + validation 168) → 학습 입력 3,022, B 1,554 사례(1,381 + 173) → 3,108. test는 v2 파일.
+validation이 없으므로 학습 중 평가·best 자동 선택 없이 5 epoch를 모두 가중치만 저장하고(`training.use_validation: false`,
+`save_only_model: true`), `eval_checkpoints.py`로 모든 checkpoint를 test에서 평가해 wandb run에 `test/*`로 추가했다.
+checkpoint를 test로 고르면 그 test 점수는 낙관적이다(A는 epoch 4·5, B는 epoch 5가 가장 높아 "마지막 epoch" 규칙과 같다).
 
 ## v1 데이터 (고정)
 
@@ -79,8 +96,11 @@ RL로 학습한 메인 모델을 평가할 verifier를 RL 쪽 verifier와 **학�
 ```
 config/descriptive_verifier_v1.json   입력 경로, 필터, 분할, negative 규칙, 학습·평가 설정
 config/descriptive_verifier_v2.json   v1 + 라벨이 여러 개인 풀이 제외, 출력 경로는 descriptive_v2/
-config/descriptive_verifier_v2_half{A,B}.json   v2 train 절반 A/B (A: Qwen 학습, B: 다른 verifier용 보류)
-split_train_halves.py                 v2 train을 문제 그룹 단위로 A/B 절반으로 나누고 절반 안에서 negative 재추출
+config/descriptive_verifier_v2_half{A,B}.json   v2 train 절반 A/B 데이터 정의 (A: Qwen 학습)
+config/descriptive_verifier_v2_halfB_dsr1qwen3_8b.json   절반 B로 DeepSeek-R1-0528-Qwen3-8B 학습 (결과는 *_halfB_dsr1qwen3_8b/)
+split_train_halves.py                 v2 train(+validation)을 문제 그룹 단위로 A/B 절반으로 나누고 절반 안에서 negative 재추출
+config/descriptive_verifier_v2_trval_half*.json   train+validation 절반 (A: Qwen, B: DeepSeek), 결과는 *_trval_half*/
+eval_checkpoints.py                   run의 모든 checkpoint를 test로 평가하고 wandb run에 test/* 추가
 prompts/system.txt, user.txt          학습·추론 공통 지시문 (계획서 7절 원문)
 prompts/user_ablation_*.txt           보조 진단용 (풀이 제거 / 설명만)
 verifier_common.py                    설정, 프롬프트, 토큰화·loss mask, 응답 판정, 지표
@@ -157,6 +177,9 @@ CUDA_VISIBLE_DEVICES=1 python eval_gpt_parsing.py --model_path Qwen/Qwen2.5-Math
 - transformers 5는 `warmup_ratio`를 없앴다. 학습 스크립트는 5.x에서 config의 `warmup_ratio` 값을
   `warmup_steps`에 넘기며, 1 미만 float는 비율로 해석되어 4.x와 같은 `ceil(전체 step × 0.1)`이 된다.
   체크포인트의 `training_args.bin`에는 `warmup_steps=0.1`로 기록된다.
+- **학습은 한 번에 하나씩.** ZeRO-2 CPU optimizer offload로 7~8B full SFT를 하면 run 하나가 회수 불가능한 RAM을 약 229GiB
+  쓴다(anon 약 120 + CUDA 고정 메모리 shmem 약 109; 저장할 때 약 58GiB 버퍼를 풀었다 다시 잡음). 컨테이너 한도는 384GiB이고
+  스왑이 없어 두 run을 동시에 돌리면 한도를 넘는다. 학습 중 다른 GPU에서 평가(수 GB)는 가능하다.
 - `report_to`는 기존과 같이 `wandb`. 학습 스크립트는 시작할 때 `../.env`를 읽으므로 `.env`에 `WANDB_API_KEY`,
   `WANDB_PROJECT`(선택: `WANDB_ENTITY`)를 적는다. run 이름은 체크포인트 폴더 이름이다. 키가 없으면 `--report_to none`.
 - 기존 코드와의 차이: 평가 샘플을 실행 때마다 새로 뽑지 않고 파일로 고정, 학습 중 평가는 validation만,

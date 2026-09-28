@@ -3,8 +3,10 @@
 
 For every example (default: all pairs of every split):
   * the user message is exactly the fixed template filled with Q / S / C;
-  * the tokens that carry loss decode to exactly `<label><|im_end|>` plus the
-    template's trailing newline, i.e. the whole answer label is kept;
+  * the tokens that carry loss are exactly the label's tokens, then the tokenizer's
+    eos token (e.g. Qwen `<|im_end|>`, DeepSeek `<｜end▁of▁sentence｜>`), then at most
+    the template's trailing whitespace, i.e. the whole answer label is kept. Compared
+    as token ids: some tokenizers decode special tokens differently from their name;
   * the inference prompt equals the training input up to the answer, so the
     model sees at inference what it saw in training;
   * nothing is truncated (length <= max_seq_length).
@@ -54,6 +56,8 @@ def main() -> int:
     answer_tokens: dict[str, list[str]] = {}
     example = None
     for split in SPLITS:
+        if not (data_dir / f"{split}.jsonl").exists():  # e.g. no validation file when training.use_validation is false
+            continue
         rows = read_jsonl(data_dir / f"{split}.jsonl")
         for row in rows[: args.limit] if args.limit else rows:
             messages = build_messages(prompt, row, with_target=True)
@@ -66,7 +70,10 @@ def main() -> int:
             enc = encode_example(tokenizer, messages)
             loss_ids = [t for t, lab in zip(enc["input_ids"], enc["labels"]) if lab != IGNORE_INDEX]
             answer = tokenizer.decode(loss_ids)
-            if answer.rstrip("\n") != f"{row['target']}{tokenizer.eos_token}":
+            label_ids = tokenizer(row["target"], add_special_tokens=False)["input_ids"]
+            n = len(label_ids)
+            if (loss_ids[:n] != label_ids or loss_ids[n:n + 1] != [tokenizer.eos_token_id]
+                    or tokenizer.decode(loss_ids[n + 1:]).strip()):
                 failures.append(f"{row['pair_id']}: loss tokens decode to {answer!r}")
             # encode_example guarantees at least one loss token after the prompt
             first_loss = next(i for i, lab in enumerate(enc["labels"]) if lab != IGNORE_INDEX)
