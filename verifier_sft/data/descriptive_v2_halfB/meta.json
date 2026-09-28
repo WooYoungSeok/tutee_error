@@ -1,0 +1,41 @@
+{
+  "created_at_utc": "2026-09-28T02:49:53Z",
+  "experiment": "descriptive_verifier_v2_halfB",
+  "train_half": {
+    "half": "B",
+    "role": "reserved for a separate verifier with a different base model; not used to train the Qwen verifier",
+    "source_config": "config/descriptive_verifier_v2.json",
+    "seed": 42,
+    "rule": "v2 train split into two question-group-disjoint halves, stratified like the v2 split; positives unchanged, each negative re-drawn inside its own half with the v2 rule; validation and test are the v2 files",
+    "assignment_dir": "manifests/descriptive_v2_halves"
+  },
+  "config": {
+    "path": "config/descriptive_verifier_v2_halfB.json",
+    "sha256": "2129626ff16eccb02dc61a5147203022d14d5e1b9503486b74879d61b09fee36"
+  },
+  "source": {
+    "config": "config/descriptive_verifier_v2.json",
+    "data_dir": "data/descriptive_v2",
+    "sha256": {
+      "train.jsonl": "b06ce1ead4757ad43b860a82aae04967376768ad34bc0be421cc205a5d56be0a",
+      "validation.jsonl": "caca606057810afea2eabef292d6f347cb5f5ef17c3dffc41cd8fe8daf8362b4",
+      "test.jsonl": "5c344e1d2e71a0b8dd990269fd03cea12e3a726ce8dc09b439c5eac1ae304cee"
+    }
+  },
+  "other_half": "A",
+  "counts": {
+    "anchors": 1381,
+    "pair_records": 2762,
+    "question_groups": 1198,
+    "by_dataset": {
+      "eic": 684,
+      "mathclean": 189,
+      "mathedu": 349,
+      "stepwise": 159
+    }
+  },
+  "validation_and_test": "byte-identical copies of the source validation.jsonl and test.jsonl",
+  "tokenizer": "Qwen/Qwen2.5-Math-7B-Instruct",
+  "max_seq_length": 4096,
+  "checks_passed": true
+}

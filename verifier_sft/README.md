@@ -16,6 +16,7 @@
 | v1 평가 (test 744행) | gpt-5.6-sol 0.9718 · SFT checkpoint-186 0.9543 · Qwen 학습 전 0(invalid 100%), gpt-4o-mini 추출 시 0.7849 — 지표는 `outputs/<name>/metrics.json` (v1 보고서 md는 삭제) |
 | v2 데이터 | 완료 — 라벨이 여러 개인 풀이 제외, 점검 11개 통과, 형식 점검 6,818개 실패 0, `reports/descriptive_v2/` |
 | v2 학습 | 완료 (2026-09-24, 5 epoch = 855 step, 8시간 18분, wandb `tutee_error_verifier`) — best epoch 3 (`checkpoint-513`, validation loss 0.0308) → `final/` |
+| v2 절반 A 학습 | 2026-09-28 02:50 UTC 시작 (`checkpoints/descriptive_verifier_v2_halfA_20260928_025029`, 5 epoch = 420 step, wandb run `i8owgavk`). 절반 B는 보류 |
 | v2 평가 (test 688행) | accuracy / macro-F1: SFT 0.9738 / 0.9738 · gpt-5.6-sol 0.9637 / 0.9636 · Qwen 학습 전 0 (invalid 99.9%), gpt-4o-mini 추출 시 0.7820 / 0.7808 — `reports/descriptive_v2/verifier_results.md` |
 
 ## v2 데이터 (현재 기준, `config/descriptive_verifier_v2.json`)
@@ -35,6 +36,23 @@ v1에서 **같은 풀이에 정규화한 원본 라벨이 2종류 이상 달린 
 
 v1 test와 같은 anchor는 344개 중 282개이고 negative는 대부분 새로 뽑혔으므로 v1 평가 결과와 직접 비교하지 않는다.
 v2의 데이터·manifest·보고서·평가 결과는 모두 `descriptive_v2/` 하위(`data/`, `manifests/`, `reports/`, `outputs/`)에 있다.
+
+## v2 train 절반 — 독립 verifier용 (`config/descriptive_verifier_v2_half{A,B}.json`)
+
+RL로 학습한 메인 모델을 평가할 verifier를 RL 쪽 verifier와 **학습 데이터가 겹치지 않게** 만들기 위해 v2 train을 둘로 나눴다
+(`split_train_halves.py`, seed 42).
+
+| 절반 | 용도 | anchor | 학습 입력 | 문제 그룹 | eic / mathclean / mathedu / stepwise |
+| --- | --- | --- | --- | --- | --- |
+| **A** | **Qwen2.5-Math-7B-Instruct verifier 학습** (v2와 같은 학습 설정) | 1,343 | 2,686 | 1,198 | 647 / 189 / 345 / 162 |
+| **B** | **다른 base model의 verifier용으로 보류. Qwen verifier 학습에는 쓰지 않음** | 1,381 | 2,762 | 1,198 | 684 / 189 / 349 / 159 |
+
+- 문제 그룹 단위로 나눠 두 절반에 같은 문제가 없다. v2 분할과 같은 기준(dataset | benchmark | 라벨)으로 층화했다.
+- positive는 v2와 동일하고, negative는 **각 절반 안에서** v2 규칙으로 다시 뽑았다. 그래서 한 절반의 학습 데이터에
+  다른 절반의 오류 설명이 들어가지 않는다.
+- validation·test는 v2 파일을 바이트 그대로 복사했다(checkpoint 선택과 평가는 두 절반이 공유).
+- 사례별 소속 절반: `manifests/descriptive_v2_halves/half_assignment.jsonl`, 분할 보고서와 점검 17개:
+  `manifests/descriptive_v2_halves/split_report.md`. 데이터는 `data/descriptive_v2_half{A,B}/`, 결과는 `*_half{A,B}/` 하위.
 
 ## v1 데이터 (고정)
 
@@ -61,6 +79,8 @@ v2의 데이터·manifest·보고서·평가 결과는 모두 `descriptive_v2/` 
 ```
 config/descriptive_verifier_v1.json   입력 경로, 필터, 분할, negative 규칙, 학습·평가 설정
 config/descriptive_verifier_v2.json   v1 + 라벨이 여러 개인 풀이 제외, 출력 경로는 descriptive_v2/
+config/descriptive_verifier_v2_half{A,B}.json   v2 train 절반 A/B (A: Qwen 학습, B: 다른 verifier용 보류)
+split_train_halves.py                 v2 train을 문제 그룹 단위로 A/B 절반으로 나누고 절반 안에서 negative 재추출
 prompts/system.txt, user.txt          학습·추론 공통 지시문 (계획서 7절 원문)
 prompts/user_ablation_*.txt           보조 진단용 (풀이 제거 / 설명만)
 verifier_common.py                    설정, 프롬프트, 토큰화·loss mask, 응답 판정, 지표
