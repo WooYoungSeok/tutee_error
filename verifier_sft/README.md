@@ -13,9 +13,10 @@
 | 단위 테스트 (`tests/`) | 19개 통과 (네트워크·GPU 없음) |
 | 스모크 학습 (4 step) | 완료 (2026-09-24, 엘리스 A100 80GB) — `deepspeed_enabled: true`, 약 5분 |
 | v1 학습 | 2026-09-24 서버에서 시작, 214/1488 step에서 중단(v2로 전환). `checkpoint-186`(1 epoch)만 서버에 있음 |
-| v1 평가 (test 744행) | gpt-5.6-sol 0.9718 · SFT checkpoint-186 0.9543 · Qwen 학습 전 0(invalid 100%), gpt-4o-mini 추출 시 0.7849 — `reports/eval_*.md` |
+| v1 평가 (test 744행) | gpt-5.6-sol 0.9718 · SFT checkpoint-186 0.9543 · Qwen 학습 전 0(invalid 100%), gpt-4o-mini 추출 시 0.7849 — 지표는 `outputs/<name>/metrics.json` (v1 보고서 md는 삭제) |
 | v2 데이터 | 완료 — 라벨이 여러 개인 풀이 제외, 점검 11개 통과, 형식 점검 6,818개 실패 0, `reports/descriptive_v2/` |
-| v2 학습 / 평가 | 예정 (`--config config/descriptive_verifier_v2.json`, 5 epoch = 855 step, wandb 기록) |
+| v2 학습 | 완료 (2026-09-24, 5 epoch = 855 step, 8시간 18분, wandb `tutee_error_verifier`) — best epoch 3 (`checkpoint-513`, validation loss 0.0308) → `final/` |
+| v2 평가 (test 688행) | accuracy / macro-F1: SFT 0.9738 / 0.9738 · gpt-5.6-sol 0.9637 / 0.9636 · Qwen 학습 전 0 (invalid 99.9%), gpt-4o-mini 추출 시 0.7820 / 0.7808 — `reports/descriptive_v2/verifier_results.md` |
 
 ## v2 데이터 (현재 기준, `config/descriptive_verifier_v2.json`)
 

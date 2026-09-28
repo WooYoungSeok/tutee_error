@@ -60,13 +60,17 @@ def main() -> int:
         L += [f"| {label} | " + " | ".join(fmt(get(r)) for r in runs) + " |"]
     L += ["| accuracy 95% CI | " + " | ".join(
         f"[{fmt(r['bootstrap_ci_question_groups']['accuracy']['low'])}, {fmt(r['bootstrap_ci_question_groups']['accuracy']['high'])}]"
+        for r in runs) + " |"]
+    L += ["| macro-F1 95% CI | " + " | ".join(
+        f"[{fmt(r['bootstrap_ci_question_groups']['macro_f1']['low'])}, {fmt(r['bootstrap_ci_question_groups']['macro_f1']['high'])}]"
         for r in runs) + " |", ""]
-    L += ["## Accuracy by dataset", ""]
     datasets = sorted({d for r in runs for d in r["by_dataset"]})
-    L += ["| dataset | " + " | ".join(r["name"] for r in runs) + " |", "| --- |" + "|".join([" --- "] * len(runs)) + "|"]
-    for d in datasets:
-        L += [f"| {d} | " + " | ".join(fmt((r["by_dataset"].get(d) or {}).get("accuracy")) for r in runs) + " |"]
-    L += [""]
+    for title, key in (("Accuracy by dataset", "accuracy"), ("Macro-F1 by dataset", "macro_f1")):
+        L += [f"## {title}", ""]
+        L += ["| dataset | " + " | ".join(r["name"] for r in runs) + " |", "| --- |" + "|".join([" --- "] * len(runs)) + "|"]
+        for d in datasets:
+            L += [f"| {d} | " + " | ".join(fmt((r["by_dataset"].get(d) or {}).get(key)) for r in runs) + " |"]
+        L += [""]
     out = resolve(args.out or f"{config['output'].get('report_dir', 'reports')}/verifier_results.md")
     out.parent.mkdir(parents=True, exist_ok=True)
     out.write_text("\n".join(L) + "\n", encoding="utf-8", newline="\n")
