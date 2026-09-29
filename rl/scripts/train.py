@@ -26,9 +26,9 @@ from tutee_rl.common import (  # noqa: E402
     load_dotenv,
     read_jsonl,
     read_template,
-    render,
     resolve,
     sha256_file,
+    student_messages,
     validate_for_training,
     write_json,
 )
@@ -55,13 +55,9 @@ def build_dataset(cfg, tokenizer, limit):
     template = read_template(cfg["prompts"]["student"])
     records, lengths = [], []
     for r in rows:
-        messages = [
-            {"role": "system", "content": render(template, {"error_description": r["target_misconception_description"]})},
-            {"role": "user", "content": r["problem"]},
-        ]
+        messages = student_messages(template, r)
         records.append({"prompt": messages, "PairId": r["PairId"]})
-        ids = tokenizer.apply_chat_template(messages, tokenize=True, add_generation_prompt=True)
-        lengths.append(len(ids["input_ids"] if isinstance(ids, dict) else ids))
+        lengths.append(len(tokenizer.apply_chat_template(messages, tokenize=True, add_generation_prompt=True, return_dict=False)))
     too_long = [(rows[i]["PairId"], n) for i, n in enumerate(lengths) if n > cfg["generation"]["max_prompt_tokens"]]
     if too_long:
         raise SystemExit(f"{len(too_long)} prompts exceed generation.max_prompt_tokens: {too_long[:5]}")
@@ -149,7 +145,7 @@ def main() -> int:
 
     report_to = args.report_to or t["report_to"]
     if report_to == "wandb":
-        os.environ.setdefault("WANDB_PROJECT", t.get("wandb_project", "tutee_error_rl"))
+        os.environ["WANDB_PROJECT"] = t.get("wandb_project", "tutee_error_rl")  # ../.env's WANDB_PROJECT is the verifier SFT project
         if not os.environ.get("WANDB_API_KEY"):
             report_to = "none"
 
@@ -187,6 +183,8 @@ def main() -> int:
         max_completion_length=int(gen["max_completion_tokens"]),
         temperature=float(gen["temperature"]),
         top_p=float(gen["top_p"]),
+        top_k=int(gen["top_k"]),
+        repetition_penalty=float(gen["repetition_penalty"]),
         use_vllm=True,
         vllm_mode="server",
         vllm_server_host=srv["host"],

@@ -29,7 +29,7 @@
     },
     {
       "position": 2,
-      "status": "candidate_pending_approval",
+      "status": "approved",
       "mathedu_id": 8584,
       "student_id": 3,
       "split": "train",

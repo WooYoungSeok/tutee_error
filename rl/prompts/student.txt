@@ -6,3 +6,6 @@ Error description:
 
 Show your working and give your final answer.
 Write the answer itself, not an option letter or option number.
+Write as that student would, believing your working is correct.
+Do not mention the error, do not describe what you are doing wrong,
+and do not state or compare with the correct answer.

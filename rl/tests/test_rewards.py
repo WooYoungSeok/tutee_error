@@ -102,6 +102,10 @@ def test_bleu_excludes_self_only_and_identical_scores_zero():
     assert "0|0" not in detail["bleu_matrix"]
 
 
+def test_bleu_signature_available_before_first_score():
+    assert make_bleu().get_signature().format().startswith("nrefs:1|case:mixed|eff:yes|tok:13a|smooth:exp")
+
+
 def test_bleu_ignores_non_accepted_texts():
     bleu = make_bleu()
     base = ["alpha beta gamma delta", "epsilon zeta eta theta", "alpha beta gamma delta"]

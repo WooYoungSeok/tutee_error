@@ -8,6 +8,7 @@ Replays the verifier's own v2 test split through the exact request path used in 
      (false rejection) and on negatives (false acceptance), invalid rate, sample disagreement.
 
 Usage (from rl/, verifier server up):  python scripts/check_verifier_server.py [--config configs/common.yaml] [--limit N]
+  --test_verifier checks the held-out half-B verifier used by evaluate.py (scripts/launch_eval_server.sh)
 """
 
 from __future__ import annotations
@@ -20,7 +21,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
 
-from tutee_rl.common import VERIFIER_SFT_DIR, load_config, read_jsonl, resolve, write_json  # noqa: E402
+from tutee_rl.common import VERIFIER_SFT_DIR, eval_verifier_cfg, load_config, read_jsonl, resolve, write_json  # noqa: E402
 
 
 async def run(cfg, rows, greedy: bool):
@@ -49,9 +50,13 @@ def main() -> int:
     parser.add_argument("--config", default="configs/common.yaml")
     parser.add_argument("--data", default=str(VERIFIER_SFT_DIR / "data" / "descriptive_v2" / "test.jsonl"))
     parser.add_argument("--limit", type=int, default=None)
-    parser.add_argument("--out", default="outputs/verifier_server_check.json")
+    parser.add_argument("--out", default=None, help="default outputs/verifier_server_check[_test_verifier].json")
+    parser.add_argument("--test_verifier", action="store_true")
     args = parser.parse_args()
     cfg = load_config(args.config)
+    if args.test_verifier:
+        cfg["verifier"] = eval_verifier_cfg(cfg)
+    args.out = args.out or f"outputs/verifier_server_check{'_test_verifier' if args.test_verifier else ''}.json"
     rows = read_jsonl(args.data)[: args.limit] if args.limit else read_jsonl(args.data)
 
     greedy, g_sampling = asyncio.run(run(cfg, rows, greedy=True))
