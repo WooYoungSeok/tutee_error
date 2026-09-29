@@ -214,7 +214,7 @@ def main() -> int:
     if args.include_base:
         jobs.append(("base", cfg["policy"]["model"], Path()))
     if args.run:
-        for d in sorted((Path(args.run) / "epoch_checkpoints").glob("epoch-*"), key=lambda p: int(p.name.split("-")[1])):
+        for d in sorted((Path(args.run) / "epoch_checkpoints").glob("epoch-*"), key=lambda p: float(p.name.split("-")[1])):
             jobs.append((d.name, str(d.resolve()), Path()))
     for c in args.checkpoints:
         jobs.append((Path(c).name, str(Path(c).resolve()) if Path(c).exists() else c, Path()))

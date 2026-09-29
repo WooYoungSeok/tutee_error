@@ -65,20 +65,30 @@ def build_dataset(cfg, tokenizer, limit):
     return Dataset.from_list(records), stats
 
 
-def epoch_save_callback(run_dir: Path, tokenizer):
-    """Model-only snapshot at every epoch end -> <run>/epoch_checkpoints/epoch-K (never rotated).
+def epoch_save_callback(run_dir: Path, tokenizer, every_epochs: float):
+    """Model-only snapshot every `every_epochs` epochs -> <run>/epoch_checkpoints/epoch-X.X (never rotated).
 
-    All epochs are kept so the best one can be chosen on test afterwards. The Trainer's own
+    All snapshots are kept so the best one can be chosen on test afterwards. The Trainer's own
     checkpoint-N folders (full optimizer state, rotated) exist only to resume an aborted run.
     """
     from transformers import TrainerCallback
 
     class EpochSave(TrainerCallback):
         trainer = None
+        save_at: dict[int, float] = {}
 
-        def on_epoch_end(self, args, state, control, **kwargs):
-            epoch = int(round(state.epoch or 0))
-            out = run_dir / "epoch_checkpoints" / f"epoch-{epoch}"
+        def on_train_begin(self, args, state, control, **kwargs):
+            steps_per_epoch = state.max_steps / float(args.num_train_epochs)
+            n = int(round(float(args.num_train_epochs) / every_epochs))
+            self.save_at = {int(round(k * every_epochs * steps_per_epoch)): k * every_epochs for k in range(1, n + 1)}
+            self.save_at = {step: ep for step, ep in self.save_at.items() if 0 < step <= state.max_steps}
+            return control
+
+        def on_step_end(self, args, state, control, **kwargs):
+            if state.global_step not in self.save_at:
+                return control
+            epoch = self.save_at[state.global_step]
+            out = run_dir / "epoch_checkpoints" / f"epoch-{epoch:.1f}"
             self.trainer.save_model(str(out))  # collective under DeepSpeed; every rank calls it
             if state.is_world_process_zero:
                 tokenizer.save_pretrained(str(out))
@@ -187,7 +197,7 @@ def main() -> int:
         gradient_checkpointing=bool(t["gradient_checkpointing"]),
         bf16=bool(t["bf16"]),
         lr_scheduler_type=t["lr_scheduler_type"],
-        warmup_steps=int(t["warmup_steps"]),
+        warmup_steps=float(t.get("warmup_ratio", t.get("warmup_steps", 0))),  # transformers 5: a float < 1 is a ratio of total steps
         max_grad_norm=float(t["max_grad_norm"]),
         logging_steps=int(t["logging_steps"]),
         save_strategy="steps",                       # resume checkpoints (rotated); epochs saved by EpochSave
@@ -248,7 +258,7 @@ def main() -> int:
         write_json(run_dir / meta_name, meta)
         print(json.dumps({k: meta[k] for k in ("run_name", "completions_per_step", "prompts_per_step", "reward")}, indent=2, ensure_ascii=False))
 
-    epoch_cb = epoch_save_callback(run_dir, tokenizer)
+    epoch_cb = epoch_save_callback(run_dir, tokenizer, float(t.get("model_save_every_epochs", 1.0)))
     trainer = GRPOTrainer(
         model=cfg["policy"]["model"],
         reward_funcs=funcs,

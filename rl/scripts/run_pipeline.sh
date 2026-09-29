@@ -6,6 +6,9 @@
 #
 # usage (from rl/):  bash scripts/run_pipeline.sh [experiment ...]      default: diversity student_likeness
 #   WAIT_FOR_DATA=1   wait until the Eedi files appear in data/raw/ (and stop growing) before starting
+#   run names (output dir and W&B run) = <experiment>_<SEED_TAG>_<YYYYmmdd_HHMMSS at start>;
+#   RUN_<experiment>=<name> continues or evaluates an existing run instead (e.g. RUN_diversity=diversity_seed42_20260930_010203)
+#   a GRPO training already running (scripts/train.py) is waited for before anything starts
 #   logs: logs/pipeline.log (stages), logs/train_<run>.log, logs/eval_<run>.log
 set -uo pipefail
 cd "$(dirname "$0")/.."
@@ -26,6 +29,18 @@ gpus_free() {  # after stop_servers.sh: every GPU must be empty (a stray vLLM en
   done
 }
 
+run_name() {  # one timestamped name per experiment and pipeline invocation
+  local var="RUN_$1"
+  if [ -n "${!var:-}" ]; then echo "${!var}"; else echo "$1_${SEED_TAG}_$(date '+%Y%m%d_%H%M%S')"; fi
+}
+
+wait_running_training() {
+  pgrep -f "scripts/train.py" > /dev/null || return 0
+  log "waiting for the GRPO training that is already running"
+  while pgrep -f "scripts/train.py" > /dev/null; do sleep 60; done
+  log "running training finished"
+}
+
 wait_for_data() {
   log "waiting for data/raw/train_model_inputs.jsonl + (train_privileged_annotations.jsonl or all_judgements.csv)"
   until [ -f data/raw/train_model_inputs.jsonl ] && { [ -f data/raw/train_privileged_annotations.jsonl ] || [ -f data/raw/all_judgements.csv ]; }; do
@@ -44,8 +59,8 @@ prepare() {
   [ "${PIPESTATUS[0]}" -eq 0 ] || die "prepare_eedi.py"
 }
 
-train() {
-  local run="$1_$SEED_TAG" cfg="configs/$1.yaml" attempt=0 rc resume=()
+train() {  # experiment run_name
+  local run="$2" cfg="configs/$1.yaml" attempt=0 rc resume=()
   [ -f "outputs/$run/final/config.json" ] && { log "$run: already trained"; return 0; }
   has_checkpoint "$run" && resume=(--resume latest)
   while true; do
@@ -65,8 +80,8 @@ train() {
   done
 }
 
-evaluate() {
-  local run="$1_$SEED_TAG" cfg="configs/$1.yaml"
+evaluate() {  # experiment run_name
+  local run="$2" cfg="configs/$1.yaml"
   [ -f "outputs/$run/test_eval/summary.json" ] && { log "$run: already evaluated"; return 0; }
   bash scripts/stop_servers.sh > /dev/null 2>&1
   gpus_free
@@ -80,9 +95,12 @@ evaluate() {
 }
 
 log "pipeline start: $*"
+wait_running_training
 prepare
 for exp in "$@"; do
-  train "$exp"
-  evaluate "$exp"
+  run=$(run_name "$exp")
+  log "$exp: run name $run"
+  train "$exp" "$run"
+  evaluate "$exp" "$run"
 done
 log "pipeline done"
