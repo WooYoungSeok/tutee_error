@@ -14,3 +14,6 @@ verifier_sft/reports/**/eval_*_limit*.md
 verifier_sft/outputs/**/api_responses.jsonl
 verifier_sft/logs/
 verifier_sft/outputs/**/gpt_parsing.jsonl
+verifier_sft/outputs/**/audit_responses.jsonl
+verifier_sft/outputs/**/*_limit[0-9]*.jsonl
+verifier_sft/outputs/**/*_limit[0-9]*.md

@@ -1,0 +1,83 @@
+{
+  "created_at_utc": "2026-09-29T12:03:18Z",
+  "config": {
+    "path": "config/strict_contrast_v1_halfA_cont.json",
+    "sha256": "759645515fae4b34e15d8481d9335702769546352cb06d327897cd14c75024c7"
+  },
+  "sft_data": {
+    "audits": "outputs/strict_contrast_v1/audit/audits.jsonl",
+    "half": "A",
+    "positives": "audited_only",
+    "positives_options": "audited_only | existing_all (see build_contrast_sft.py)",
+    "existing_train": "data/descriptive_v2_trval_halfA/train.jsonl",
+    "v2_test": "data/descriptive_v2/test.jsonl",
+    "positives_note": "researcher decision 2026-09-29: only audited rows of half-A question groups with two or more solutions; no cross-question negatives, no positives of single-solution groups"
+  },
+  "inputs": {
+    "audits": "34a00cc79f9608735c0458744929b8999beb7c30ce1e40d9ce76301950e69517",
+    "existing_train": "7b31743697e36dccdd49b47ec2faae8cb380efd5c4972e3496152e4eacca0afa",
+    "v2_test": "5c344e1d2e71a0b8dd990269fd03cea12e3a726ce8dc09b439c5eac1ae304cee"
+  },
+  "train": {
+    "rows": 691,
+    "targets": {
+      "aligned": 416,
+      "not_aligned": 275
+    },
+    "by_source": {
+      "audited_cross_same_question → aligned": 127,
+      "audited_cross_same_question → not_aligned": 273,
+      "audited_own → aligned": 289,
+      "audited_own → not_aligned": 2
+    },
+    "question_groups": 127,
+    "by_dataset": {
+      "eic": 643,
+      "mathedu": 16,
+      "stepwise": 32
+    },
+    "contrast_2x2_blocks": 117
+  },
+  "contrast_test": {
+    "rows": 202,
+    "targets": {
+      "aligned": 139,
+      "not_aligned": 63
+    },
+    "by_source": {
+      "audited_cross_same_question → aligned": 62,
+      "audited_cross_same_question → not_aligned": 62,
+      "audited_own → aligned": 77,
+      "audited_own → not_aligned": 1
+    },
+    "question_groups": 32,
+    "by_dataset": {
+      "eic": 188,
+      "mathedu": 2,
+      "stepwise": 12
+    },
+    "contrast_2x2_blocks": 22
+  },
+  "test_augmented": {
+    "rows": 750,
+    "by_source": {
+      "v2_positive → aligned": 344,
+      "v2_negative_other_question → not_aligned": 344,
+      "audited_cross_same_question → not_aligned": 62
+    }
+  },
+  "unclear_dropped": {
+    "B|cross_same_question": 1
+  },
+  "checks": {
+    "no train question group in the contrast test": true,
+    "no train question group in the v2 test": true,
+    "no train question group from the other half": true,
+    "train negatives are audited rows only": true,
+    "pair ids unique": true,
+    "augmented test: added rows repeat no v2 test row": true,
+    "augmented test: added rows are negatives on v2 test solutions": true,
+    "augmented test: pair ids unique": true
+  },
+  "checks_passed": true
+}

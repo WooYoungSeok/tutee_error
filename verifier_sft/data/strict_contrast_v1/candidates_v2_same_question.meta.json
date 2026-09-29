@@ -1,0 +1,131 @@
+{
+  "created_at_utc": "2026-09-29T10:01:39Z",
+  "config": {
+    "path": "config/strict_contrast_v1.json",
+    "sha256": "9852b1170a9d3c8408db721c4b160d53e66c41a4b25e2f7292100be12bddcef0"
+  },
+  "source": {
+    "train.jsonl": "b06ce1ead4757ad43b860a82aae04967376768ad34bc0be421cc205a5d56be0a",
+    "validation.jsonl": "caca606057810afea2eabef292d6f347cb5f5ef17c3dffc41cd8fe8daf8362b4",
+    "test.jsonl": "5c344e1d2e71a0b8dd990269fd03cea12e3a726ce8dc09b439c5eac1ae304cee"
+  },
+  "half_assignment_sha256": "bb007d4bac26f52d9a84abbda3fc9723858500da1defd1621feb2c0e93443dbb",
+  "rows": 1807,
+  "question_groups": 308,
+  "skipped": {
+    "same_description_text": 14
+  },
+  "by_dataset": {
+    "eic": 1696,
+    "mathedu": 39,
+    "stepwise": 72
+  },
+  "counts": [
+    {
+      "split": "test",
+      "half": "test",
+      "origin": "cross_same_question",
+      "same_source_label": false,
+      "rows": 72
+    },
+    {
+      "split": "test",
+      "half": "test",
+      "origin": "cross_same_question",
+      "same_source_label": true,
+      "rows": 52
+    },
+    {
+      "split": "test",
+      "half": "test",
+      "origin": "own",
+      "same_source_label": true,
+      "rows": 78
+    },
+    {
+      "split": "train",
+      "half": "A",
+      "origin": "cross_same_question",
+      "same_source_label": false,
+      "rows": 264
+    },
+    {
+      "split": "train",
+      "half": "A",
+      "origin": "cross_same_question",
+      "same_source_label": true,
+      "rows": 90
+    },
+    {
+      "split": "train",
+      "half": "A",
+      "origin": "own",
+      "same_source_label": true,
+      "rows": 258
+    },
+    {
+      "split": "train",
+      "half": "B",
+      "origin": "cross_same_question",
+      "same_source_label": false,
+      "rows": 328
+    },
+    {
+      "split": "train",
+      "half": "B",
+      "origin": "cross_same_question",
+      "same_source_label": true,
+      "rows": 160
+    },
+    {
+      "split": "train",
+      "half": "B",
+      "origin": "own",
+      "same_source_label": true,
+      "rows": 317
+    },
+    {
+      "split": "validation",
+      "half": "A",
+      "origin": "cross_same_question",
+      "same_source_label": false,
+      "rows": 40
+    },
+    {
+      "split": "validation",
+      "half": "A",
+      "origin": "cross_same_question",
+      "same_source_label": true,
+      "rows": 6
+    },
+    {
+      "split": "validation",
+      "half": "A",
+      "origin": "own",
+      "same_source_label": true,
+      "rows": 33
+    },
+    {
+      "split": "validation",
+      "half": "B",
+      "origin": "cross_same_question",
+      "same_source_label": false,
+      "rows": 46
+    },
+    {
+      "split": "validation",
+      "half": "B",
+      "origin": "cross_same_question",
+      "same_source_label": true,
+      "rows": 24
+    },
+    {
+      "split": "validation",
+      "half": "B",
+      "origin": "own",
+      "same_source_label": true,
+      "rows": 39
+    }
+  ],
+  "checks_passed": true
+}

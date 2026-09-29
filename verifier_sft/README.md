@@ -10,7 +10,7 @@
 | --- | --- |
 | 데이터 준비 (`prepare_descriptive_pairs.py`) | 완료 — 점검 11개 통과, `reports/data_audit.md` |
 | 입력 형식·loss mask 점검 (`check_formatting.py`) | 완료 — 7,404개 예시 실패 0, `reports/format_check.md` |
-| 단위 테스트 (`tests/`) | 19개 통과 (네트워크·GPU 없음) |
+| 단위 테스트 (`tests/`) | 23개 통과 (네트워크·GPU 없음; `test_contrast.py` 4개 포함) |
 | 스모크 학습 (4 step) | 완료 (2026-09-24, 엘리스 A100 80GB) — `deepspeed_enabled: true`, 약 5분 |
 | v1 학습 | 2026-09-24 서버에서 시작, 214/1488 step에서 중단(v2로 전환). `checkpoint-186`(1 epoch)만 서버에 있음 |
 | v1 평가 (test 744행) | gpt-5.6-sol 0.9718 · SFT checkpoint-186 0.9543 · Qwen 학습 전 0(invalid 100%), gpt-4o-mini 추출 시 0.7849 — 지표는 `outputs/<name>/metrics.json` (v1 보고서 md는 삭제) |
@@ -23,6 +23,8 @@
 | v2 train+validation 절반 평가 (v2 test, epoch별) | A: 0.9520 / 0.9506 / 0.9637 / 0.9695 / 0.9695 · B: 0.9375 / 0.9535 / 0.9608 / 0.9622 / 0.9651 (epoch 1–5 accuracy) — `reports/descriptive_v2_trval_half*/verifier_results.md`, wandb `test/*`. epoch를 test로 고르면 그 점수는 낙관적이다 |
 | Hugging Face (private) | v2 전체 epoch 3: `WooYoungSeok/qwen2.5-math-7b-descriptive-verifier-v2` · A · Qwen epoch 4 (`checkpoint-380`): `WooYoungSeok/qwen2.5-math-7b-descriptive-verifier-v2-trval-halfA` · B · DeepSeek epoch 5 (`checkpoint-490`): `WooYoungSeok/deepseek-r1-0528-qwen3-8b-descriptive-verifier-v2-trval-halfB` |
 | v2 평가 (test 688행) | accuracy / macro-F1: SFT 0.9738 / 0.9738 · gpt-5.6-sol 0.9637 / 0.9636 · Qwen 학습 전 0 (invalid 99.9%), gpt-4o-mini 추출 시 0.7820 / 0.7808 — `reports/descriptive_v2/verifier_results.md` |
+| 엄격한 verifier: 같은 문제 대조 사례 검수 (`strict_contrast_v1`) | 완료 (2026-09-29) — v2에서 풀이가 2개 이상인 문제의 (풀이, 설명) 조합 1,807행을 gpt-5.6-sol로 aligned / not_aligned / unclear 검수 (파일럿 20행 후 지시문 확정, 사람 검토 없음): aligned 1,115 · not_aligned 691 · unclear 1. 기록: `strict_contrast_v1.md` |
+| 엄격한 verifier: 이어서 학습 (검수된 같은 문제 행만, lr 5e-6, 3 epoch) | halfA (691행) · 전체 v2 (1,604행) 완료. v2 test + 같은 문제 negative 62행(`test_augmented`, 750행)에서 같은 문제 negative 수용 49→18 (halfA) · 47→17 (전체), positive 거부 8→43 · 7→41, 정확도 0.907→0.909 · 0.913→0.915 (epoch 3). gpt-5.6-sol 0.961 — `reports/strict_contrast_v1_*_cont/` |
 
 ## v2 데이터 (현재 기준, `config/descriptive_verifier_v2.json`)
 
@@ -100,7 +102,7 @@ config/descriptive_verifier_v2_half{A,B}.json   v2 train 절반 A/B 데이터 �
 config/descriptive_verifier_v2_halfB_dsr1qwen3_8b.json   절반 B로 DeepSeek-R1-0528-Qwen3-8B 학습 (결과는 *_halfB_dsr1qwen3_8b/)
 split_train_halves.py                 v2 train(+validation)을 문제 그룹 단위로 A/B 절반으로 나누고 절반 안에서 negative 재추출
 config/descriptive_verifier_v2_trval_half*.json   train+validation 절반 (A: Qwen, B: DeepSeek), 결과는 *_trval_half*/
-eval_checkpoints.py                   run의 모든 checkpoint를 test로 평가하고 wandb run에 test/* 추가
+eval_checkpoints.py                   run의 모든 checkpoint를 test로 평가하고 wandb run에 test/* 추가 (--split로 다른 파일)
 prompts/system.txt, user.txt          학습·추론 공통 지시문 (계획서 7절 원문)
 prompts/user_ablation_*.txt           보조 진단용 (풀이 제거 / 설명만)
 verifier_common.py                    설정, 프롬프트, 토큰화·loss mask, 응답 판정, 지표
@@ -118,6 +120,15 @@ manifests/, manifests/descriptive_v2/             split_manifest.jsonl(모든 �
 outputs/<name>/, outputs/descriptive_v2/<name>/   평가 예측·지표 (API 응답 원문은 git 제외)
 env.sh, setup_server.sh, requirements-lock.txt    서버 환경 (아래)
 accelerate_config_ds_single.yaml, ds_config.json   reward_model과 같은 DeepSpeed ZeRO-2 설정
+
+엄격한 verifier (strict_contrast_v1.md):
+build_contrast_candidates.py          같은 문제 안의 (풀이, 설명) 조합 후보 → data/strict_contrast_v1/
+audit_contrast.py                     gpt-5.6-sol 검수 (--pilot 20행), prompts/audit_{system,user}.txt
+build_contrast_sft.py                 검수 결과 → train / contrast_test / test_augmented / test
+run_strict_contrast_v1.sh [config]    데이터 → 이어서 학습(GPU 0) → 학습 전·epoch별 평가(GPU 1) → 비교표
+summarize_subset.py                   섞인 평가 파일에서 한 종류(row_source)의 행만 모델별로 비교
+config/strict_contrast_v1.json        후보·검수 설정
+config/strict_contrast_v1_{halfA,full}_cont.json   halfA / 전체 v2 verifier 이어서 학습
 ```
 
 ## 서버 환경 (엘리스 GPU 서버)

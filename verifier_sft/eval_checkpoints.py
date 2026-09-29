@@ -10,8 +10,12 @@ metrics already exist is not evaluated again; a wandb failure does not affect th
 
 Choosing the epoch on these numbers makes the chosen epoch's test score optimistic; report it as such.
 
+--split evaluates another file of the data directory (e.g. contrast_test): names get the suffix _<split>,
+the comparison goes to <report_dir>/verifier_results_<split>.md and wandb keys are <split>/*.
+
 Usage (from verifier_sft/):
     CUDA_VISIBLE_DEVICES=1 python eval_checkpoints.py --config config/<cfg>.json --run_dir checkpoints/<run>
+    CUDA_VISIBLE_DEVICES=1 python eval_checkpoints.py --config config/<cfg>.json --run_dir checkpoints/<run> --split contrast_test
 """
 
 from __future__ import annotations
@@ -30,6 +34,10 @@ sys.path.insert(0, str(HERE.parent / "src"))
 from errdesc.runner import load_dotenv  # noqa: E402
 from verifier_common import load_config, resolve  # noqa: E402
 
+def fmt(v: float | None) -> str:
+    return "-" if v is None else f"{v:.4f}"
+
+
 METRICS = ("accuracy", "macro_f1", "pair_accuracy", "negative_acceptance_rate", "positive_rejection_rate", "invalid_rate")
 
 
@@ -40,6 +48,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--name_prefix", default="sft_")
     parser.add_argument("--limit", type=int, default=None, help="smoke test: first N test rows (no wandb)")
     parser.add_argument("--no_wandb", action="store_true")
+    parser.add_argument("--split", default=None, help="default: evaluation.split (test)")
     return parser.parse_args()
 
 
@@ -51,17 +60,20 @@ def main() -> int:
     if not ckpts:
         raise SystemExit(f"no checkpoints in {run_dir}")
 
+    split = args.split or config["evaluation"]["split"]
+    suffix = "" if split == config["evaluation"]["split"] else f"_{split}"
+    key = "test" if not suffix else split
     rows = []
     for ckpt in ckpts:
         state = json.loads((ckpt / "trainer_state.json").read_text(encoding="utf-8"))
         epoch = round(state["epoch"])
-        name = f"{args.name_prefix}epoch{epoch}"
+        name = f"{args.name_prefix}epoch{epoch}{suffix}"
         out_name = f"{name}_limit{args.limit}" if args.limit else name
         metrics_path = resolve(config["evaluation"]["output_dir"]) / out_name / "metrics.json"
         done = metrics_path.exists() and json.loads(metrics_path.read_text(encoding="utf-8"))["model_path"] == str(ckpt)
         if not done:
             cmd = [sys.executable, str(HERE / "eval_descriptive_verifier.py"), "--config", args.config,
-                   "--model_path", str(ckpt), "--name", name]
+                   "--model_path", str(ckpt), "--name", name, "--split", split]
             if args.limit:
                 cmd += ["--limit", str(args.limit)]
             print(f"== {ckpt.name} (epoch {epoch}) -> {out_name}", flush=True)
@@ -72,11 +84,11 @@ def main() -> int:
                      "accuracy_ci": [m["bootstrap_ci_question_groups"]["accuracy"][b] for b in ("low", "high")]})
 
     for r in rows:
-        print(f"epoch {r['epoch']} ({r['checkpoint']}): accuracy {r['accuracy']:.4f} · macro-F1 {r['macro_f1']:.4f} · "
-              f"pair accuracy {r['pair_accuracy']:.4f} · invalid {r['invalid_rate']:.4f}", flush=True)
+        print(f"epoch {r['epoch']} ({r['checkpoint']}): " + " · ".join(f"{k} {fmt(r[k])}" for k in METRICS), flush=True)
     if not args.limit:
+        out = ["--out", str(resolve(config["output"].get("report_dir", "reports")) / f"verifier_results{suffix}.md")] if suffix else []
         subprocess.run([sys.executable, str(HERE / "summarize_results.py"), "--config", args.config]
-                       + [r["name"] for r in rows], check=True, cwd=HERE)
+                       + out + [r["name"] for r in rows], check=True, cwd=HERE)
     if args.no_wandb or args.limit:
         return 0
 
@@ -90,18 +102,18 @@ def main() -> int:
         import wandb
 
         run = wandb.init(entity=entity, project=project, id=run_id, resume="must")
-        run.define_metric("test/epoch")
-        run.define_metric("test/*", step_metric="test/epoch")
+        run.define_metric(f"{key}/epoch")
+        run.define_metric(f"{key}/*", step_metric=f"{key}/epoch")
         for r in rows:
-            run.log({"test/epoch": r["epoch"], **{f"test/{k}": r[k] for k in METRICS}})
+            run.log({f"{key}/epoch": r["epoch"], **{f"{key}/{k}": r[k] for k in METRICS if r[k] is not None}})
         table = wandb.Table(columns=["epoch", "step", "checkpoint"] + list(METRICS))
         for r in rows:
             table.add_data(r["epoch"], r["step"], r["checkpoint"], *[r[k] for k in METRICS])
-        run.log({"test/by_epoch": table})
+        run.log({f"{key}/by_epoch": table})
         best = max(rows, key=lambda r: (r["accuracy"], r["macro_f1"]))
-        run.summary.update({"test/best_epoch_by_accuracy (chosen on test)": best["epoch"],
-                            "test/best_accuracy (chosen on test)": best["accuracy"],
-                            "test/data_sha256": json.loads((resolve(config["evaluation"]["output_dir"]) / best["name"] / "metrics.json").read_text())["data_sha256"]})
+        run.summary.update({f"{key}/best_epoch_by_accuracy (chosen on {key})": best["epoch"],
+                            f"{key}/best_accuracy (chosen on {key})": best["accuracy"],
+                            f"{key}/data_sha256": json.loads((resolve(config["evaluation"]["output_dir"]) / best["name"] / "metrics.json").read_text())["data_sha256"]})
         run.finish()
         print(f"logged {len(rows)} epochs to wandb run {entity}/{project}/{run_id}", flush=True)
     except Exception as exc:  # noqa: BLE001 - the evaluation results are already on disk

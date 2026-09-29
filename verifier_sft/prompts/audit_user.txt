@@ -1,0 +1,8 @@
+Question:
+{question}
+
+Incorrect solution:
+{solution}
+
+Error description:
+{error_description}

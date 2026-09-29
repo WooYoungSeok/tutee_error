@@ -1,0 +1,542 @@
+{
+  "name": "sft_epoch2_contrast_test",
+  "created_at": "2026-09-29T11:35:46",
+  "model_path": "/home/elicer/tutee_error/verifier_sft/checkpoints/strict_contrast_v1_halfA_cont_20260929_111602/checkpoint-44",
+  "split": "contrast_test",
+  "ablation": "none",
+  "data_sha256": "937668efa6cb375eef85a93c16288b35d53cf39ab90d4efe626cb96b107f4e85",
+  "limit": null,
+  "prompt": {
+    "system_sha256": "8873b8bcb1a596d72028d9444a4cad0748d37ff6bf5f36bfbac021ce857be16a",
+    "user_sha256": "e1fb1b93fbe7bf8b3d4a808ca8fa97b603b818928d70cbbc9543b23b79f1d60f"
+  },
+  "decoding": {
+    "greedy": true,
+    "max_new_tokens": 10,
+    "batch_size": 8
+  },
+  "overall": {
+    "n": 202,
+    "accuracy": 0.8118811881188119,
+    "macro_f1": 0.7923160173160173,
+    "per_class": {
+      "aligned": {
+        "precision": 0.904,
+        "recall": 0.8129496402877698,
+        "f1": 0.856060606060606,
+        "support": 139,
+        "predicted": 125,
+        "invalid": 0
+      },
+      "not_aligned": {
+        "precision": 0.6623376623376623,
+        "recall": 0.8095238095238095,
+        "f1": 0.7285714285714286,
+        "support": 63,
+        "predicted": 77,
+        "invalid": 0
+      }
+    },
+    "negative_acceptance_rate": 0.19047619047619047,
+    "positive_rejection_rate": 0.18705035971223022,
+    "invalid_rate": 0.0,
+    "pairs": 0,
+    "pair_accuracy": null
+  },
+  "bootstrap_ci_question_groups": {
+    "accuracy": {
+      "low": 0.7499658469945355,
+      "high": 0.8676664086687307
+    },
+    "macro_f1": {
+      "low": 0.7392780459030459,
+      "high": 0.8365285529835312
+    },
+    "pair_accuracy": {
+      "low": null,
+      "high": null
+    }
+  },
+  "by_dataset": {
+    "eic": {
+      "n": 188,
+      "accuracy": 0.8191489361702128,
+      "macro_f1": 0.7954429083461342,
+      "per_class": {
+        "aligned": {
+          "precision": 0.9008264462809917,
+          "recall": 0.8320610687022901,
+          "f1": 0.8650793650793651,
+          "support": 131,
+          "predicted": 121,
+          "invalid": 0
+        },
+        "not_aligned": {
+          "precision": 0.6716417910447762,
+          "recall": 0.7894736842105263,
+          "f1": 0.7258064516129032,
+          "support": 57,
+          "predicted": 67,
+          "invalid": 0
+        }
+      },
+      "negative_acceptance_rate": 0.21052631578947367,
+      "positive_rejection_rate": 0.16793893129770993,
+      "invalid_rate": 0.0,
+      "pairs": 0,
+      "pair_accuracy": null
+    },
+    "mathedu": {
+      "n": 2,
+      "accuracy": 1.0,
+      "macro_f1": 1.0,
+      "per_class": {
+        "aligned": {
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1": 1.0,
+          "support": 1,
+          "predicted": 1,
+          "invalid": 0
+        },
+        "not_aligned": {
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1": 1.0,
+          "support": 1,
+          "predicted": 1,
+          "invalid": 0
+        }
+      },
+      "negative_acceptance_rate": 0.0,
+      "positive_rejection_rate": 0.0,
+      "invalid_rate": 0.0,
+      "pairs": 0,
+      "pair_accuracy": null
+    },
+    "stepwise": {
+      "n": 12,
+      "accuracy": 0.6666666666666666,
+      "macro_f1": 0.6571428571428571,
+      "per_class": {
+        "aligned": {
+          "precision": 1.0,
+          "recall": 0.42857142857142855,
+          "f1": 0.6,
+          "support": 7,
+          "predicted": 3,
+          "invalid": 0
+        },
+        "not_aligned": {
+          "precision": 0.5555555555555556,
+          "recall": 1.0,
+          "f1": 0.7142857142857143,
+          "support": 5,
+          "predicted": 9,
+          "invalid": 0
+        }
+      },
+      "negative_acceptance_rate": 0.0,
+      "positive_rejection_rate": 0.5714285714285714,
+      "invalid_rate": 0.0,
+      "pairs": 0,
+      "pair_accuracy": null
+    }
+  },
+  "by_anchor_label": {
+    "eic | adding_irrelevant_information": {
+      "n": 34,
+      "accuracy": 0.9117647058823529,
+      "macro_f1": 0.8716981132075472,
+      "per_class": {
+        "aligned": {
+          "precision": 0.8928571428571429,
+          "recall": 1.0,
+          "f1": 0.9433962264150945,
+          "support": 25,
+          "predicted": 28,
+          "invalid": 0
+        },
+        "not_aligned": {
+          "precision": 1.0,
+          "recall": 0.6666666666666666,
+          "f1": 0.8,
+          "support": 9,
+          "predicted": 6,
+          "invalid": 0
+        }
+      },
+      "negative_acceptance_rate": 0.3333333333333333,
+      "positive_rejection_rate": 0.0,
+      "invalid_rate": 0.0,
+      "pairs": 0,
+      "pair_accuracy": null
+    },
+    "eic | calculation_error": {
+      "n": 15,
+      "accuracy": 0.7333333333333333,
+      "macro_f1": 0.7,
+      "per_class": {
+        "aligned": {
+          "precision": 1.0,
+          "recall": 0.42857142857142855,
+          "f1": 0.6,
+          "support": 7,
+          "predicted": 3,
+          "invalid": 0
+        },
+        "not_aligned": {
+          "precision": 0.6666666666666666,
+          "recall": 1.0,
+          "f1": 0.8,
+          "support": 8,
+          "predicted": 12,
+          "invalid": 0
+        }
+      },
+      "negative_acceptance_rate": 0.0,
+      "positive_rejection_rate": 0.5714285714285714,
+      "invalid_rate": 0.0,
+      "pairs": 0,
+      "pair_accuracy": null
+    },
+    "eic | confusing_formula_error": {
+      "n": 35,
+      "accuracy": 0.8857142857142857,
+      "macro_f1": 0.8214285714285714,
+      "per_class": {
+        "aligned": {
+          "precision": 0.8666666666666667,
+          "recall": 1.0,
+          "f1": 0.9285714285714286,
+          "support": 26,
+          "predicted": 30,
+          "invalid": 0
+        },
+        "not_aligned": {
+          "precision": 1.0,
+          "recall": 0.5555555555555556,
+          "f1": 0.7142857142857143,
+          "support": 9,
+          "predicted": 5,
+          "invalid": 0
+        }
+      },
+      "negative_acceptance_rate": 0.4444444444444444,
+      "positive_rejection_rate": 0.0,
+      "invalid_rate": 0.0,
+      "pairs": 0,
+      "pair_accuracy": null
+    },
+    "eic | counting_error": {
+      "n": 29,
+      "accuracy": 0.9310344827586207,
+      "macro_f1": 0.48214285714285715,
+      "per_class": {
+        "aligned": {
+          "precision": 1.0,
+          "recall": 0.9310344827586207,
+          "f1": 0.9642857142857143,
+          "support": 29,
+          "predicted": 27,
+          "invalid": 0
+        },
+        "not_aligned": {
+          "precision": 0.0,
+          "recall": 0.0,
+          "f1": 0.0,
+          "support": 0,
+          "predicted": 2,
+          "invalid": 0
+        }
+      },
+      "negative_acceptance_rate": null,
+      "positive_rejection_rate": 0.06896551724137931,
+      "invalid_rate": 0.0,
+      "pairs": 0,
+      "pair_accuracy": null
+    },
+    "eic | missing_step": {
+      "n": 11,
+      "accuracy": 0.8181818181818182,
+      "macro_f1": 0.8166666666666667,
+      "per_class": {
+        "aligned": {
+          "precision": 1.0,
+          "recall": 0.7142857142857143,
+          "f1": 0.8333333333333333,
+          "support": 7,
+          "predicted": 5,
+          "invalid": 0
+        },
+        "not_aligned": {
+          "precision": 0.6666666666666666,
+          "recall": 1.0,
+          "f1": 0.8,
+          "support": 4,
+          "predicted": 6,
+          "invalid": 0
+        }
+      },
+      "negative_acceptance_rate": 0.0,
+      "positive_rejection_rate": 0.2857142857142857,
+      "invalid_rate": 0.0,
+      "pairs": 0,
+      "pair_accuracy": null
+    },
+    "eic | operator_error": {
+      "n": 14,
+      "accuracy": 0.7142857142857143,
+      "macro_f1": 0.7083333333333333,
+      "per_class": {
+        "aligned": {
+          "precision": 1.0,
+          "recall": 0.5,
+          "f1": 0.6666666666666666,
+          "support": 8,
+          "predicted": 4,
+          "invalid": 0
+        },
+        "not_aligned": {
+          "precision": 0.6,
+          "recall": 1.0,
+          "f1": 0.7499999999999999,
+          "support": 6,
+          "predicted": 10,
+          "invalid": 0
+        }
+      },
+      "negative_acceptance_rate": 0.0,
+      "positive_rejection_rate": 0.5,
+      "invalid_rate": 0.0,
+      "pairs": 0,
+      "pair_accuracy": null
+    },
+    "eic | referencing_context_value_error": {
+      "n": 31,
+      "accuracy": 0.6129032258064516,
+      "macro_f1": 0.6025641025641025,
+      "per_class": {
+        "aligned": {
+          "precision": 0.8,
+          "recall": 0.5714285714285714,
+          "f1": 0.6666666666666666,
+          "support": 21,
+          "predicted": 15,
+          "invalid": 0
+        },
+        "not_aligned": {
+          "precision": 0.4375,
+          "recall": 0.7,
+          "f1": 0.5384615384615384,
+          "support": 10,
+          "predicted": 16,
+          "invalid": 0
+        }
+      },
+      "negative_acceptance_rate": 0.3,
+      "positive_rejection_rate": 0.42857142857142855,
+      "invalid_rate": 0.0,
+      "pairs": 0,
+      "pair_accuracy": null
+    },
+    "eic | referencing_previous_step_value_error": {
+      "n": 17,
+      "accuracy": 0.8235294117647058,
+      "macro_f1": 0.8210526315789474,
+      "per_class": {
+        "aligned": {
+          "precision": 0.75,
+          "recall": 0.8571428571428571,
+          "f1": 0.7999999999999999,
+          "support": 7,
+          "predicted": 8,
+          "invalid": 0
+        },
+        "not_aligned": {
+          "precision": 0.8888888888888888,
+          "recall": 0.8,
+          "f1": 0.8421052631578948,
+          "support": 10,
+          "predicted": 9,
+          "invalid": 0
+        }
+      },
+      "negative_acceptance_rate": 0.2,
+      "positive_rejection_rate": 0.14285714285714285,
+      "invalid_rate": 0.0,
+      "pairs": 0,
+      "pair_accuracy": null
+    },
+    "eic | unit_conversion_error": {
+      "n": 2,
+      "accuracy": 1.0,
+      "macro_f1": 1.0,
+      "per_class": {
+        "aligned": {
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1": 1.0,
+          "support": 1,
+          "predicted": 1,
+          "invalid": 0
+        },
+        "not_aligned": {
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1": 1.0,
+          "support": 1,
+          "predicted": 1,
+          "invalid": 0
+        }
+      },
+      "negative_acceptance_rate": 0.0,
+      "positive_rejection_rate": 0.0,
+      "invalid_rate": 0.0,
+      "pairs": 0,
+      "pair_accuracy": null
+    },
+    "mathedu | Unfinished answer": {
+      "n": 2,
+      "accuracy": 1.0,
+      "macro_f1": 1.0,
+      "per_class": {
+        "aligned": {
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1": 1.0,
+          "support": 1,
+          "predicted": 1,
+          "invalid": 0
+        },
+        "not_aligned": {
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1": 1.0,
+          "support": 1,
+          "predicted": 1,
+          "invalid": 0
+        }
+      },
+      "negative_acceptance_rate": 0.0,
+      "positive_rejection_rate": 0.0,
+      "invalid_rate": 0.0,
+      "pairs": 0,
+      "pair_accuracy": null
+    },
+    "stepwise | Calculation error easily solved by a calculator": {
+      "n": 2,
+      "accuracy": 0.5,
+      "macro_f1": 0.3333333333333333,
+      "per_class": {
+        "aligned": {
+          "precision": 0.0,
+          "recall": 0.0,
+          "f1": 0.0,
+          "support": 1,
+          "predicted": 0,
+          "invalid": 0
+        },
+        "not_aligned": {
+          "precision": 0.5,
+          "recall": 1.0,
+          "f1": 0.6666666666666666,
+          "support": 1,
+          "predicted": 2,
+          "invalid": 0
+        }
+      },
+      "negative_acceptance_rate": 0.0,
+      "positive_rejection_rate": 1.0,
+      "invalid_rate": 0.0,
+      "pairs": 0,
+      "pair_accuracy": null
+    },
+    "stepwise | Extra quantity or Missing quantity": {
+      "n": 3,
+      "accuracy": 0.6666666666666666,
+      "macro_f1": 0.4,
+      "per_class": {
+        "aligned": {
+          "precision": 0.0,
+          "recall": 0.0,
+          "f1": 0.0,
+          "support": 1,
+          "predicted": 0,
+          "invalid": 0
+        },
+        "not_aligned": {
+          "precision": 0.6666666666666666,
+          "recall": 1.0,
+          "f1": 0.8,
+          "support": 2,
+          "predicted": 3,
+          "invalid": 0
+        }
+      },
+      "negative_acceptance_rate": 0.0,
+      "positive_rejection_rate": 1.0,
+      "invalid_rate": 0.0,
+      "pairs": 0,
+      "pair_accuracy": null
+    },
+    "stepwise | Missing / Wrong factual knowledge": {
+      "n": 5,
+      "accuracy": 0.8,
+      "macro_f1": 0.8,
+      "per_class": {
+        "aligned": {
+          "precision": 1.0,
+          "recall": 0.6666666666666666,
+          "f1": 0.8,
+          "support": 3,
+          "predicted": 2,
+          "invalid": 0
+        },
+        "not_aligned": {
+          "precision": 0.6666666666666666,
+          "recall": 1.0,
+          "f1": 0.8,
+          "support": 2,
+          "predicted": 3,
+          "invalid": 0
+        }
+      },
+      "negative_acceptance_rate": 0.0,
+      "positive_rejection_rate": 0.3333333333333333,
+      "invalid_rate": 0.0,
+      "pairs": 0,
+      "pair_accuracy": null
+    },
+    "stepwise | Misunderstanding of a question": {
+      "n": 2,
+      "accuracy": 0.5,
+      "macro_f1": 0.3333333333333333,
+      "per_class": {
+        "aligned": {
+          "precision": 1.0,
+          "recall": 0.5,
+          "f1": 0.6666666666666666,
+          "support": 2,
+          "predicted": 1,
+          "invalid": 0
+        },
+        "not_aligned": {
+          "precision": 0.0,
+          "recall": 0.0,
+          "f1": 0.0,
+          "support": 0,
+          "predicted": 1,
+          "invalid": 0
+        }
+      },
+      "negative_acceptance_rate": null,
+      "positive_rejection_rate": 0.5,
+      "invalid_rate": 0.0,
+      "pairs": 0,
+      "pair_accuracy": null
+    }
+  },
+  "by_anchor_donor_label_negatives": {},
+  "invalid_examples": []
+}

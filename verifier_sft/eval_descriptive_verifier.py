@@ -157,6 +157,8 @@ def score_and_report(
         min_support=ecfg["min_support_for_label_pairs"],
     )
     ci = bootstrap_ci(predictions, n_samples=ecfg["bootstrap_samples"], seed=config["seed"])
+    # files that mix row kinds (e.g. test_augmented: v2 rows + audited same-question negatives) carry row_source
+    by_source = breakdown(predictions, lambda r: r["row_source"]) if any("row_source" in r for r in predictions) else {}
 
     out_dir = resolve(ecfg["output_dir"]) / name
     write_jsonl(out_dir / "predictions.jsonl", predictions)
@@ -174,6 +176,7 @@ def score_and_report(
         "overall": overall,
         "bootstrap_ci_question_groups": ci,
         "by_dataset": by_dataset,
+        **({"by_row_source": by_source} if by_source else {}),
         "by_anchor_label": by_label,
         "by_anchor_donor_label_negatives": by_pair_label,
         "invalid_examples": [
@@ -194,6 +197,8 @@ def score_and_report(
     pc = overall["per_class"]
     L += [md_table(["class", "precision", "recall", "F1", "support", "invalid"],
                    [[c, fmt(v["precision"]), fmt(v["recall"]), fmt(v["f1"]), v["support"], v["invalid"]] for c, v in pc.items()]), ""]
+    if by_source:
+        L += ["## By row source", "", md_table(HEADERS, metric_rows(by_source)), ""]
     L += ["## By dataset", "", md_table(HEADERS, metric_rows(by_dataset)), ""]
     L += ["## By anchor source label", "", md_table(HEADERS, metric_rows(by_label)), ""]
     L += [f"## Negatives by anchor <- donor label (n >= {ecfg['min_support_for_label_pairs']})", "",
