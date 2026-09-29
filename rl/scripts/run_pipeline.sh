@@ -10,6 +10,7 @@
 #   RUN_<experiment>=<name> continues or evaluates an existing run instead (e.g. RUN_diversity=diversity_seed42_20260930_010203)
 #   a GRPO training already running (scripts/train.py) is waited for before anything starts
 #   logs: logs/pipeline.log (stages), logs/train_<run>.log, logs/eval_<run>.log
+#   run it in tmux to watch: tmux new -s rl 'bash scripts/run_pipeline.sh student_likeness diversity'
 set -uo pipefail
 cd "$(dirname "$0")/.."
 source env.sh
@@ -69,8 +70,8 @@ train() {  # experiment run_name
     log "$run: launch training servers"
     bash scripts/launch_servers.sh "$cfg" >> logs/pipeline.log 2>&1 || die "$run: launch_servers.sh"
     log "$run: training ${resume[*]:-from scratch} (log: logs/train_$run.log)"
-    bash scripts/run_train.sh "$cfg" --run_name "$run" "${resume[@]}" >> "logs/train_$run.log" 2>&1
-    rc=$?
+    bash scripts/run_train.sh "$cfg" --run_name "$run" "${resume[@]}" 2>&1 | tee -a "logs/train_$run.log"  # live in tmux too
+    rc=${PIPESTATUS[0]}
     [ $rc -eq 0 ] && { log "$run: training done"; return 0; }
     attempt=$((attempt + 1))
     if [ $attempt -gt "$MAX_RESUMES" ] || ! has_checkpoint "$run"; then die "$run: training exit $rc (logs/train_$run.log)"; fi
