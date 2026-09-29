@@ -36,11 +36,12 @@ generation:              # Student sampling, identical in both experiments
   num_generations: 8
   max_completion_tokens: 1024
   max_prompt_tokens: 1024
-  # Qwen2.5-7B-Instruct generation_config defaults (user decision 2026-09-29); used for training rollouts and test evaluation
-  temperature: 0.7
-  top_p: 0.8
-  top_k: 20
-  repetition_penalty: 1.05
+  # plain sampling from the policy, as in llm_tutee_tutor (user decision 2026-09-29, replaces the Qwen defaults:
+  # their top-k/top-p made TRL's sequence-level vLLM IS ratio ~0.1 and starved the gradient); training and test
+  temperature: 1.0
+  top_p: 1.0
+  top_k: 0                 # 0 = no top-k
+  repetition_penalty: 1.0
 
 training:
   learning_rate: 1.0e-6
@@ -49,19 +50,20 @@ training:
   loss_type: dapo          # TRL 1.14 default (token-level, no length bias); see README
   scale_rewards: group
   num_iterations: 1
-  num_train_epochs: 3
-  # 3 training GPUs x 8 completions x 8 accumulation = 192 completions = 24 prompts per optimizer step
+  num_train_epochs: 2
+  # 3 training GPUs x 8 completions x 2 accumulation = 48 completions = 6 prompts per optimizer step
+  # (341 steps per epoch; more, smaller updates as in llm_tutee_tutor, user decision 2026-09-29)
   per_device_train_batch_size: 8
-  gradient_accumulation_steps: 8
+  gradient_accumulation_steps: 2
   gradient_checkpointing: true
   bf16: true
-  lr_scheduler_type: constant_with_warmup
-  warmup_steps: 5
+  lr_scheduler_type: linear         # as in llm_tutee_tutor: 10% warmup, then linear decay to 0
+  warmup_ratio: 0.1
   max_grad_norm: 1.0
   logging_steps: 1
   log_profiling: false     # TRL's per-call timing logs to W&B (off: dozens of unstepped points per step)
-  num_train_epochs_note: "every epoch end is saved (model only) to epoch_checkpoints/; best epoch chosen on test"
-  resume_save_steps: 20            # full checkpoint (optimizer state) for resuming only, rotated
+  model_save_every_epochs: 0.5     # model-only snapshots -> epoch_checkpoints/epoch-0.5, 1.0, ...; best one chosen on test
+  resume_save_steps: 50            # full checkpoint (optimizer state, ~95 s to write) for resuming only, rotated
   resume_save_total_limit: 1
   report_to: wandb
   wandb_project: tutee_error_rl

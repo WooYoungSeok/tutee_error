@@ -51,17 +51,18 @@ bash scripts/launch_servers.sh configs/diversity.yaml
 python scripts/check_verifier_server.py        # served reward verifier vs its SFT test accuracy
 
 # 2) training on GPUs 0,1,2
-bash scripts/run_train.sh configs/diversity.yaml --run_name diversity_seed42
-bash scripts/run_train.sh configs/student_likeness.yaml --run_name student_likeness_seed42
+RUN=diversity_seed42_$(date +%Y%m%d_%H%M%S)          # run names carry a start timestamp (output dir = W&B run name)
+bash scripts/run_train.sh configs/diversity.yaml --run_name $RUN
+bash scripts/run_train.sh configs/student_likeness.yaml --run_name student_likeness_seed42_$(date +%Y%m%d_%H%M%S)
 
 # resume an aborted run (reward execution failures abort the batch by design)
-bash scripts/run_train.sh configs/diversity.yaml --run_name diversity_seed42 --resume latest
+bash scripts/run_train.sh configs/diversity.yaml --run_name $RUN --resume latest
 bash scripts/stop_servers.sh
 
 # 3) test evaluation: every epoch checkpoint, mean test reward as in training but with the half-B verifier
 bash scripts/launch_eval_server.sh configs/diversity.yaml            # test verifier on GPU 3, :8002
 python scripts/check_verifier_server.py --test_verifier              # optional: served half-B vs its SFT test accuracy
-python scripts/evaluate.py --config configs/diversity.yaml --run outputs/diversity_seed42 --include_base
+python scripts/evaluate.py --config configs/diversity.yaml --run outputs/$RUN --include_base
 bash scripts/stop_servers.sh
 ```
 
