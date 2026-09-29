@@ -1,0 +1,20 @@
+Real student example 1
+Question:
+{example_1_question}
+Student solution:
+{example_1_solution}
+
+Real student example 2
+Question:
+{example_2_question}
+Student solution:
+{example_2_solution}
+
+New question:
+{question_context}
+
+Candidate A:
+{solution_A}
+
+Candidate B:
+{solution_B}

@@ -1,0 +1,5 @@
+# Experiment `diversity`: common main reward + 0.5 x BLEU diversity inside the accepted set G.
+inherits: common.yaml
+experiment: diversity
+rewards:
+  auxiliary_reward: diversity

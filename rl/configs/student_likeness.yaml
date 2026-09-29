@@ -1,0 +1,6 @@
+# Experiment `student_likeness`: common main reward + 0.5 x pairwise student-likeness inside G.
+# Refuses to run until the judge model/backend is set and the MathEDU examples are approved.
+inherits: common.yaml
+experiment: student_likeness
+rewards:
+  auxiliary_reward: student_likeness

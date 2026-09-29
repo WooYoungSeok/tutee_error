@@ -1,0 +1,8 @@
+Compare the writing styles of candidate solutions A and B.
+Using the two real student solution examples as references,
+choose the candidate whose style more closely resembles
+real student work. If there is no meaningful difference, choose "tie".
+
+Return JSON only:
+{"winner": "A"}
+The value must be "A", "B", or "tie".

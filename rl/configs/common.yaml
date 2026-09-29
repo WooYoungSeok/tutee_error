@@ -1,0 +1,149 @@
+# Shared settings for both GRPO experiments. Never run this file on its own:
+# diversity.yaml and student_likeness.yaml inherit it and set `rewards.auxiliary_reward`.
+# Paths are relative to the rl/ directory. `REQUIRED` values make train.py refuse to start.
+
+seed: 42
+
+paths:
+  model_inputs: data/raw/train_model_inputs.jsonl
+  # Either the build_dataset output (preferred) or the audit CSV it is rebuilt from.
+  privileged: data/raw/train_privileged_annotations.jsonl
+  judgements: data/raw/all_judgements.csv
+  prepared_dir: data/prepared
+  mathedu_examples: data/mathedu_student_examples.json
+  output_root: outputs
+
+split:                   # train / test only (no validation); the best epoch is chosen on test
+  test_ratio: 0.2
+  seed: 42
+  group_key: "NFKC + whitespace collapse of the problem text"
+
+prompts:
+  student: prompts/student.txt
+  answer_judge_system: prompts/answer_judge_system.txt
+  answer_judge_user: prompts/answer_judge_user.txt
+  student_likeness_system: prompts/student_likeness_system.txt
+  student_likeness_user: prompts/student_likeness_user.txt
+  # the verifier keeps its SFT input contract: the exact files used to train it
+  verifier_system: ../verifier_sft/prompts/system.txt
+  verifier_user: ../verifier_sft/prompts/user.txt
+
+policy:
+  model: Qwen/Qwen2.5-7B-Instruct
+  attn_implementation: sdpa
+
+generation:              # Student sampling, identical in both experiments
+  num_generations: 8
+  max_completion_tokens: 1024
+  max_prompt_tokens: 1024
+  temperature: 1.0
+  top_p: 1.0
+
+training:
+  learning_rate: 1.0e-6
+  beta: 0.04               # KL lives in the GRPO objective only, never in the reward
+  epsilon: 0.2
+  loss_type: dapo          # TRL 1.14 default (token-level, no length bias); see README
+  scale_rewards: group
+  num_iterations: 1
+  num_train_epochs: 1
+  # 3 training GPUs x 8 completions x 8 accumulation = 192 completions = 24 prompts per optimizer step
+  per_device_train_batch_size: 8
+  gradient_accumulation_steps: 8
+  gradient_checkpointing: true
+  bf16: true
+  lr_scheduler_type: constant_with_warmup
+  warmup_steps: 5
+  max_grad_norm: 1.0
+  logging_steps: 1
+  num_train_epochs_note: "every epoch end is saved (model only) to epoch_checkpoints/; best epoch chosen on test"
+  resume_save_steps: 20            # full checkpoint (optimizer state) for resuming only, rotated
+  resume_save_total_limit: 1
+  report_to: wandb
+  wandb_project: tutee_error_rl
+  ddp_timeout_s: 5400
+  mask_truncated_completions: false   # truncation is penalised, so truncated samples must keep their gradient
+
+rewards:
+  lambda_correct_penalty: 0.75
+  null_verdict_main_reward: -0.75
+  auxiliary_reward: REQUIRED          # diversity | student_likeness (set by the experiment file)
+  auxiliary_weight: 0.5
+  format:
+    tag_reward: false
+    truncation_penalty: 0.5
+  require_source_wrong_answer_match: false
+
+answer_check:
+  model: gpt-5-nano
+  mode: extract_and_grade_all_rollouts
+  inputs: [problem, answer_contract, reference_answer, generated_solution]
+  structured_output: true
+  reasoning_effort: null        # null = API default; not fixed by the plan, confirm in the pilot
+  max_output_tokens: 4000
+  request_timeout_s: 120
+  max_attempts: 6               # API errors, truncated responses and schema violations share this budget
+  concurrency: 96
+  calls_per_rollout: 1          # one logical call; retries for execution failures are separate
+
+verifier:
+  # Qwen2.5-Math-7B verifier trained on train+validation half A (epoch 4). The DeepSeek half-B
+  # verifier is kept for final evaluation so the RL reward and the evaluator share no training data.
+  checkpoint: WooYoungSeok/qwen2.5-math-7b-descriptive-verifier-v2-trval-halfA
+  served_name: verifier
+  base_url: http://127.0.0.1:8001/v1
+  samples: 2
+  do_sample: true
+  temperature: 0.6
+  top_p: 1.0
+  top_k: -1
+  repetition_penalty: from_generation_config   # what HF generate applied in the SFT evaluation
+  max_new_tokens: 10             # same as the SFT evaluation
+  aggregation: all_aligned
+  concurrency: 256
+  max_attempts: 4
+  request_timeout_s: 120
+
+diversity:
+  bleu: sentence_bleu_4
+  smooth_method: exp
+  effective_order: true
+  tokenize: 13a
+  lowercase: false
+
+student_likeness:
+  backend: REQUIRED_WHEN_ENABLED      # openai | vllm
+  model: REQUIRED_WHEN_ENABLED
+  base_url: null                      # for backend vllm, e.g. http://127.0.0.1:8002/v1
+  examples: data/mathedu_student_examples.json
+  num_examples: 2
+  examples_approved: false            # example 2 (MathEDU id 8584) is still a candidate
+  pair_schedule: all_unordered
+  randomize_ab_positions: true
+  allow_tie: true
+  aggregation: normalized_win_score
+  decoding: greedy
+  reward_if_fewer_than_two_accepted: 0
+  max_output_tokens: 2000
+  reasoning_effort: null
+  concurrency: 64
+  max_attempts: 6
+  request_timeout_s: 120
+
+servers:
+  rollout:                  # trl vllm-serve (policy weights are pushed here every step)
+    host: 127.0.0.1
+    port: 8000
+    group_port: 51216
+    gpu: 3
+    gpu_memory_utilization: 0.50
+    max_model_len: 2560
+  verifier:                 # vllm serve (frozen)
+    port: 8001
+    gpu: 3
+    gpu_memory_utilization: 0.35
+    max_model_len: 4096
+
+distributed:
+  train_gpus: "0,1,2"
+  deepspeed: configs/ds_zero2_offload.json

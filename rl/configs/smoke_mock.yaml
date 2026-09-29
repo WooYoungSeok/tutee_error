@@ -1,0 +1,11 @@
+# SMOKE ONLY - infrastructure/throughput test: synthetic data, mock reward clients (meaningless rewards).
+# Run name must start with smoke_ (train.py enforces it).
+inherits: diversity.yaml
+experiment: smoke_mock
+paths:
+  prepared_dir: data/smoke
+smoke:
+  mock_reward_clients: true
+training:
+  report_to: none
+  resume_save_steps: 100000
