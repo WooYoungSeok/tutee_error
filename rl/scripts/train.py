@@ -124,6 +124,13 @@ def main() -> int:
 
     from tutee_rl.orchestrator import RewardOrchestrator
 
+    if not cfg["training"].get("log_profiling", False):
+        # TRL sends every profiled call (30+ per optimizer step) to W&B without a step, which floods the run;
+        # step timing stays in train/step_time and train/timing/reward_scoring_s.
+        from trl.extras import profiling
+
+        profiling.ProfilingContext._log_metrics = lambda self, duration: None
+
     state = PartialState()
     t = cfg["training"]
     gen = cfg["generation"]
@@ -148,6 +155,16 @@ def main() -> int:
         os.environ["WANDB_PROJECT"] = t.get("wandb_project", "tutee_error_rl")  # ../.env's WANDB_PROJECT is the verifier SFT project
         if not os.environ.get("WANDB_API_KEY"):
             report_to = "none"
+        else:  # one W&B run per training run: a --resume continues the run recorded in <run>/wandb_run_id.txt
+            id_file = run_dir / "wandb_run_id.txt"
+            if not id_file.exists() and state.is_main_process:
+                import secrets
+
+                run_dir.mkdir(parents=True, exist_ok=True)
+                id_file.write_text(secrets.token_hex(4) + "\n", encoding="utf-8")
+            if state.is_main_process:
+                os.environ["WANDB_RUN_ID"] = id_file.read_text(encoding="utf-8").strip()
+                os.environ["WANDB_RESUME"] = "allow"
 
     per_step = t["per_device_train_batch_size"] * state.num_processes * t["gradient_accumulation_steps"]
     if per_step % gen["num_generations"]:
@@ -225,7 +242,10 @@ def main() -> int:
             "deepspeed_config": os.environ.get("ACCELERATE_DEEPSPEED_CONFIG_FILE"),
             "gpus": [torch.cuda.get_device_name(i) for i in range(torch.cuda.device_count())],
         }
-        write_json(run_dir / "run_meta.json", meta)
+        meta_name = "run_meta.json"
+        if args.resume and (run_dir / meta_name).exists():  # keep the original run's metadata
+            meta_name = f"run_meta.resume_{stamp}.json"
+        write_json(run_dir / meta_name, meta)
         print(json.dumps({k: meta[k] for k in ("run_name", "completions_per_step", "prompts_per_step", "reward")}, indent=2, ensure_ascii=False))
 
     epoch_cb = epoch_save_callback(run_dir, tokenizer)

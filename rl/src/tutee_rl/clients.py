@@ -86,6 +86,20 @@ async def responses_call(client: Any, payload: dict[str, Any], timeout: float) -
     }
 
 
+def openai_api_client(timeout_s: float, pool_size: int, keepalive_expiry_s: float) -> Any:
+    """AsyncOpenAI with one persistent connection pool.
+
+    With the SDK default (100 kept-alive connections, 5 s expiry) every reward batch opened hundreds of new TLS
+    connections; after ~20 minutes new connections were increasingly refused (ConnectError) until a call ran out
+    of retries and aborted training (2026-09-29). Pool-sized keep-alive reuses the same connections across steps.
+    """
+    import httpx2
+    from openai import AsyncOpenAI, DefaultAsyncHttpxClient
+
+    limits = httpx2.Limits(max_connections=pool_size, max_keepalive_connections=pool_size, keepalive_expiry=keepalive_expiry_s)
+    return AsyncOpenAI(max_retries=0, timeout=timeout_s, http_client=DefaultAsyncHttpxClient(limits=limits))
+
+
 # --- gpt-5-nano answer extraction + grading ----------------------------------
 
 ANSWER_SCHEMA = {
@@ -138,7 +152,7 @@ class AnswerChecker:
         self._inflight: dict[str, asyncio.Future] = {}
 
     def settings(self) -> dict[str, Any]:
-        return {k: self.cfg.get(k) for k in ("model", "structured_output", "reasoning_effort", "max_output_tokens")}
+        return {k: self.cfg.get(k) for k in ("model", "structured_output", "reasoning_effort", "temperature", "max_output_tokens")}
 
     def payload(self, user_text: str) -> dict[str, Any]:
         payload: dict[str, Any] = {
@@ -151,6 +165,8 @@ class AnswerChecker:
             payload["text"] = {"format": {"type": "json_schema", "name": "final_answer_check", "schema": ANSWER_SCHEMA, "strict": True}}
         if self.cfg.get("reasoning_effort"):
             payload["reasoning"] = {"effort": self.cfg["reasoning_effort"]}
+        if self.cfg.get("temperature") is not None:  # non-reasoning models only (gpt-5 models reject it)
+            payload["temperature"] = float(self.cfg["temperature"])
         return payload
 
     async def check(self, problem: str, answer_contract: str, reference: str, solution: str) -> dict[str, Any]:
@@ -332,7 +348,9 @@ class PairwiseJudge:
     def decoding_record(self) -> dict[str, Any]:
         if self.backend == "vllm":
             return {"backend": "vllm", "temperature": 0.0, "structured_output": "json_schema"}
-        rec = {"backend": "openai", "temperature": "not sent (not supported by reasoning models)", "structured_output": "json_schema"}
+        temp = self.cfg.get("temperature")
+        rec = {"backend": "openai", "temperature": float(temp) if temp is not None else "not sent (not supported by reasoning models)",
+               "structured_output": "json_schema"}
         if self.cfg.get("reasoning_effort"):
             rec["reasoning_effort"] = self.cfg["reasoning_effort"]
         return rec
@@ -348,6 +366,8 @@ class PairwiseJudge:
             }
             if self.cfg.get("reasoning_effort"):
                 payload["reasoning"] = {"effort": self.cfg["reasoning_effort"]}
+            if self.cfg.get("temperature") is not None:  # non-reasoning models only (gpt-5 models reject it)
+                payload["temperature"] = float(self.cfg["temperature"])
             return await responses_call(self.client, payload, timeout)
         started = time.monotonic()
         resp = await self.client.chat.completions.create(
