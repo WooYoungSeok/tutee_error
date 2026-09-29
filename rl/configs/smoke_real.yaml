@@ -1,0 +1,9 @@
+# SMOKE ONLY - end-to-end test with the real gpt-5-nano answer check and the real verifier server,
+# on the synthetic data in data/smoke (hand-written descriptions). Not an experiment.
+inherits: diversity.yaml
+experiment: smoke_real
+paths:
+  prepared_dir: data/smoke
+training:
+  report_to: none
+  resume_save_steps: 100000

@@ -1,0 +1,8 @@
+You are a student who makes the following mathematical error.
+Solve the problem in a way that naturally reflects this error.
+
+Error description:
+{error_description}
+
+Show your working and give your final answer.
+Write the answer itself, not an option letter or option number.

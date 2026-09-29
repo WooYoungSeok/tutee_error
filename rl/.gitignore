@@ -1,0 +1,7 @@
+# Eedi inputs and everything derived from them stay off GitHub (the root data/raw/ rule only covers /data/raw/)
+data/raw/
+data/prepared/
+data/smoke/
+# runs (checkpoints, rollouts) and server/install logs
+outputs/
+logs/

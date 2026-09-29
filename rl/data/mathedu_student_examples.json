@@ -1,0 +1,55 @@
+{
+  "description": "Fixed MathEDU train wrong-answer examples for the student-likeness judge. Same two examples, same order, in every step and every A/B pair. Not used for evaluation.",
+  "source": "data/normalized/mathedu.jsonl",
+  "source_sha256": "f9edb08a3b17f97fb70fda02275e5e8940e57bca4a65d577be0ddbf6f34f2b1f",
+  "examples": [
+    {
+      "position": 1,
+      "status": "approved",
+      "mathedu_id": 13427,
+      "student_id": 5,
+      "split": "train",
+      "correct_or_not": "wrong",
+      "question": "a hall 36 m long and 15 m broad is to be paved with stones , each measuring 8 dm by 5 dm . the number of stones required is :",
+      "student_solution": "\\begin{aligned} & 36 \\times 15=540 \\\\ & 540 \\div(8 \\times 5)=13.5 \\\\ & 13+1=14 \\end{aligned}",
+      "question_sha256": "ae9d009e05c510a0ef97616aaa3062643277ae4dc0d930d9c647e9fcf36affec",
+      "student_solution_sha256": "7b7592226353222b09dacba304cb0ee491642fa12af39c20a0f7a3b97dc0ea81",
+      "provenance": {
+        "sample_id": "mathedu:6c489513c81f01f3",
+        "source_id": "dataset/time_series_split/train.json#1786",
+        "source_file": "data/raw/mathedu/dataset/time_series_split/train.json",
+        "source_revision": "acb1873f1569048d72c90855febc6f367b1e3356",
+        "question_join": "MathQA Problem joined by MathEDU id (concat train/validation/test index), see src/errdesc/adapters.py"
+      },
+      "withheld_from_judge": [
+        "source_error_label",
+        "teacher review",
+        "teacher advice"
+      ]
+    },
+    {
+      "position": 2,
+      "status": "candidate_pending_approval",
+      "mathedu_id": 8584,
+      "student_id": 3,
+      "split": "train",
+      "correct_or_not": "wrong",
+      "question": "weights of two friends ram and shyam are in the ratio 7 : 5 . if ram ' s weight is increased by 10 % and total weight of ram and shyam become 82.8 kg , with an increases of 15 % . by what percent did the weight of shyam has to be increased ?",
+      "student_solution": "if total weight increases of $15 \\%$, ram and shyam's weight are also increase of $15 \\%$ respectively. $\\therefore$ shyam's weight increase $15 \\%$",
+      "question_sha256": "a38426a3b8636b920cf488e216f3c882875ee49fab64cae99baeb438d166bc08",
+      "student_solution_sha256": "9227b3bee9c605409adc6e964666011857ead445cbce8de077d77de53ff8ba02",
+      "provenance": {
+        "sample_id": "mathedu:8ba3ea163a067f98",
+        "source_id": "dataset/time_series_split/train.json#136",
+        "source_file": "data/raw/mathedu/dataset/time_series_split/train.json",
+        "source_revision": "acb1873f1569048d72c90855febc6f367b1e3356",
+        "question_join": "MathQA Problem joined by MathEDU id (concat train/validation/test index), see src/errdesc/adapters.py"
+      },
+      "withheld_from_judge": [
+        "source_error_label",
+        "teacher review",
+        "teacher advice"
+      ]
+    }
+  ]
+}
