@@ -24,7 +24,7 @@ from pathlib import Path
 from typing import Any, Callable, Mapping, Sequence
 
 from .clients import AnswerChecker, PairwiseJudge, RewardExecutionError, VerifierClient
-from .common import append_jsonl, hash_obj, read_jsonl, read_template, resolve
+from .common import hash_obj, read_jsonl, read_template, resolve, write_jsonl
 from .rewards import (
     combine_group,
     diversity_scores,
@@ -260,12 +260,15 @@ class RewardOrchestrator:
                 raise GroupIntegrityError(f"PairId {pid} has no prepared row / privileged annotation")
             seen.add(pid)
         started = time.monotonic()
-        scored = self._run(asyncio.gather(*[self._score_group(block, step) for block in groups]))
+        scored = self._run(self._score_groups(groups, step))
         elapsed = time.monotonic() - started
         results = [r for group_rows, _ in scored for r in group_rows]
         group_logs = [glog for _, glog in scored]
         self._write_logs(step, results, group_logs)
         return [self._public(r) for r in results], self._metrics(results, group_logs, elapsed)
+
+    async def _score_groups(self, groups: list[list[dict[str, Any]]], step: int) -> list[tuple[list[dict[str, Any]], dict[str, Any]]]:
+        return await asyncio.gather(*[self._score_group(block, step) for block in groups])
 
     async def _score_group(self, block: list[dict[str, Any]], step: int) -> tuple[list[dict[str, Any]], dict[str, Any]]:
         pid = block[0]["pair_id"]
@@ -329,8 +332,9 @@ class RewardOrchestrator:
         return {k: r[k] for k in ("rank", "local_idx", "main", "aux", "trunc")}
 
     def _write_logs(self, step: int, results: list[dict[str, Any]], group_logs: list[dict[str, Any]]) -> None:
-        append_jsonl(self.run_dir / "rollouts" / f"step_{step:06d}.jsonl", results)
-        append_jsonl(self.run_dir / "rollouts" / f"groups_{step:06d}.jsonl", group_logs)
+        # one scoring pass per optimizer step: a step redone after --resume replaces its earlier files
+        write_jsonl(self.run_dir / "rollouts" / f"step_{step:06d}.jsonl", results)
+        write_jsonl(self.run_dir / "rollouts" / f"groups_{step:06d}.jsonl", group_logs)
 
     def _metrics(self, results: list[dict[str, Any]], group_logs: list[dict[str, Any]], elapsed: float) -> dict[str, float]:
         n = len(results)

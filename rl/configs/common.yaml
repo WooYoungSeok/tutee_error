@@ -36,8 +36,11 @@ generation:              # Student sampling, identical in both experiments
   num_generations: 8
   max_completion_tokens: 1024
   max_prompt_tokens: 1024
-  temperature: 1.0
-  top_p: 1.0
+  # Qwen2.5-7B-Instruct generation_config defaults (user decision 2026-09-29); used for training rollouts and test evaluation
+  temperature: 0.7
+  top_p: 0.8
+  top_k: 20
+  repetition_penalty: 1.05
 
 training:
   learning_rate: 1.0e-6
@@ -46,7 +49,7 @@ training:
   loss_type: dapo          # TRL 1.14 default (token-level, no length bias); see README
   scale_rewards: group
   num_iterations: 1
-  num_train_epochs: 1
+  num_train_epochs: 3
   # 3 training GPUs x 8 completions x 8 accumulation = 192 completions = 24 prompts per optimizer step
   per_device_train_batch_size: 8
   gradient_accumulation_steps: 8
@@ -83,7 +86,7 @@ answer_check:
   max_output_tokens: 4000
   request_timeout_s: 120
   max_attempts: 6               # API errors, truncated responses and schema violations share this budget
-  concurrency: 96
+  concurrency: 192             # a whole step (24 x 8 rollouts) in one wave; no rate-limit retries were seen at 96
   calls_per_rollout: 1          # one logical call; retries for execution failures are separate
 
 verifier:
@@ -112,21 +115,21 @@ diversity:
   lowercase: false
 
 student_likeness:
-  backend: REQUIRED_WHEN_ENABLED      # openai | vllm
-  model: REQUIRED_WHEN_ENABLED
+  backend: openai                     # openai | vllm
+  model: gpt-5-nano                   # user decision 2026-09-29
   base_url: null                      # for backend vllm, e.g. http://127.0.0.1:8002/v1
   examples: data/mathedu_student_examples.json
   num_examples: 2
-  examples_approved: false            # example 2 (MathEDU id 8584) is still a candidate
+  examples_approved: true             # example 2 (MathEDU id 8584) approved by the user on 2026-09-29
   pair_schedule: all_unordered
   randomize_ab_positions: true
   allow_tie: true
   aggregation: normalized_win_score
   decoding: greedy
   reward_if_fewer_than_two_accepted: 0
-  max_output_tokens: 2000
+  max_output_tokens: 8000            # gpt-5-nano reasoning alone often passed 2000 (incomplete -> retry)
   reasoning_effort: null
-  concurrency: 64
+  concurrency: 128
   max_attempts: 6
   request_timeout_s: 120
 
@@ -147,3 +150,22 @@ servers:
 distributed:
   train_gpus: "0,1,2"
   deepspeed: configs/ds_zero2_offload.json
+
+evaluation:
+  # Best epoch = highest mean test reward, computed exactly as in training (reward terms and weights,
+  # Student prompt/sampling/group size, answer check, auxiliary term) except that the error-alignment
+  # verifier is the held-out half-B checkpoint. Chosen on test, so that score is optimistic (user decision 2026-09-29).
+  split: test
+  select_metric: reward/total_mean
+  generation_gpus: "0,1,2"            # one checkpoint per GPU, vLLM offline engine
+  gpu_memory_utilization: 0.85
+  seed: 42                            # per-rollout sampling seeds, identical for every checkpoint
+  verifier:                           # replaces these keys of `verifier`; sampling and parsing unchanged
+    checkpoint: WooYoungSeok/deepseek-r1-0528-qwen3-8b-descriptive-verifier-v2-trval-halfB
+    served_name: test_verifier
+    base_url: http://127.0.0.1:8002/v1
+  server:                             # vllm serve of the test verifier (scripts/launch_eval_server.sh)
+    gpu: 3
+    port: 8002
+    gpu_memory_utilization: 0.85
+    max_model_len: 4096

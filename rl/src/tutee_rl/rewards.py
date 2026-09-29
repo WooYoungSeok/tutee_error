@@ -76,7 +76,9 @@ def truncation_reward(info: TruncationInfo, penalty: float) -> float:
 def make_bleu(smooth_method: str = "exp", effective_order: bool = True, tokenize: str = "13a", lowercase: bool = False):
     from sacrebleu.metrics import BLEU
 
-    return BLEU(smooth_method=smooth_method, effective_order=effective_order, tokenize=tokenize, lowercase=lowercase)
+    bleu = BLEU(smooth_method=smooth_method, effective_order=effective_order, tokenize=tokenize, lowercase=lowercase)
+    bleu.sentence_score("a", ["a"])  # fixes nrefs=1 (every comparison has one reference) so get_signature() works before scoring
+    return bleu
 
 
 def diversity_scores(texts: Sequence[str], accepted: Sequence[int], bleu: Any) -> tuple[dict[int, float], dict[str, Any]]:

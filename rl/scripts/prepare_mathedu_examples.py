@@ -3,7 +3,7 @@
 
 Reads ../data/normalized/mathedu.jsonl (MathEDU train split joined with its MathQA question by the
 repo's adapter) and copies question + student_process text byte-for-byte: no spelling or math fixes.
-Example 1 = MathEDU id 13427 (approved). Example 2 = id 8584 (replacement candidate, not yet approved;
+Example 1 = MathEDU id 13427 (approved). Example 2 = id 8584 (approved 2026-09-29;
 student_likeness.examples_approved in the config gates real runs).
 
 Usage (from rl/):  python scripts/prepare_mathedu_examples.py
@@ -20,7 +20,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
 
 from tutee_rl.common import REPO_ROOT, resolve, sha256_file, sha256_text, write_json  # noqa: E402
 
-EXAMPLES = [(13427, "approved"), (8584, "candidate_pending_approval")]
+EXAMPLES = [(13427, "approved"), (8584, "approved")]  # example 2 approved by the user on 2026-09-29
 
 
 def main() -> int:

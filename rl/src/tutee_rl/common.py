@@ -195,3 +195,16 @@ def render(template: str, values: Mapping[str, Any]) -> str:
     if missing:
         raise ConfigError(f"template is missing placeholder(s) {missing}")
     return pattern.sub(lambda m: str(values[m.group(0)[1:-1]]), template)
+
+
+def student_messages(template: str, row: Mapping[str, Any]) -> list[dict[str, str]]:
+    """The Student's chat input (training and evaluation): instruction + misconception as system, problem as user."""
+    return [
+        {"role": "system", "content": render(template, {"error_description": row["target_misconception_description"]})},
+        {"role": "user", "content": row["problem"]},
+    ]
+
+
+def eval_verifier_cfg(cfg: Mapping[str, Any]) -> dict[str, Any]:
+    """The reward `verifier` settings with the held-out test verifier swapped in (same sampling and parsing)."""
+    return {**cfg["verifier"], **cfg["evaluation"]["verifier"]}
