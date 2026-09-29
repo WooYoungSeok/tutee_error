@@ -59,6 +59,7 @@ training:
   warmup_steps: 5
   max_grad_norm: 1.0
   logging_steps: 1
+  log_profiling: false     # TRL's per-call timing logs to W&B (off: dozens of unstepped points per step)
   num_train_epochs_note: "every epoch end is saved (model only) to epoch_checkpoints/; best epoch chosen on test"
   resume_save_steps: 20            # full checkpoint (optimizer state) for resuming only, rotated
   resume_save_total_limit: 1
@@ -83,11 +84,14 @@ answer_check:
   inputs: [problem, answer_contract, reference_answer, generated_solution]
   structured_output: true
   reasoning_effort: null        # null = API default; not fixed by the plan, confirm in the pilot
-  max_output_tokens: 4000
+  max_output_tokens: 8000      # 4000 was occasionally cut off by reasoning (incomplete -> retry)
   request_timeout_s: 120
   max_attempts: 6               # API errors, truncated responses and schema violations share this budget
   concurrency: 192             # a whole step (24 x 8 rollouts) in one wave; no rate-limit retries were seen at 96
   calls_per_rollout: 1          # one logical call; retries for execution failures are separate
+
+openai_client:            # one connection pool shared by the answer check and the student-likeness judge (size = their concurrency)
+  keepalive_expiry_s: 600   # reuse connections across steps; per-burst new connections were refused after ~20 min (2026-09-29)
 
 verifier:
   # Qwen2.5-Math-7B verifier trained on train+validation half A (epoch 4). The DeepSeek half-B

@@ -23,7 +23,7 @@ from collections import Counter
 from pathlib import Path
 from typing import Any, Callable, Mapping, Sequence
 
-from .clients import AnswerChecker, PairwiseJudge, RewardExecutionError, VerifierClient
+from .clients import AnswerChecker, PairwiseJudge, RewardExecutionError, VerifierClient, openai_api_client
 from .common import hash_obj, read_jsonl, read_template, resolve, write_jsonl
 from .rewards import (
     combine_group,
@@ -128,7 +128,9 @@ class RewardOrchestrator:
 
         p = cfg["prompts"]
         ac = cfg["answer_check"]
-        self.openai = AsyncOpenAI(max_retries=0, timeout=float(ac["request_timeout_s"]))
+        sl = cfg["student_likeness"]
+        pool = int(ac["concurrency"]) + (int(sl["concurrency"]) if self.mode == "student_likeness" and sl["backend"] == "openai" else 0)
+        self.openai = openai_api_client(float(ac["request_timeout_s"]), pool, float(cfg["openai_client"]["keepalive_expiry_s"]))
         self.answer = AnswerChecker(ac, read_template(p["answer_judge_system"]), read_template(p["answer_judge_user"]), self.openai)
 
         vcfg = cfg["verifier"]
