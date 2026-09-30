@@ -5,6 +5,7 @@ solution with a final answer. Reward: final answer wrong **and** the reward veri
 shows C (two samples, both `aligned`), plus one auxiliary term per experiment (BLEU diversity **or**
 pairwise student-likeness inside the accepted set G), minus a truncation penalty.
 Design document: `RL error generation implementation plan.md` (2026-09-29).
+Settings actually used for training and test, results and decision history: [`EXPERIMENTS.md`](EXPERIMENTS.md).
 
 ## Status
 
