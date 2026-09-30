@@ -1,0 +1,11 @@
+# Verifier B: test verifier for Student checkpoints and baselines, trained on train half B only (plan 4.2).
+# Starts from its own public backbone (never from A's weights). Never called by the RL reward.
+inherits: verifier_common.yaml
+experiment: verifier_half_b
+role: test
+half: B
+data_file: half_b.jsonl
+model:
+  name: deepseek-ai/DeepSeek-R1-0528-Qwen3-8B   # plan 6.2 draft (approval item verifier_backbones); run the 8B smoke first
+storage:
+  model_snapshot_gb: 16.4

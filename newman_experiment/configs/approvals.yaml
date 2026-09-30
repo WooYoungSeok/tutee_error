@@ -1,0 +1,36 @@
+# Written by scripts/approve.py after the user confirmed each item (user rule 1).
+# Real runs check these hashes; editing an approved file re-opens its item.
+answer_judge_prompt:
+  approved: false
+student_likeness_prompt:
+  approved: false
+student_prompt:
+  approved: true
+  approved_on: '2026-10-01T04:53:14+09:00'
+  files:
+    prompts/student.txt: 4593bb93cbf8fb2b2d674f9a679ac01a012f15ab2d4ad6541d93fe036aa92736
+  note: 'user confirmed on 2026-10-01 ("이대로 확정"): Student prompt with the NEA overview
+    and ''At the specified problem-solving stage, ...'''
+taxonomy_definitions:
+  approved: true
+  approved_on: '2026-10-01T04:53:13+09:00'
+  files:
+    configs/taxonomy.yaml: 9b7cc796466492a7433cb3f2ff6ffcb9a1315fedd5abdd968cb8aa916ceebdba
+  note: 'user confirmed on 2026-10-01 ("이대로 확정"): workbook names/definitions, NEA
+    overview and stage definitions from White (2009)'
+verifier_backbones:
+  approved: true
+  approved_on: '2026-10-01T00:49:06+09:00'
+  note: 'user 2026-09-30: A/B backbones as in verifier_sft (A Qwen/Qwen2.5-Math-7B-Instruct,
+    B deepseek-ai/DeepSeek-R1-0528-Qwen3-8B)'
+  values:
+    A: Qwen/Qwen2.5-Math-7B-Instruct
+    B: deepseek-ai/DeepSeek-R1-0528-Qwen3-8B
+verifier_prompt:
+  approved: true
+  approved_on: '2026-10-01T04:53:14+09:00'
+  files:
+    prompts/verifier_system.txt: a2513fd9a228951eb5fb29b8e62a93ddf29ed941a144c85f8345ab282cbb051a
+    prompts/verifier_user.txt: e8d93eafa9523a3208aae68c465652c8eb484fb656de20700c50f5babd28cbd1
+  note: 'user confirmed on 2026-10-01 ("이대로 확정"): verifier system/user prompt with
+    the NEA overview'

@@ -1,0 +1,12 @@
+# Verifier SFT on one GPU (launch from newman_experiment/). Same DeepSpeed ZeRO-2 + CPU optimizer offload file as
+# verifier_sft (copied there from llm_tutee_tutor/finetuning/reward_model, commit 972f0c38).
+compute_environment: LOCAL_MACHINE
+distributed_type: DEEPSPEED
+deepspeed_config:
+  deepspeed_config_file: ../verifier_sft/ds_config.json
+  zero3_init_flag: false
+machine_rank: 0
+main_training_function: main
+num_machines: 1
+num_processes: 1
+use_cpu: false

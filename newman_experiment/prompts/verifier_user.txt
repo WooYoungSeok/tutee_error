@@ -1,0 +1,14 @@
+Question:
+{question}
+
+Incorrect solution:
+{solution}
+
+Problem-solving stage (Newman's Error Analysis):
+{newman_framework}
+Specified stage: {newman_stage_name}
+{newman_stage_definition}
+
+Error type:
+{source_error_name}
+{source_error_definition}

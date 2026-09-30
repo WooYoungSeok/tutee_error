@@ -1,0 +1,12 @@
+# GRPO training (launch from newman_experiment/: deepspeed_config_file is resolved from the working directory).
+# The DeepSpeed file is the Eedi run's ZeRO-2 + CPU optimizer offload; num_processes is set by run_train_student.sh.
+compute_environment: LOCAL_MACHINE
+distributed_type: DEEPSPEED
+deepspeed_config:
+  deepspeed_config_file: ../rl/configs/ds_zero2_offload.json
+  zero3_init_flag: false
+machine_rank: 0
+main_training_function: main
+num_machines: 1
+num_processes: 3
+use_cpu: false

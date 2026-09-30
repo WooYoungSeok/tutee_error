@@ -1,0 +1,5 @@
+# Experiment newman_diversity: common reward + 0.5 x BLEU diversity inside G (plan 8.4).
+inherits: rl_common.yaml
+experiment: newman_diversity
+rewards:
+  auxiliary_reward: diversity

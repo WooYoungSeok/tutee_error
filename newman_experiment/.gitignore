@@ -1,0 +1,10 @@
+# Raw inputs stay on the server: the mapping workbook is the user's file (sha256 in configs/taxonomy.yaml),
+# GSM8K is re-downloaded at a pinned revision (sha256 in configs/data.yaml).
+data/raw/
+# smoke / unverified-mapping outputs
+data/smoke/
+# runs (checkpoints, rollouts, API responses), server and pipeline logs
+outputs/
+logs/
+__pycache__/
+.pytest_cache/

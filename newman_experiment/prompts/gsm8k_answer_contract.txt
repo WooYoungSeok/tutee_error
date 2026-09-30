@@ -1,0 +1,1 @@
+NUMBER: the final answer is one number. A unit, a currency sign, or thousands separators written with it do not change the answer.
