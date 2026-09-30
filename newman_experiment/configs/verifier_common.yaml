@@ -1,0 +1,49 @@
+# Binary verifier SFT shared by A (reward, half A) and B (test, half B). Never run on its own: the half files set
+# the experiment, the role, the half and the backbone. Hyperparameters = tutee_error@a95df533 verifier_sft v2
+# (descriptive_verifier_v2.json / train_descriptive_verifier.py), plan 6.2.
+
+seed: 42
+taxonomy: configs/taxonomy.yaml
+prompts:
+  system: prompts/verifier_system.txt
+  user: prompts/verifier_user.txt
+data_dir: data/prepared/sft           # half_a.jsonl / half_b.jsonl (training), test.jsonl (evaluation)
+max_seq_length: 4096                  # longer pairs were dropped in prepare_data.py; never truncated
+
+training:
+  output_root: outputs                # outputs/<experiment>_seed42_<YYYYmmdd_HHMMSS> (= W&B run name)
+  num_train_epochs: 5
+  learning_rate: 1.0e-5
+  weight_decay: 0.01
+  warmup_ratio: 0.1                   # ceil(0.1 x total optimizer steps)
+  lr_scheduler_type: linear           # the v2 script used the Trainer default (linear); written out here
+  max_grad_norm: 1.0                  # Trainer default in v2, written out here
+  per_device_train_batch_size: 8
+  gradient_accumulation_steps: 4
+  expected_effective_batch: 32        # 1 GPU x 8 x 4; train_verifier.py refuses any other product
+  bf16: true
+  gradient_checkpointing: true        # use_reentrant false
+  padding_side: left
+  logging_steps: 10
+  dataloader_num_workers: 4
+  snapshot_every_epoch: true          # model-only epoch_checkpoints/epoch-K after every epoch, all kept
+  resume_save_steps: null             # full optimizer-state checkpoints: none (as the v2 train+validation halves);
+                                      # set a step count to write them (~114 GB each, all kept, no rotation)
+  report_to: wandb
+  wandb_project: tutee_error_newman_verifier
+
+evaluation:
+  split_file: test.jsonl
+  max_new_tokens: 10                  # the two labels and EOS fit in every backbone tokenizer (checked in check_formatting.py)
+  batch_size: 8
+  repetition_penalty: 1.0             # sent explicitly; greedy decoding
+  loss_batch_size: 4                  # teacher-forced test loss (label + EOS tokens)
+  bootstrap_samples: 1000
+  min_support: 5                      # breakdown rows with fewer pairs are omitted
+  # checkpoint choice on the SFT test (user rule 5; optimistic by design): macro-F1, then negative false acceptance
+  # (user decisions 2026-09-30 / 2026-10-01: test loss is reported but not used); a remaining tie keeps the earlier epoch
+  selection_rule: ["macro_f1:max", "negative_false_acceptance:min"]
+
+storage:
+  resume_checkpoint_gb: 114           # 7-8B full state with ZeRO-2 offload (verifier_sft README); only if resume_save_steps
+  margin_gb: 30

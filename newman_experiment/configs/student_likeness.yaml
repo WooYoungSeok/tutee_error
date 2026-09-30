@@ -1,0 +1,5 @@
+# Experiment newman_student_likeness: common reward + 0.5 x pairwise student-likeness inside G (plan 8.4).
+inherits: rl_common.yaml
+experiment: newman_student_likeness
+rewards:
+  auxiliary_reward: student_likeness

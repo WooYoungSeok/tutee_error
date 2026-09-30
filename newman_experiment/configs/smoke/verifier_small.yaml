@@ -1,0 +1,12 @@
+# SMOKE ONLY - verifier SFT / evaluation plumbing with a small backbone. Run names must start with smoke_.
+inherits: ../verifier_half_a.yaml
+experiment: smoke_verifier
+model:
+  name: Qwen/Qwen2.5-0.5B-Instruct
+training:
+  num_train_epochs: 2
+  report_to: none
+evaluation:
+  selection_rule: ["macro_f1:max", "negative_false_acceptance:min", "test_loss:min"]
+storage:
+  model_snapshot_gb: 1.0

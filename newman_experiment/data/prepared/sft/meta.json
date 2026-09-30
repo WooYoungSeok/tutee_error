@@ -1,0 +1,667 @@
+{
+  "created_at": "2026-10-01T04:50:17+09:00",
+  "timezone": "Asia/Seoul",
+  "stage": "sft",
+  "seed": 42,
+  "config": {
+    "chain": [
+      "newman_experiment/configs/data.yaml"
+    ],
+    "sha256": "5fca99f12d7139bd3ce6fa87bc4e10179f0abaf3fefbe0c5eeac0b5448455291"
+  },
+  "git": {
+    "commit": "8ac2aef3e1ecdc60194f4762498da146a8646f1f",
+    "branch": "rl-grpo",
+    "tracked_changes": true
+  },
+  "mapping_verified": true,
+  "mapping_version": "youngseok_20260930_v2",
+  "taxonomy_sha256": "9b7cc796466492a7433cb3f2ff6ffcb9a1315fedd5abdd968cb8aa916ceebdba",
+  "inputs": {
+    "pool": {
+      "path": "data/full/pool.jsonl",
+      "sha256": "7ee70b28469dac44a48406fc34acd1b2cb9bbb993562c410b6d7f23054e0cf3e"
+    },
+    "descriptions": {
+      "path": "outputs/runs/v4__gpt-5.6-luna__full/parsed.jsonl",
+      "sha256": "bab3fe4e1dd0f8541d300867aa8577e477e714db7c84a9cb30edaf15b37b2cf2"
+    },
+    "gsm8k_train": {
+      "path": "newman_experiment/data/raw/gsm8k/train.parquet",
+      "sha256": "ea82612ea9582142387730c793eb67d3b12849002bc0b7fa6f8efafa7351419d"
+    },
+    "gsm8k_test": {
+      "path": "newman_experiment/data/raw/gsm8k/test.parquet",
+      "sha256": "ee7b8da9e381df27b9e3f7758a159ab2bdaa4dbaa910546cbbc47e0cb44e4f59"
+    },
+    "unit_allowlist": {
+      "path": "newman_experiment/data/unit_conversion_allowlist_gsm8k.json",
+      "sha256": "15eea4c537da6498f502008ad241ee36c951e97a4700381e732e4c3320474823"
+    },
+    "taxonomy": {
+      "path": "newman_experiment/configs/taxonomy.yaml",
+      "sha256": "9b7cc796466492a7433cb3f2ff6ffcb9a1315fedd5abdd968cb8aa916ceebdba"
+    },
+    "mapping_workbook": {
+      "path": "data/raw/Newman_relabeling_영석_마무리 (1).xlsx",
+      "sha256": "9324bac2d5112d3bbc4e6fc27a1b7d3a128bcc017c6586389d1d345c28b3da7b"
+    }
+  },
+  "regions": {
+    "half_a": {
+      "pair_rows": 2162,
+      "anchors": 1081,
+      "question_groups": 963,
+      "sha256": "38a1c7dd7de43d848ed80928fa19e32270bb170b979d3335a81da78aa717e7bd"
+    },
+    "half_b": {
+      "pair_rows": 2126,
+      "anchors": 1063,
+      "question_groups": 961,
+      "sha256": "17fa2610d3cc84ff3acac9db6987aa63944e569630d645e69b27017e00275bd6"
+    },
+    "test": {
+      "pair_rows": 1056,
+      "anchors": 528,
+      "question_groups": 474,
+      "sha256": "af37b79709764b2170606f1274961408dbb9e01ee03338c499a2deec0c1b7c96"
+    }
+  },
+  "length": {
+    "max_seq_length": 4096,
+    "backbones": {
+      "A": {
+        "model": "Qwen/Qwen2.5-Math-7B-Instruct",
+        "regions": [
+          "half_a",
+          "test"
+        ],
+        "pairs": 3218,
+        "min": 312,
+        "median": 464,
+        "p99": 1702,
+        "max": 2721
+      },
+      "B": {
+        "model": "deepseek-ai/DeepSeek-R1-0528-Qwen3-8B",
+        "regions": [
+          "half_b",
+          "test"
+        ],
+        "pairs": 3182,
+        "min": 337,
+        "median": 491,
+        "p99": 1489,
+        "max": 2652
+      }
+    },
+    "dropped_anchors": []
+  },
+  "negative_audit": {
+    "half_a": {
+      "anchors": 1081,
+      "paired": 1081,
+      "no_negative_candidate": 0,
+      "negative_kind": {
+        "different_stage": 811,
+        "same_stage": 270
+      },
+      "negative_dataset_relation": {
+        "other_dataset": 763,
+        "same_dataset": 318
+      },
+      "types": {
+        "eic.adding_irrelevant_information": {
+          "positives": 80,
+          "negatives_as_target": 63,
+          "unit_candidate_removed": 0
+        },
+        "eic.calculation_error": {
+          "positives": 86,
+          "negatives_as_target": 75,
+          "unit_candidate_removed": 0
+        },
+        "eic.confusing_formula_error": {
+          "positives": 70,
+          "negatives_as_target": 67,
+          "unit_candidate_removed": 0
+        },
+        "eic.operator_error": {
+          "positives": 82,
+          "negatives_as_target": 88,
+          "unit_candidate_removed": 0
+        },
+        "eic.referencing_context_value_error": {
+          "positives": 88,
+          "negatives_as_target": 84,
+          "unit_candidate_removed": 0
+        },
+        "eic.referencing_previous_step_value_error": {
+          "positives": 68,
+          "negatives_as_target": 68,
+          "unit_candidate_removed": 0
+        },
+        "eic.unit_conversion_error": {
+          "positives": 73,
+          "negatives_as_target": 20,
+          "unit_candidate_removed": 969
+        },
+        "mathclean.computing_error": {
+          "positives": 78,
+          "negatives_as_target": 69,
+          "unit_candidate_removed": 0
+        },
+        "mathclean.logic_error": {
+          "positives": 102,
+          "negatives_as_target": 76,
+          "unit_candidate_removed": 0
+        },
+        "mathedu.algebraic_error": {
+          "positives": 16,
+          "negatives_as_target": 68,
+          "unit_candidate_removed": 0
+        },
+        "mathedu.arithmetical_error": {
+          "positives": 28,
+          "negatives_as_target": 88,
+          "unit_candidate_removed": 0
+        },
+        "mathedu.comprehension_error": {
+          "positives": 66,
+          "negatives_as_target": 62,
+          "unit_candidate_removed": 0
+        },
+        "mathedu.measurement_error": {
+          "positives": 5,
+          "negatives_as_target": 21,
+          "unit_candidate_removed": 1003
+        },
+        "mathedu.wrong_mathematical_operation_concept": {
+          "positives": 174,
+          "negatives_as_target": 73,
+          "unit_candidate_removed": 0
+        },
+        "stepwise.calculation_error_easily_solved_by_a_calculator": {
+          "positives": 19,
+          "negatives_as_target": 83,
+          "unit_candidate_removed": 0
+        },
+        "stepwise.misunderstanding_of_a_question": {
+          "positives": 46,
+          "negatives_as_target": 76,
+          "unit_candidate_removed": 0
+        }
+      },
+      "types_without_negatives": []
+    },
+    "half_b": {
+      "anchors": 1063,
+      "paired": 1063,
+      "no_negative_candidate": 0,
+      "negative_kind": {
+        "different_stage": 794,
+        "same_stage": 269
+      },
+      "negative_dataset_relation": {
+        "other_dataset": 754,
+        "same_dataset": 309
+      },
+      "types": {
+        "eic.adding_irrelevant_information": {
+          "positives": 75,
+          "negatives_as_target": 68,
+          "unit_candidate_removed": 0
+        },
+        "eic.calculation_error": {
+          "positives": 87,
+          "negatives_as_target": 76,
+          "unit_candidate_removed": 0
+        },
+        "eic.confusing_formula_error": {
+          "positives": 83,
+          "negatives_as_target": 67,
+          "unit_candidate_removed": 0
+        },
+        "eic.operator_error": {
+          "positives": 76,
+          "negatives_as_target": 83,
+          "unit_candidate_removed": 0
+        },
+        "eic.referencing_context_value_error": {
+          "positives": 76,
+          "negatives_as_target": 79,
+          "unit_candidate_removed": 0
+        },
+        "eic.referencing_previous_step_value_error": {
+          "positives": 73,
+          "negatives_as_target": 73,
+          "unit_candidate_removed": 0
+        },
+        "eic.unit_conversion_error": {
+          "positives": 65,
+          "negatives_as_target": 14,
+          "unit_candidate_removed": 967
+        },
+        "mathclean.computing_error": {
+          "positives": 77,
+          "negatives_as_target": 66,
+          "unit_candidate_removed": 0
+        },
+        "mathclean.logic_error": {
+          "positives": 103,
+          "negatives_as_target": 82,
+          "unit_candidate_removed": 0
+        },
+        "mathedu.algebraic_error": {
+          "positives": 16,
+          "negatives_as_target": 63,
+          "unit_candidate_removed": 0
+        },
+        "mathedu.arithmetical_error": {
+          "positives": 27,
+          "negatives_as_target": 75,
+          "unit_candidate_removed": 0
+        },
+        "mathedu.comprehension_error": {
+          "positives": 64,
+          "negatives_as_target": 68,
+          "unit_candidate_removed": 0
+        },
+        "mathedu.measurement_error": {
+          "positives": 4,
+          "negatives_as_target": 17,
+          "unit_candidate_removed": 1000
+        },
+        "mathedu.wrong_mathematical_operation_concept": {
+          "positives": 171,
+          "negatives_as_target": 73,
+          "unit_candidate_removed": 0
+        },
+        "stepwise.calculation_error_easily_solved_by_a_calculator": {
+          "positives": 19,
+          "negatives_as_target": 80,
+          "unit_candidate_removed": 0
+        },
+        "stepwise.misunderstanding_of_a_question": {
+          "positives": 47,
+          "negatives_as_target": 79,
+          "unit_candidate_removed": 0
+        }
+      },
+      "types_without_negatives": []
+    },
+    "test": {
+      "anchors": 528,
+      "paired": 528,
+      "no_negative_candidate": 0,
+      "negative_kind": {
+        "different_stage": 402,
+        "same_stage": 126
+      },
+      "negative_dataset_relation": {
+        "other_dataset": 360,
+        "same_dataset": 168
+      },
+      "types": {
+        "eic.adding_irrelevant_information": {
+          "positives": 45,
+          "negatives_as_target": 36,
+          "unit_candidate_removed": 0
+        },
+        "eic.calculation_error": {
+          "positives": 42,
+          "negatives_as_target": 41,
+          "unit_candidate_removed": 0
+        },
+        "eic.confusing_formula_error": {
+          "positives": 36,
+          "negatives_as_target": 45,
+          "unit_candidate_removed": 0
+        },
+        "eic.operator_error": {
+          "positives": 38,
+          "negatives_as_target": 42,
+          "unit_candidate_removed": 0
+        },
+        "eic.referencing_context_value_error": {
+          "positives": 36,
+          "negatives_as_target": 36,
+          "unit_candidate_removed": 0
+        },
+        "eic.referencing_previous_step_value_error": {
+          "positives": 35,
+          "negatives_as_target": 31,
+          "unit_candidate_removed": 0
+        },
+        "eic.unit_conversion_error": {
+          "positives": 32,
+          "negatives_as_target": 8,
+          "unit_candidate_removed": 480
+        },
+        "mathclean.computing_error": {
+          "positives": 38,
+          "negatives_as_target": 30,
+          "unit_candidate_removed": 0
+        },
+        "mathclean.logic_error": {
+          "positives": 51,
+          "negatives_as_target": 28,
+          "unit_candidate_removed": 0
+        },
+        "mathedu.algebraic_error": {
+          "positives": 9,
+          "negatives_as_target": 43,
+          "unit_candidate_removed": 0
+        },
+        "mathedu.arithmetical_error": {
+          "positives": 14,
+          "negatives_as_target": 41,
+          "unit_candidate_removed": 0
+        },
+        "mathedu.comprehension_error": {
+          "positives": 32,
+          "negatives_as_target": 30,
+          "unit_candidate_removed": 0
+        },
+        "mathedu.measurement_error": {
+          "positives": 2,
+          "negatives_as_target": 8,
+          "unit_candidate_removed": 497
+        },
+        "mathedu.wrong_mathematical_operation_concept": {
+          "positives": 87,
+          "negatives_as_target": 37,
+          "unit_candidate_removed": 0
+        },
+        "stepwise.calculation_error_easily_solved_by_a_calculator": {
+          "positives": 8,
+          "negatives_as_target": 39,
+          "unit_candidate_removed": 0
+        },
+        "stepwise.misunderstanding_of_a_question": {
+          "positives": 23,
+          "negatives_as_target": 33,
+          "unit_candidate_removed": 0
+        }
+      },
+      "types_without_negatives": []
+    }
+  },
+  "unit_eligibility": {
+    "allowlist": {
+      "path": "newman_experiment/data/unit_conversion_allowlist_gsm8k.json",
+      "sha256": "15eea4c537da6498f502008ad241ee36c951e97a4700381e732e4c3320474823",
+      "source": {
+        "repo": "https://github.com/WooYoungSeok/llm_tutee_tutor",
+        "commit": "972f0c3866a48520c87c254f45dcd9c875da8797",
+        "path": "RL_new_cluster_2prm_0623/data/fix_labels.py",
+        "symbol": "UNIT_CONV_RAW",
+        "file_sha256": "8b2e3c546f4ba2dd76e36ca3796f96bbb1597b338a0e3f66a8e774ab58691163"
+      }
+    },
+    "extra_allowlists": [],
+    "allowlisted_rows": {
+      "train": 845,
+      "test": 203
+    },
+    "conflicts": 0
+  },
+  "split": {
+    "test_ratio": 0.2,
+    "per_stratum": {
+      "eic|GSM8K|eic.adding_irrelevant_information": {
+        "groups": 71,
+        "test": 14,
+        "train": 57
+      },
+      "eic|GSM8K|eic.calculation_error": {
+        "groups": 100,
+        "test": 20,
+        "train": 80
+      },
+      "eic|GSM8K|eic.confusing_formula_error": {
+        "groups": 40,
+        "test": 8,
+        "train": 32
+      },
+      "eic|GSM8K|eic.operator_error": {
+        "groups": 96,
+        "test": 19,
+        "train": 77
+      },
+      "eic|GSM8K|eic.referencing_context_value_error": {
+        "groups": 93,
+        "test": 19,
+        "train": 74
+      },
+      "eic|GSM8K|eic.referencing_previous_step_value_error": {
+        "groups": 95,
+        "test": 19,
+        "train": 76
+      },
+      "eic|GSM8K|eic.unit_conversion_error": {
+        "groups": 67,
+        "test": 13,
+        "train": 54
+      },
+      "eic|MathQA|eic.adding_irrelevant_information": {
+        "groups": 99,
+        "test": 20,
+        "train": 79
+      },
+      "eic|MathQA|eic.calculation_error": {
+        "groups": 90,
+        "test": 18,
+        "train": 72
+      },
+      "eic|MathQA|eic.confusing_formula_error": {
+        "groups": 106,
+        "test": 21,
+        "train": 85
+      },
+      "eic|MathQA|eic.operator_error": {
+        "groups": 57,
+        "test": 11,
+        "train": 46
+      },
+      "eic|MathQA|eic.referencing_context_value_error": {
+        "groups": 52,
+        "test": 10,
+        "train": 42
+      },
+      "eic|MathQA|eic.referencing_previous_step_value_error": {
+        "groups": 28,
+        "test": 6,
+        "train": 22
+      },
+      "eic|MathQA|eic.unit_conversion_error": {
+        "groups": 87,
+        "test": 17,
+        "train": 70
+      },
+      "gsm8k_only|test|unit:False": {
+        "groups": 1067,
+        "test": 213,
+        "train": 854
+      },
+      "gsm8k_only|test|unit:True": {
+        "groups": 192,
+        "test": 38,
+        "train": 154
+      },
+      "gsm8k_only|train|unit:False": {
+        "groups": 6088,
+        "test": 1218,
+        "train": 4870
+      },
+      "gsm8k_only|train|unit:True": {
+        "groups": 722,
+        "test": 144,
+        "train": 578
+      },
+      "mathclean|-|mathclean.computing_error": {
+        "groups": 190,
+        "test": 38,
+        "train": 152
+      },
+      "mathclean|-|mathclean.logic_error": {
+        "groups": 253,
+        "test": 51,
+        "train": 202
+      },
+      "mathedu|-|mathedu.algebraic_error": {
+        "groups": 39,
+        "test": 8,
+        "train": 31
+      },
+      "mathedu|-|mathedu.arithmetical_error": {
+        "groups": 67,
+        "test": 13,
+        "train": 54
+      },
+      "mathedu|-|mathedu.comprehension_error": {
+        "groups": 158,
+        "test": 32,
+        "train": 126
+      },
+      "mathedu|-|mathedu.measurement_error": {
+        "groups": 10,
+        "test": 2,
+        "train": 8
+      },
+      "mathedu|-|mathedu.wrong_mathematical_operation_concept": {
+        "groups": 425,
+        "test": 85,
+        "train": 340
+      },
+      "stepwise|-|stepwise.calculation_error_easily_solved_by_a_calculator": {
+        "groups": 42,
+        "test": 8,
+        "train": 34
+      },
+      "stepwise|-|stepwise.misunderstanding_of_a_question": {
+        "groups": 109,
+        "test": 22,
+        "train": 87
+      }
+    },
+    "halves": {
+      "eic|GSM8K|eic.adding_irrelevant_information": {
+        "groups": 59,
+        "A": 30,
+        "B": 29
+      },
+      "eic|GSM8K|eic.calculation_error": {
+        "groups": 81,
+        "A": 40,
+        "B": 41
+      },
+      "eic|GSM8K|eic.confusing_formula_error": {
+        "groups": 33,
+        "A": 17,
+        "B": 16
+      },
+      "eic|GSM8K|eic.operator_error": {
+        "groups": 78,
+        "A": 39,
+        "B": 39
+      },
+      "eic|GSM8K|eic.referencing_context_value_error": {
+        "groups": 75,
+        "A": 37,
+        "B": 38
+      },
+      "eic|GSM8K|eic.referencing_previous_step_value_error": {
+        "groups": 77,
+        "A": 39,
+        "B": 38
+      },
+      "eic|GSM8K|eic.unit_conversion_error": {
+        "groups": 55,
+        "A": 27,
+        "B": 28
+      },
+      "eic|MathQA|eic.adding_irrelevant_information": {
+        "groups": 79,
+        "A": 40,
+        "B": 39
+      },
+      "eic|MathQA|eic.calculation_error": {
+        "groups": 72,
+        "A": 36,
+        "B": 36
+      },
+      "eic|MathQA|eic.confusing_formula_error": {
+        "groups": 85,
+        "A": 42,
+        "B": 43
+      },
+      "eic|MathQA|eic.operator_error": {
+        "groups": 46,
+        "A": 23,
+        "B": 23
+      },
+      "eic|MathQA|eic.referencing_context_value_error": {
+        "groups": 42,
+        "A": 21,
+        "B": 21
+      },
+      "eic|MathQA|eic.referencing_previous_step_value_error": {
+        "groups": 22,
+        "A": 11,
+        "B": 11
+      },
+      "eic|MathQA|eic.unit_conversion_error": {
+        "groups": 70,
+        "A": 35,
+        "B": 35
+      },
+      "mathclean|-|mathclean.computing_error": {
+        "groups": 155,
+        "A": 78,
+        "B": 77
+      },
+      "mathclean|-|mathclean.logic_error": {
+        "groups": 205,
+        "A": 102,
+        "B": 103
+      },
+      "mathedu|-|mathedu.algebraic_error": {
+        "groups": 32,
+        "A": 16,
+        "B": 16
+      },
+      "mathedu|-|mathedu.arithmetical_error": {
+        "groups": 55,
+        "A": 28,
+        "B": 27
+      },
+      "mathedu|-|mathedu.comprehension_error": {
+        "groups": 128,
+        "A": 64,
+        "B": 64
+      },
+      "mathedu|-|mathedu.measurement_error": {
+        "groups": 8,
+        "A": 4,
+        "B": 4
+      },
+      "mathedu|-|mathedu.wrong_mathematical_operation_concept": {
+        "groups": 342,
+        "A": 171,
+        "B": 171
+      },
+      "stepwise|-|stepwise.calculation_error_easily_solved_by_a_calculator": {
+        "groups": 35,
+        "A": 17,
+        "B": 18
+      },
+      "stepwise|-|stepwise.misunderstanding_of_a_question": {
+        "groups": 88,
+        "A": 44,
+        "B": 44
+      }
+    }
+  },
+  "checks_passed": true
+}

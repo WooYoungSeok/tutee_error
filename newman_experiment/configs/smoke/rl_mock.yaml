@@ -1,0 +1,29 @@
+# SMOKE ONLY - GRPO plumbing on a 2-GPU box: mock reward clients (meaningless rewards), a small policy,
+# data/smoke/rl from scripts/make_smoke_data.py. Run names must start with smoke_ (train_student.py enforces it).
+inherits: ../diversity.yaml
+experiment: smoke_rl_mock
+paths:
+  prepared_dir: data/smoke/rl
+policy:
+  model: Qwen/Qwen2.5-0.5B-Instruct
+smoke:
+  mock_reward_clients: true
+generation:
+  max_completion_tokens: 256
+training:
+  per_device_train_batch_size: 8
+  gradient_accumulation_steps: 1
+  expected_completions_per_step: 8
+  model_save_every_epochs: 0.5
+  resume_save_every_epochs: 0.5
+  report_to: none
+servers:
+  rollout:
+    gpu: 1
+    gpu_memory_utilization: 0.40
+    max_model_len: 1536
+distributed:
+  train_gpus: "0"
+storage:
+  model_snapshot_gb: 1.0
+  resume_checkpoint_gb: 7.0

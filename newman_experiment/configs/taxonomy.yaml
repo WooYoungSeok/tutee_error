@@ -1,0 +1,188 @@
+# Newman stage x source error type taxonomy (plan sections 2.2, 3, 5.1).
+#
+# Source of truth: Newman_relabeling_영석_마무리 (1).xlsx (sha256 below), sheet "Newman 재분류":
+#   column A 라벨명 = error-type name (the E shown to the Student and the verifiers)      user decision 2026-09-30
+#   column B 라벨 설명 = error-type definition (verbatim; the two Stepwise types have none) user decision 2026-09-30
+#   column D 영석 분류 = Newman stage or 제외 (applied)                                  user decision 2026-09-30
+#   column C 혁규 분류 and the 분류 근거 sheet are never applied (plan 2.2)
+# prepare_data.py re-reads the workbook and refuses to prepare data if any name, definition, stage or exclusion here
+# differs from it. The workbook has no dataset column: `dataset` below comes from the source datasets' own label sets
+# (each label occurs in one dataset; EIC "Unit Conversion Error" and Stepwise "Unit conversion error" differ in case).
+#
+# Not in the workbook, still a DRAFT pending user approval (plan 7): the NEA overview (`framework`) and the four
+# Newman stage definitions below, written from White (2009) p. 251.
+# Real runs refuse to start until `python scripts/approve.py taxonomy_definitions` records this file's sha256.
+
+version: youngseok_20260930_v2
+
+mapping_source:
+  workbook: "data/raw/Newman_relabeling_영석_마무리 (1).xlsx"   # matched by Unicode-normalized name (uploads may be NFD)
+  sha256: 9324bac2d5112d3bbc4e6fc27a1b7d3a128bcc017c6586389d1d345c28b3da7b
+  sheet: Newman 재분류
+  label_column: A                    # 라벨명
+  definition_column: B               # 라벨 설명
+  other_annotator_column: C          # 혁규 분류: never applied
+  decision_column: D                 # 영석 분류: applied
+  decision_header: 영석 분류
+  excluded_prefix: 제외              # "제외(85)", "제외 - 100*2", ...: the numbers are notes, not verified counts
+
+# Newman's Error Analysis overview shown before the stage in the Student and verifier prompts (placeholder
+# {newman_framework}). Source: Newman (1977, 1983) as described in White (2009), "A Revaluation of Newman's Error
+# Analysis", MAV annual conference, p. 251 (successive hurdles and the five interview prompts). DRAFT (user request
+# 2026-10-01: explain the NEA concept; no "one of four stages" sentence, since baselines read the same prompt), pending approval.
+framework: >-
+  Newman's Error Analysis (Newman, 1977, 1983) describes solving a written mathematics word problem as passing
+  over successive hurdles in order: Reading the problem, Comprehension of what the question asks, Transformation of
+  the problem into a mathematical plan, Process Skills to carry out that plan, and Encoding the answer. An error is
+  placed at the first hurdle where the work breaks down, and the later hurdles build on it.
+
+stages:                              # Encoding: no adopted source type maps to it (plan 3). DRAFT definitions:
+                                     # Newman's hurdle and interview prompt (White 2009, p. 251) + this study's scope
+  reading:
+    name: Reading
+    definition: >-
+      The first hurdle, reading the problem (Newman's prompt: "Please read the question to me"). The words,
+      numbers, and symbols of the problem are not taken in correctly. In this study it also covers taking
+      information from the problem text: a number or condition given in the problem is taken incorrectly, or
+      information that the problem does not give, or that is irrelevant to it, is brought into the solution.
+    note: operational scope of this study (covers referencing context values and irrelevant information, plan 3.3-4)
+  comprehension:
+    name: Comprehension
+    definition: >-
+      The second hurdle, understanding the problem (Newman's prompt: "Tell me what the question is asking you to
+      do"). The problem is read correctly, but the situation, the relationships between the quantities, or what
+      the question asks for is misunderstood, so the solution works toward a different problem.
+  transformation:
+    name: Transformation
+    definition: >-
+      The third hurdle, also called mathematising (Newman's prompt: "Tell me how you are going to find the
+      answer"). The problem is understood, but it is turned into mathematics wrongly: an operation, formula,
+      concept, or method that does not fit the problem is chosen. In this study it also covers converting
+      quantities between units incorrectly.
+    note: operational scope of this study (unit-related types are Transformation here, plan 3.3-4)
+  process_skills:
+    name: Process Skills
+    definition: >-
+      The fourth hurdle, carrying out the mathematics (Newman's prompt: "Show me what to do to get the answer").
+      The chosen approach fits the problem, but a calculation, an algebraic manipulation, or the use of a result
+      from an earlier step is done incorrectly.
+
+datasets: [mathedu, mathclean, eic, stepwise]
+
+# 16 adopted types: Reading 2, Comprehension 2, Transformation 6, Process Skills 6 (plan 3.1).
+# name = workbook column A, definition = workbook column B (null: the workbook gives none -> the definition line is
+# left out of the prompts, user decision 2026-09-30). source_aliases = the exact label strings in
+# ../data/full/pool.jsonl (approved notation aliases inside one dataset only, plan 3.3-2).
+error_types:
+  - id: mathedu.wrong_mathematical_operation_concept
+    dataset: mathedu
+    name: Wrong Mathematical Operation/Concept
+    source_aliases: [Wrong mathematical operation/concept]
+    newman_stage: transformation
+    definition: Student applies an incorrect mathematical operation or uses an inappropriate mathematical concept to solve a problem.
+  - id: mathedu.comprehension_error
+    dataset: mathedu
+    name: Comprehension error
+    source_aliases: [Comprehension error]
+    newman_stage: comprehension
+    definition: Error in understanding the meaning of a problem.
+  - id: mathedu.arithmetical_error
+    dataset: mathedu
+    name: Arithmetical error
+    source_aliases: [Arithmetical error]
+    newman_stage: process_skills
+    definition: Error in calculation.
+  - id: mathedu.algebraic_error
+    dataset: mathedu
+    name: Algebraic error
+    source_aliases: [Algebraic error]
+    newman_stage: process_skills
+    definition: Error in solving algebraic expression or function.
+  - id: mathedu.measurement_error
+    dataset: mathedu
+    name: Measurement error
+    source_aliases: [Measurement error]
+    newman_stage: transformation
+    unit_related: true
+    definition: Student could not convert between standard units (from m/minute to km/h) or from non-standard units to standard units (from step/minute to m/minute).
+  - id: mathclean.logic_error
+    dataset: mathclean
+    name: Logic error
+    source_aliases: [logic error]
+    newman_stage: transformation
+    definition: Logic errors included the use of incorrect mathematical methods, flawed problem-solving approaches, or failure to consider all cases of the problem.
+  - id: mathclean.computing_error
+    dataset: mathclean
+    name: Computing error
+    source_aliases: [computing error]
+    newman_stage: process_skills
+    definition: Computing errors included errors in the PoT steps and incorrect numerical approximations.
+  - id: eic.calculation_error
+    dataset: eic
+    name: Calculation Error
+    source_aliases: [calculation_error]
+    newman_stage: process_skills
+    definition: The operands and operators of the formula in the first wrong step are exactly correct, and only the result is calculated incorrectly.
+  - id: eic.referencing_context_value_error
+    dataset: eic
+    name: referencing context value error
+    source_aliases: [referencing_context_value_error]
+    newman_stage: reading
+    definition: Only an error in the operand of the formula in the first wrong step when referencing the number in the Question.
+  - id: eic.referencing_previous_step_value_error
+    dataset: eic
+    name: referencing previous step value error
+    source_aliases: [referencing_previous_step_value_error]
+    newman_stage: process_skills
+    definition: Only an error in the operand of the formula in the first wrong step when referencing the result of its previous step.
+  - id: eic.unit_conversion_error
+    dataset: eic
+    name: Unit Conversion Error
+    source_aliases: [unit_conversion_error]
+    newman_stage: transformation
+    unit_related: true
+    definition: The incorrect use of unit conversion, for example, there are 12 inches in a foot, 1000 grams in a kilogram, 60 minutes in an hour, and 60 seconds in a minute, which may cause an error in the operand of the formula in the first wrong step.
+  - id: eic.operator_error
+    dataset: eic
+    name: Operator Error
+    source_aliases: [operator_error]
+    newman_stage: transformation
+    definition: Only an error in the operator of the formula in the first wrong step.
+  - id: eic.confusing_formula_error
+    dataset: eic
+    name: confusing formula error
+    source_aliases: [confusing_formula_error]
+    newman_stage: transformation
+    definition: The incorrect use of a formula, such as confusing the rectangular perimeter formula with the rectangular area formula, the square area formula with the square perimeter formula, and the cuboid volume formula with the cuboid surface area formula, which may cause errors in the operands and operators of the formula in the first wrong step.
+  - id: eic.adding_irrelevant_information
+    dataset: eic
+    name: adding irrelevant information
+    source_aliases: [adding_irrelevant_information]
+    newman_stage: reading
+    definition: The first wrong step adds some information that is not included in the Question statement, which affects the final result.
+  - id: stepwise.calculation_error_easily_solved_by_a_calculator
+    dataset: stepwise
+    name: Calculation error easily solved by a calculator
+    source_aliases: [Calculation error easily solved by a calculator]
+    newman_stage: process_skills
+    definition: null
+  - id: stepwise.misunderstanding_of_a_question
+    dataset: stepwise
+    name: Misunderstanding of a question
+    source_aliases: [Misunderstanding of a question]
+    newman_stage: comprehension
+    definition: null
+
+# 10 excluded types (column D starts with 제외): their cases leave the SFT pool, and the labels are never positive,
+# negative or Student targets (plan 3.2). Not turned into negatives for every other type.
+excluded_types:
+  - {id: mathedu.unfinished_answer, dataset: mathedu, name: Unfinished answer, source_aliases: [Unfinished answer]}
+  - {id: mathedu.lack_of_necessary_mathematical_concepts, dataset: mathedu, name: Lack of Necessary Mathematical Concepts, source_aliases: [Lack of necessary mathematical concepts]}
+  - {id: mathedu.careless_error, dataset: mathedu, name: Careless Error, source_aliases: [Careless error]}
+  - {id: mathclean.expression_error, dataset: mathclean, name: Expression error, source_aliases: [expression error]}
+  - {id: eic.counting_error, dataset: eic, name: Counting Error, source_aliases: [counting_error]}
+  - {id: eic.missing_step, dataset: eic, name: Missing Step, source_aliases: [missing_step]}
+  - {id: stepwise.extra_quantity_or_missing_quantity, dataset: stepwise, name: Extra quantity or Missing quantity, source_aliases: [Extra quantity or Missing quantity]}
+  - {id: stepwise.missing_or_wrong_factual_knowledge, dataset: stepwise, name: Missing / Wrong factual knowledge, source_aliases: [Missing / Wrong factual knowledge]}
+  - {id: stepwise.reached_correct_solution_but_proceeded_further, dataset: stepwise, name: Reached correct solution but proceeded further, source_aliases: [Reached correct solution but proceeded further]}
+  - {id: stepwise.unit_conversion_error, dataset: stepwise, name: Unit conversion error, source_aliases: [Unit conversion error]}

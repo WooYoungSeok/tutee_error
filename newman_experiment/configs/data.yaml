@@ -1,0 +1,74 @@
+# Data preparation (scripts/prepare_data.py). Paths are relative to newman_experiment/.
+# REQUIRED = an open research decision (user rule 1): the stage that needs it refuses to run until it is set.
+
+seed: 42
+
+inputs:
+  pool: ../data/full/pool.jsonl                                      # one record per unique Q/S/label (committed)
+  descriptions: ../outputs/runs/v4__gpt-5.6-luna__full/parsed.jsonl  # description status only (C is never an input)
+  prompt_dev_manifest: ../data/manifest/sample_manifest.jsonl        # the dev cases read while developing the C prompt
+  judge_examples: ../rl/data/mathedu_student_examples.json           # MathEDU 13427 / 8584 (student-likeness judge)
+  gsm8k_dir: data/raw/gsm8k                                          # scripts/fetch_sources.py downloads and verifies
+  unit_allowlist: data/unit_conversion_allowlist_gsm8k.json          # vendored llm_tutee_tutor UNIT_CONV_RAW
+  taxonomy: configs/taxonomy.yaml                                    # the workbook path and hash live there
+
+gsm8k:
+  repo_id: openai/gsm8k
+  revision: 740312add88f781978c0658806c59bc2815b9866   # parquet unchanged since "Convert dataset to Parquet" (2024-01-04)
+  files:
+    train: {path: main/train-00000-of-00001.parquet, sha256: ea82612ea9582142387730c793eb67d3b12849002bc0b7fa6f8efafa7351419d, rows: 7473}
+    test: {path: main/test-00000-of-00001.parquet, sha256: ee7b8da9e381df27b9e3f7758a159ab2bdaa4dbaa910546cbbc47e0cb44e4f59, rows: 1319}
+
+filters:                          # the v2 verifier filters, applied by verifier_sft's own functions (plan 5.2)
+  description_status: ok          # existing agreement; adding records without a description run is an open decision
+  processing_status: ok
+  exclude_multi_label_solutions: true   # user instruction 2026-09-30: a student solution with several error labels is dropped
+  multi_label_extra_sources:            # labels outside the pool count too (e.g. Stepwise "None of the above")
+    - ../data/normalized/mathedu.jsonl
+    - ../data/normalized/stepwise.jsonl
+    - ../data/normalized/mathclean.jsonl
+    - ../data/normalized/eic.jsonl
+  held_out_missing_information:
+    mathclean:3fa3a27b6b350aa5: "question refers to 'a more complex figure' that is not included"
+    mathclean:5420672e35b7999b: "vertex labels B and G depend on a cube figure that is not included"
+    mathclean:2018d169dd6fe205: "the sales graph the question refers to is not included"
+
+split:
+  test_ratio: 0.2                 # train:test = 8:2 over global question groups; SFT has no validation (user rule 5),
+                                  # RL splits its train part 90:10 into train/validation (rl_data, user decision 2026-09-30)
+  force_train:
+    prompt_dev_groups: true       # as in v2: questions read while developing the C prompt stay out of test
+    judge_example_groups_half_a: true   # plan 8.4: the judge examples' questions go to train half A, never test
+
+negatives:
+  per_anchor: 1                   # plan 5.4: one positive + one negative per source solution, fixed once
+  candidates: all_adopted_types   # user decision 2026-10-01: every adopted type except the anchor's own, any dataset
+                                  # (llm_tutee_tutor finetuning), uniform; unit-related types only on allowlisted Q
+  unit_priority: true             # user decision 2026-10-01: on an allowlisted question whose own type is not
+                                  # unit-related, draw E' from the two unit-related types only
+
+unit_eligibility:
+  extra_allowlists: []            # user-selected SFT question lists, e.g. [{path: data/raw/x.jsonl, sha256: ...}] (JSONL, "question")
+
+length:
+  max_seq_length: 4096
+  verifier_configs: [configs/verifier_half_a.yaml, configs/verifier_half_b.yaml]   # backbone tokenizers + prompt files
+
+rl_data:                          # user decisions 2026-09-30
+  gsm8k_source_splits: [train, test]  # both original GSM8K splits, placed by the global 80:20 question-group split
+  # RL train/validation/test: the global train is split 90:10 into RL train / validation, the global test is RL test.
+  # Validation questions are drawn only from GSM8K-only train groups (no SFT solution in them), so verifier A/B never
+  # trained on a validation question; its size is 10% of all RL train questions, stratified like the global split.
+  validation_ratio: 0.1
+  type_assignment: balanced       # the 16 types equally often within each split (unit types only on allowlisted Q)
+  conditions_per_question: 1
+  max_train_questions: all
+  max_validation_questions: all
+  max_test_questions: all
+  answer_contract: prompts/gsm8k_answer_contract.txt   # draft; approval item answer_judge_prompt
+
+output:
+  prepared_dir: data/prepared     # sft/{half_a,half_b,test}.jsonl, rl/{train,test,privileged}.jsonl
+  manifest_dir: manifests
+  report: reports/data_audit.md
+  unverified_root: data/smoke/unverified_mapping   # runs without the workbook (audit/smoke only; git-ignored)

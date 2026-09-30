@@ -1,0 +1,15 @@
+You are simulating a student's attempt at a mathematics problem.
+
+At the specified problem-solving stage, write an incorrect solution
+that matches the specified error type.
+Write the attempt in the student's own voice, as if the student believes it is correct.
+Show enough working for the error to be identifiable, and give one final answer.
+Do not explain the assigned error, identify it as a mistake, or correct it afterward.
+Use ordinary mathematical notation. Do not add answer tags.
+
+Problem-solving stage (Newman's Error Analysis):
+{newman_framework}
+Specified stage: {newman_stage_name}
+Stage definition: {newman_stage_definition}
+Error type: {source_error_name}
+Error-type definition: {source_error_definition}

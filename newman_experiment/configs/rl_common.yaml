@@ -1,0 +1,189 @@
+# Newman Student GRPO: shared settings. Never run on its own: diversity.yaml / student_likeness.yaml set
+# `experiment` and `rewards.auxiliary_reward`. Values follow tutee_error@a95df533 rl/configs/common.yaml (the
+# final Eedi settings, plan 9) unless marked. Paths are relative to newman_experiment/.
+# REQUIRED = an open research decision (user rule 1): train/evaluate refuse to start while any is left.
+
+seed: 42
+experiment: REQUIRED
+
+paths:
+  prepared_dir: data/prepared/rl        # train.jsonl / test.jsonl (conditions), privileged.jsonl (reference answers)
+  taxonomy: configs/taxonomy.yaml
+  output_root: outputs                  # outputs/<run> = W&B run name
+
+prompts:
+  student: prompts/student.txt                                    # plan 7 draft
+  answer_judge_system: ../rl/prompts/answer_judge_system.txt      # approved for the Eedi run, reused (plan 8.1)
+  answer_judge_user: ../rl/prompts/answer_judge_user.txt
+  answer_contract: prompts/gsm8k_answer_contract.txt              # draft, written into privileged.jsonl
+  student_likeness_system: ../rl/prompts/student_likeness_system.txt   # kept as approved (plan 8.4)
+  student_likeness_user: ../rl/prompts/student_likeness_user.txt
+  verifier_system: prompts/verifier_system.txt                    # the verifiers' SFT contract (plan 6.1)
+  verifier_user: prompts/verifier_user.txt
+
+policy:
+  model: Qwen/Qwen2.5-7B-Instruct       # plan 9 (proposal for comparability)
+  attn_implementation: sdpa
+
+generation:                             # Student sampling, training and test
+  num_generations: 8
+  max_completion_tokens: 1024
+  max_prompt_tokens: 1024               # re-measured on the new prompts by train_student.py (refuses longer prompts)
+  temperature: 1.0
+  top_p: 1.0
+  top_k: 0                              # 0 = off in TRL and in vLLM 0.30 (vLLM also reads -1 as off); same value in test
+  repetition_penalty: 1.0
+
+training:
+  learning_rate: 1.0e-6
+  beta: 0.04                            # KL in the GRPO objective only, never in the reward
+  epsilon: 0.2
+  loss_type: dapo
+  scale_rewards: group
+  num_iterations: 1
+  num_train_epochs: 2
+  per_device_train_batch_size: 8        # completions
+  gradient_accumulation_steps: 2
+  expected_completions_per_step: 48     # 3 GPUs x 8 x 2 = 6 conditions x 8; any other product refuses to start (plan 9)
+  gradient_checkpointing: true
+  bf16: true
+  lr_scheduler_type: linear
+  warmup_ratio: 0.1
+  max_grad_norm: 1.0
+  logging_steps: 1
+  log_profiling: false
+  mask_truncated_completions: false     # truncation is penalised, so truncated samples keep their gradient
+  # vLLM importance sampling (TRL 1.14 keys, written out instead of relying on defaults)
+  vllm_importance_sampling_correction: true
+  vllm_importance_sampling_mode: sequence_mask
+  vllm_importance_sampling_clip_max: 3.0
+  vllm_importance_sampling_clip_min: null
+  use_bias_correction_kl: true
+  model_save_every_epochs: 0.5          # model-only epoch_checkpoints/epoch-{0.5,1.0,1.5,2.0}, all kept
+  resume_save_every_epochs: 0.5        # full checkpoints for --resume at the snapshot points, all kept (user decision
+  resume_save_total_limit: null        # 2026-10-01 for a 2 TiB disk: ~4 x 114 GB per run instead of every 50 steps)
+  report_to: wandb
+  wandb_project: tutee_error_newman_rl
+  ddp_timeout_s: 5400
+
+rewards:                                # plan 8.3
+  lambda_correct_penalty: 0.75
+  null_verdict_main_reward: -0.75
+  auxiliary_reward: REQUIRED            # diversity | student_likeness (set by the experiment file)
+  auxiliary_weight: 0.5
+  format:
+    tag_reward: false
+    truncation_penalty: 0.5
+
+answer_check:                           # plan 8.1: every rollout
+  model: gpt-5-nano
+  reasoning_effort: low                 # user decision 2026-09-30; sent as {"reasoning": {"effort": "low"}}
+  structured_output: true
+  temperature: null                     # not sent (reasoning model)
+  max_output_tokens: 8000
+  request_timeout_s: 120
+  max_attempts: 6
+  concurrency: 192
+
+openai_client:
+  keepalive_expiry_s: 600
+
+verifier:                               # reward verifier A (plan 8.2)
+  checkpoint: REQUIRED                  # the half-A epoch chosen on the SFT test (eval_verifier.py)
+  served_name: reward_verifier_a
+  base_url: http://127.0.0.1:8001/v1
+  samples: 2
+  temperature: 0.6
+  top_p: 1.0
+  top_k: -1
+  repetition_penalty: 1.0
+  max_new_tokens: 10
+  aggregation: all_aligned
+  concurrency: 256
+  max_attempts: 4
+  request_timeout_s: 120
+
+diversity:
+  bleu: sentence_bleu_4
+  smooth_method: exp
+  effective_order: true
+  tokenize: 13a
+  lowercase: false
+
+student_likeness:                       # plan 8.4
+  backend: openai
+  model: gpt-5-nano
+  reasoning_effort: low                 # user decision 2026-09-30
+  temperature: null
+  examples: ../rl/data/mathedu_student_examples.json   # MathEDU 13427 / 8584: question + solution only
+  num_examples: 2
+  examples_approved: true               # approved by the user on 2026-09-29 (approval item student_likeness_prompt)
+  pair_schedule: all_unordered
+  randomize_ab_positions: true
+  allow_tie: true
+  aggregation: normalized_win_score
+  reward_if_fewer_than_two_accepted: 0
+  max_output_tokens: 8000
+  concurrency: 128
+  max_attempts: 6
+  request_timeout_s: 120
+
+servers:
+  rollout:                              # trl vllm-serve; weights pushed every step
+    host: 127.0.0.1
+    port: 8000
+    group_port: 51216
+    gpu: 3
+    gpu_memory_utilization: 0.50
+    max_model_len: 2560
+  verifier:                             # vllm serve of verifier A
+    port: 8001
+    gpu: 3
+    gpu_memory_utilization: 0.35
+    max_model_len: 4096
+
+distributed:
+  train_gpus: "0,1,2"
+  accelerate_config: configs/accelerate_rl_zero2_offload.yaml
+
+storage:                                # all checkpoints are kept (user rule 5): train_student.py refuses to start
+  model_snapshot_gb: 15.3               # when the projected total does not fit; sizes re-measured after each save
+  resume_checkpoint_gb: 114
+  margin_gb: 50
+
+evaluation:                             # plan 10
+  split: test                           # reported split
+  select_split: validation              # user decision 2026-09-30: the best snapshot is chosen on RL validation
+  select_metric: reward_total_mean      # user decision 2026-09-30: mean training reward with verifier B (as the Eedi run)
+  generation_gpus: "0,1,2"
+  gpu_memory_utilization: 0.85
+  seed: 42                              # per-rollout seeds sha256(seed|condition_id|k): identical for every model
+  bootstrap_samples: 1000
+  verifier:                             # test verifier B: replaces these keys of `verifier`, same sampling
+    checkpoint: REQUIRED                # the half-B epoch chosen on the SFT test
+    served_name: test_verifier_b
+    base_url: http://127.0.0.1:8002/v1
+  server:
+    gpu: 3
+    port: 8002
+    gpu_memory_utilization: 0.45
+    max_model_len: 4096
+  with_reward_verifier: true            # also run A on the same wrong solutions (A acceptance, A/B disagreement)
+  reward_verifier_server:
+    gpu: 3
+    port: 8001
+    gpu_memory_utilization: 0.40
+    max_model_len: 4096
+
+api_baselines:                          # plan 10.1 (open): same conditions, same scoring, generated through the API
+  models: [gpt-5.6-sol]                 # user decision 2026-09-30
+  samples_per_condition: 8
+  reasoning_effort: null                # not sent: the model's default, as verifier_sft/eval_api_verifier.py (user 2026-09-30)
+  max_output_tokens: 8000               # includes reasoning tokens (user 2026-09-30)
+  concurrency: 64
+  max_attempts: 6
+  request_timeout_s: 300
+
+likeness_comparison:                    # plan 10.3: direct comparison of two models' B-accepted outputs
+  pairing: rollout_index                # user decision 2026-09-30: same condition and same rollout k (same seed), both B-accepted
+  randomize_ab_positions: true

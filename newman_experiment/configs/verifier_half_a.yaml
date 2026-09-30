@@ -1,0 +1,10 @@
+# Verifier A: reward model for RL, trained on train half A only (plan 4.2). Never used for test evaluation.
+inherits: verifier_common.yaml
+experiment: verifier_half_a
+role: reward
+half: A
+data_file: half_a.jsonl
+model:
+  name: Qwen/Qwen2.5-Math-7B-Instruct   # plan 6.2 draft (approval item verifier_backbones)
+storage:
+  model_snapshot_gb: 15.3                # bf16 weights; re-measured after the first snapshot (run_meta.json storage)

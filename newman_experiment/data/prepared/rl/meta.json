@@ -1,0 +1,214 @@
+{
+  "created_at": "2026-10-01T04:50:22+09:00",
+  "timezone": "Asia/Seoul",
+  "stage": "rl",
+  "seed": 42,
+  "config": {
+    "chain": [
+      "newman_experiment/configs/data.yaml"
+    ],
+    "sha256": "5fca99f12d7139bd3ce6fa87bc4e10179f0abaf3fefbe0c5eeac0b5448455291"
+  },
+  "git": {
+    "commit": "8ac2aef3e1ecdc60194f4762498da146a8646f1f",
+    "branch": "rl-grpo",
+    "tracked_changes": true
+  },
+  "mapping_verified": true,
+  "mapping_version": "youngseok_20260930_v2",
+  "taxonomy_sha256": "9b7cc796466492a7433cb3f2ff6ffcb9a1315fedd5abdd968cb8aa916ceebdba",
+  "inputs": {
+    "pool": {
+      "path": "data/full/pool.jsonl",
+      "sha256": "7ee70b28469dac44a48406fc34acd1b2cb9bbb993562c410b6d7f23054e0cf3e"
+    },
+    "descriptions": {
+      "path": "outputs/runs/v4__gpt-5.6-luna__full/parsed.jsonl",
+      "sha256": "bab3fe4e1dd0f8541d300867aa8577e477e714db7c84a9cb30edaf15b37b2cf2"
+    },
+    "gsm8k_train": {
+      "path": "newman_experiment/data/raw/gsm8k/train.parquet",
+      "sha256": "ea82612ea9582142387730c793eb67d3b12849002bc0b7fa6f8efafa7351419d"
+    },
+    "gsm8k_test": {
+      "path": "newman_experiment/data/raw/gsm8k/test.parquet",
+      "sha256": "ee7b8da9e381df27b9e3f7758a159ab2bdaa4dbaa910546cbbc47e0cb44e4f59"
+    },
+    "unit_allowlist": {
+      "path": "newman_experiment/data/unit_conversion_allowlist_gsm8k.json",
+      "sha256": "15eea4c537da6498f502008ad241ee36c951e97a4700381e732e4c3320474823"
+    },
+    "taxonomy": {
+      "path": "newman_experiment/configs/taxonomy.yaml",
+      "sha256": "9b7cc796466492a7433cb3f2ff6ffcb9a1315fedd5abdd968cb8aa916ceebdba"
+    },
+    "mapping_workbook": {
+      "path": "data/raw/Newman_relabeling_영석_마무리 (1).xlsx",
+      "sha256": "9324bac2d5112d3bbc4e6fc27a1b7d3a128bcc017c6586389d1d345c28b3da7b"
+    }
+  },
+  "rl_data": {
+    "gsm8k_source_splits": [
+      "train",
+      "test"
+    ],
+    "validation_ratio": 0.1,
+    "type_assignment": "balanced",
+    "conditions_per_question": 1,
+    "max_train_questions": "all",
+    "max_validation_questions": "all",
+    "max_test_questions": "all",
+    "answer_contract": "prompts/gsm8k_answer_contract.txt"
+  },
+  "answer_contract": {
+    "path": "newman_experiment/prompts/gsm8k_answer_contract.txt",
+    "sha256": "1607115f5e4b5cd446fc240922a8a3f73827847f21c24f526aff43753dc888cc"
+  },
+  "splits": {
+    "train": {
+      "conditions": 6336,
+      "questions": 6336,
+      "question_groups": 6336,
+      "by_type": {
+        "eic.adding_irrelevant_information": 400,
+        "eic.calculation_error": 399,
+        "eic.confusing_formula_error": 400,
+        "eic.operator_error": 400,
+        "eic.referencing_context_value_error": 400,
+        "eic.referencing_previous_step_value_error": 400,
+        "eic.unit_conversion_error": 371,
+        "mathclean.computing_error": 399,
+        "mathclean.logic_error": 399,
+        "mathedu.algebraic_error": 399,
+        "mathedu.arithmetical_error": 399,
+        "mathedu.comprehension_error": 400,
+        "mathedu.measurement_error": 371,
+        "mathedu.wrong_mathematical_operation_concept": 399,
+        "stepwise.calculation_error_easily_solved_by_a_calculator": 400,
+        "stepwise.misunderstanding_of_a_question": 400
+      },
+      "by_stage": {
+        "comprehension": 800,
+        "process_skills": 2396,
+        "reading": 800,
+        "transformation": 2340
+      },
+      "unit_eligible_questions": 763,
+      "sha256": "b2e698b799842ac95a12ca9b6b62e0f56d5c02db10c56a370c8090715c7ee816"
+    },
+    "validation": {
+      "conditions": 704,
+      "questions": 704,
+      "question_groups": 704,
+      "by_type": {
+        "eic.adding_irrelevant_information": 45,
+        "eic.calculation_error": 45,
+        "eic.confusing_formula_error": 45,
+        "eic.operator_error": 45,
+        "eic.referencing_context_value_error": 44,
+        "eic.referencing_previous_step_value_error": 45,
+        "eic.unit_conversion_error": 37,
+        "mathclean.computing_error": 45,
+        "mathclean.logic_error": 45,
+        "mathedu.algebraic_error": 45,
+        "mathedu.arithmetical_error": 45,
+        "mathedu.comprehension_error": 45,
+        "mathedu.measurement_error": 38,
+        "mathedu.wrong_mathematical_operation_concept": 45,
+        "stepwise.calculation_error_easily_solved_by_a_calculator": 45,
+        "stepwise.misunderstanding_of_a_question": 45
+      },
+      "by_stage": {
+        "comprehension": 90,
+        "process_skills": 270,
+        "reading": 89,
+        "transformation": 255
+      },
+      "unit_eligible_questions": 80,
+      "sha256": "23cb607ee2841ee9e5ad6638803308ac7ffbf498d93dd516f7b11a85ef263ad7"
+    },
+    "test": {
+      "conditions": 1752,
+      "questions": 1752,
+      "question_groups": 1752,
+      "by_type": {
+        "eic.adding_irrelevant_information": 111,
+        "eic.calculation_error": 111,
+        "eic.confusing_formula_error": 110,
+        "eic.operator_error": 110,
+        "eic.referencing_context_value_error": 111,
+        "eic.referencing_previous_step_value_error": 111,
+        "eic.unit_conversion_error": 102,
+        "mathclean.computing_error": 111,
+        "mathclean.logic_error": 111,
+        "mathedu.algebraic_error": 111,
+        "mathedu.arithmetical_error": 111,
+        "mathedu.comprehension_error": 110,
+        "mathedu.measurement_error": 101,
+        "mathedu.wrong_mathematical_operation_concept": 110,
+        "stepwise.calculation_error_easily_solved_by_a_calculator": 110,
+        "stepwise.misunderstanding_of_a_question": 111
+      },
+      "by_stage": {
+        "comprehension": 221,
+        "process_skills": 665,
+        "reading": 222,
+        "transformation": 644
+      },
+      "unit_eligible_questions": 205,
+      "sha256": "a4879de495dbec2c1ddb629ee25b34740012a88b3ba64f4d404f5a83c510a7cd"
+    }
+  },
+  "validation": {
+    "ratio": 0.1,
+    "rate_within_gsm8k_only_groups": 0.10887720383544695,
+    "per_stratum": {
+      "gsm8k_only|test|unit:False": {
+        "groups": 855,
+        "validation": 93
+      },
+      "gsm8k_only|test|unit:True": {
+        "groups": 154,
+        "validation": 17
+      },
+      "gsm8k_only|train|unit:False": {
+        "groups": 4878,
+        "validation": 531
+      },
+      "gsm8k_only|train|unit:True": {
+        "groups": 579,
+        "validation": 63
+      }
+    }
+  },
+  "checks": [
+    {
+      "check": "unit-related conditions only on allowlisted questions",
+      "passed": true
+    },
+    {
+      "check": "every condition in its question group's split",
+      "passed": true
+    },
+    {
+      "check": "no RL test question in the verifier training halves",
+      "passed": true
+    },
+    {
+      "check": "no validation question in any verifier SFT data",
+      "passed": true
+    },
+    {
+      "check": "train / validation / test share no question group",
+      "passed": true
+    },
+    {
+      "check": "every stage = mapping(type)",
+      "passed": true
+    }
+  ],
+  "sft_split_manifest": {
+    "path": "newman_experiment/manifests/question_groups.jsonl",
+    "sha256": "9cd3fed00065d9e0d72b6f32a77a520d0ef2d515b272d401c838b54419c54b0b"
+  }
+}

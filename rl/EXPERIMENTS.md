@@ -112,3 +112,86 @@ rollout마다 `main + 0.5 × aux + truncation`, 가중치 `[1, 0.5, 1]`.
 | `student_likeness_seed42_qwen_sampling_accum8` | Qwen 기본 샘플링 + step당 192 풀이: 학습 신호 부족 (step 43) |
 | `student_likeness_seed42_20260929_104900_stopped_for_tmux` | tmux로 재시작 (step 22) |
 | `student_likeness_seed42_20260929_111558_none_answer_rule` | 실제 답 "none"을 스키마 위반으로 거부한 버그 (step 23) |
+
+---
+
+# Newman 단계 × 원본 오류 유형 실험 (`newman_experiment/`)
+
+계획서 원문 `newman_experiment/docs/experiment_plan.md`, 사용자 결정 `newman_experiment/docs/decisions.md`(계획서보다 우선),
+인수인계 `newman_experiment/AGENTS.md`. **계획** = 실행 전 config 값, **실행 확인** = run이 남긴 기록(`run_meta.json`,
+`generation_meta.json`, `metrics.json`, `summary.json`, `prepared/*/meta.json`)에서 옮긴 값. 실행 확인 표는
+`python scripts/record_experiment.py outputs/<run>`으로 만든다. 시각은 Asia/Seoul.
+
+## N1. 계획 — verifier A/B SFT (`configs/verifier_common.yaml`, `verifier_half_{a,b}.yaml`)
+
+| 항목 | 계획 값 |
+|---|---|
+| 과제 | (Q, 틀린 풀이 S, 목표 N, 목표 E) → `aligned` / `not_aligned`, 정확 일치(그 외 invalid) |
+| backbone (승인) | A `Qwen/Qwen2.5-Math-7B-Instruct`, B `deepseek-ai/DeepSeek-R1-0528-Qwen3-8B`, 각자 공개 backbone에서 시작 |
+| 데이터 | A = train half A, B = train half B, 평가 = 공통 SFT test (validation 없음) |
+| 학습 | full SFT, lr 1e-5, 최대 5 epoch, wd 0.01, warmup 10%, linear, batch 8 × accum 4 × GPU 1 = 32(다르면 시작 거부), bf16, grad ckpt, max len 4,096(자르지 않음), ZeRO-2 + CPU optimizer offload, seed 42 |
+| 저장 | 매 epoch 모델 snapshot, 모두 보관. 재개용 optimizer checkpoint는 저장하지 않음(설정으로 켤 수 있음) |
+| 평가·선택 | SFT test greedy(최대 10 토큰, rep 1.0), test loss(보고만). 선택: macro-F1 최대 → negative false acceptance 최소 → 같으면 앞 epoch. test에서 고르므로 낙관적 |
+
+## N2. 계획 — Student GRPO (`configs/rl_common.yaml` + `student_likeness.yaml` / `diversity.yaml`)
+
+| 항목 | 계획 값 |
+|---|---|
+| policy | `Qwen/Qwen2.5-7B-Instruct`, bf16, sdpa |
+| 데이터 | GSM8K train+test, 질문당 1조건(16개 유형 균형). 전역 train을 RL train/validation 90:10, 전역 test = RL test |
+| 샘플링 | G 8, T 1.0, top_p 1.0, top_k 0(끔; vLLM 0.30에서도 0 = 끔), rep 1.0, 최대 1,024 토큰 |
+| GRPO | lr 1e-6, 2 epoch, warmup 10% + linear, 8 × GPU 3 × accum 2 = 48 풀이 = 6 조건/step, beta 0.04, eps 0.2, `dapo`, scale group, num_iterations 1, max grad norm 1.0, mask_truncated false |
+| vLLM IS 보정 | correction true, `sequence_mask`, clip_max 3.0, clip_min null, bias-corrected KL true, 가중치 0 비율 지표 추가 |
+| 보상 | main −0.75 / 1 / 0, truncation −0.5, aux 0.5 × (diversity 또는 student_likeness) |
+| gpt-5-nano | 채점·judge 모두 reasoning effort low, max output 8,000, timeout 120 s, 6회, 동시성 192 / 128 |
+| verifier A 호출 | n 2, T 0.6, top_p 1.0, top_k 끔, rep 1.0, max 10 토큰, 둘 다 aligned |
+| 저장 | 0.5 epoch마다 snapshot과 재개 checkpoint, 모두 보관(run당 재개 4개 × 약 114 GB, 디스크 2 TiB 기준) |
+| 선택·평가 | RL validation에서 verifier B 기준 평균 training reward 최고 snapshot. test는 base + 모든 snapshot 보고, 질문 그룹 paired bootstrap 1000 |
+| API baseline | `gpt-5.6-sol`, reasoning 미전송(기본), max output 8,000, 조건당 8회 |
+| 학생다움 직접 비교 | 같은 조건·같은 rollout 번호 k의 두 출력이 모두 B 통과일 때 gpt-5-nano(low) judge |
+
+## N3. 실행 확인 — 데이터 준비 (검증된 워크북, 2026-10-01 00:50)
+
+`prepare_data.py --stage sft` / `--stage rl`, `data/prepared/{sft,rl}/meta.json`, `reports/data_audit.md`. 다시 실행해도 산출물이 바이트 단위로 같음을 확인했다.
+
+| 항목 | 값 |
+|---|---|
+| 매핑 워크북 | sha256 `9324bac2…`, 26행의 이름(A열)·정의(B열)·D열이 taxonomy.yaml과 모두 일치 (mapping_verified true) |
+| 적격 SFT 사례 | 2,672 = EIC 1,346 / MathEDU 715 / MathClean 449 / Stepwise 162 |
+| 다중 라벨 풀이 제외 | 풀이 EIC 2 / Stepwise 173 (그중 pool 밖 원자료 라벨로만 드러난 Stepwise 28), 레코드 EIC 4 / Stepwise 356 |
+| SFT 영역: 앵커 / 쌍 행 / 문제 그룹 | half A 1,081 / 2,162 / 963 · half B 1,063 / 2,126 / 961 · test 528 / 1,056 / 474 |
+| negative (2026-10-01 재생성) | 16개 유형 중 자기 유형 제외 균등 추출 + 허용 목록 문제에서는 단위 유형 우선(자기 라벨이 단위 유형이면 제외). 우선 배정 39 / 31 / 16건. same-stage 270 / 269 / 126, other-dataset 763 / 754 / 360 (half A / half B / test), 후보 없음 0. 단위 외 유형은 half A에서 유형당 62–88건 |
+| 단위 유형 negative | EIC Unit Conversion Error 20 / 14 / 8 (positive 73 / 65 / 32), MathEDU Measurement error 21 / 17 / 8 (positive 5 / 4 / 2). negative 없는 유형 0 |
+| 길이 (2026-10-01, NEA 개요를 넣은 프롬프트) | verifier 입력: Qwen2.5-Math 최대 2,721, DeepSeek-R1-Qwen3 최대 2,652 토큰, 4,096 초과 0. Student 프롬프트(Qwen2.5-7B-Instruct): 최대 562, 평균 379 토큰, 1,024 초과 0 |
+| 형식·loss mask | 3,218 / 3,182 쌍, 실패 0 |
+| RL 조건 | train 6,336 / validation 704 / test 1,752 (질문당 1). 유형별 train 371–400. 단계: Comprehension 800, Process Skills 2,396, Reading 800, Transformation 2,340. 허용 목록 질문 train 763 / validation 80 / test 205 |
+| RL 누출 점검 | validation 질문은 verifier 학습 데이터에 없음, test 질문은 A/B 학습 절반에 없음, 세 split 문제 그룹 공유 0 |
+
+## N4. 실행 확인 — smoke (2026-09-30, 이전 서버 A100 80GB × 2, 드라이버 535)
+
+| run | 기록 |
+|---|---|
+| `smoke_verifier_sft` | `Qwen/Qwen2.5-0.5B-Instruct`, 64쌍, 4 step, DeepSpeed on, effective batch 32. 실제 optimizer DeepSpeedZeroOptimizer > `DeepSpeedCPUAdam`, betas (0.9, 0.999), eps 1e-8, wd 0.01. epoch snapshot 2개(각 1.27 GB). `eval_verifier.py` 정상 |
+| `smoke_rl_mock` | `Qwen/Qwen2.5-0.5B-Instruct`, mock 보상, 학습 GPU 0 + rollout GPU 1, 8 풀이/step, 3 step + `--resume latest` 1 step. snapshot 0.5/1.5/2.0, 재개 checkpoint 2·3·4 모두 보관(각 8.19 GB), IS 가중치 0 비율 기록. `evaluate_student.py` 정상, warmup 첫 step의 epoch-0.5는 base와 지표 동일(rollout seed 공유 확인) |
+| 버전 | SFT torch 2.11.0+cu128 · transformers 5.17.0 · DeepSpeed 0.19.7 / RL torch 2.13.0+cu129 · TRL 1.14.0 · vLLM 0.30.0+cu129 |
+
+이 smoke는 미검증 매핑의 초기 데이터로 돌렸다(인프라 확인 목적). 실제 7B/8B 학습과 유료 API 호출은 아직 없다.
+
+## N5. 결정 이력
+
+전체 표는 `newman_experiment/docs/decisions.md`. 2026-09-30 사용자 결정 요약:
+
+- **매핑·정의:** 워크북 D열 매핑. 이름·정의는 A·B열이고, Stepwise 두 유형은 정의 줄을 생략한다.
+- **verifier:** A/B backbone은 verifier_sft와 같다. 같은 학생 풀이에 라벨이 둘 이상이면 제외한다.
+- **RL 데이터·선택:** 전역 train을 RL train/validation 90:10으로 나누고, 질문당 1조건을 유형 균형으로 배정한다. RL은 validation의 B 기준 평균 reward로 선택하고, SFT는 macro-F1 → negative false acceptance → test loss 순서로 선택한다.
+- **baseline·비교:** RL Student와 비교할 API baseline은 gpt-5.6-sol(reasoning 기본, 8,000 토큰), 학생다움 비교는 같은 rollout 번호로 짝짓는다(judge는 gpt-5-nano low).
+- **실행 계획:** 서버를 옮겨 SFT·RL을 이어서 진행한다.
+- **2026-10-01:** 두 프롬프트의 단계 부분에 Newman's Error Analysis 개요를 넣고("네 단계 중 하나" 문장은 뺌) 단계 정의를 White(2009) 기반으로 다시 씀, Student 지시 문장 수정(승인 대기). negative는 16개 유형 전체에서 균등 추출(llm_tutee_tutor finetuning 방식)하되 허용 목록 문제에서는 단위 유형 우선, SFT 선택에서 test loss 제외, 디스크 2 TiB에 맞춰 RL 재개 checkpoint는 0.5 epoch마다 모두 보관.
+
+## N6. 열린 결정
+
+답 채점 프롬프트 재사용과 GSM8K 답 형식 계약, 학생다움 judge 재사용 승인(RL 전), C 생성 이력 없는 원본 포함 여부. taxonomy·verifier·Student 프롬프트는 2026-10-01 승인. 자세한 것은 `newman_experiment/docs/decisions.md`.
+
+## N7. 중단된 run
+
+없음.
