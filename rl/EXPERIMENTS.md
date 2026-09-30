@@ -72,7 +72,21 @@ rollout마다 `main + 0.5 × aux + truncation`, 가중치 `[1, 0.5, 1]`.
 | **epoch-2.0** | **0.760** | **75.0%** | **23.6%** | 98.2% | 21.2% |
 
 ### diversity — `diversity_seed42_20260930_025827`
-- 설정은 위와 같고 aux만 BLEU diversity. 2026-09-30 03:00 학습 시작. 결과는 평가 후 추가.
+- 설정은 위와 같고 aux만 BLEU diversity. W&B `tutee_error_rl/runs/ffc4cf70`. 학습 2026-09-30 03:00 → 11:34
+  (682 step, step당 평균 41.6 s). 스냅샷 4개(`epoch-0.5`~`2.0`) 저장, `generation_config.json`은 학습 샘플링으로 수정.
+- **test 평가(best 선택)는 사용자 요청으로 보류.** 마지막 모델 `epoch-2.0`을 Hugging Face (private)
+  `WooYoungSeok/qwen2.5-7b-instruct-diversity-error-generator-epoch2`에 올림 (best가 아니라 마지막 스냅샷).
+- 학습 중 지표 (train, 0.5 epoch 평균, verifier = half-A):
+
+| step | 전체 reward | 성공률 | 정답 비율 | 통과 풀이 간 최대 BLEU | 중복 풀이 | KL |
+|---|---|---|---|---|---|---|
+| 0–169 | 0.654 | 68.2% | 29.7% | 0.431 | 5.6% | 0.074 |
+| 170–340 | 0.887 | 78.1% | 18.3% | 0.372 | 2.0% | 0.100 |
+| 341–511 | 0.905 | 78.6% | 17.5% | 0.358 | 0.9% | 0.109 |
+| 512–681 | 0.940 | 80.3% | 15.7% | 0.362 | 3.7% | 0.105 |
+
+- 평가 방법(보류 해제 시): `python scripts/evaluate.py --config configs/diversity.yaml --run outputs/diversity_seed42_20260930_025827 --include_base`
+  (test verifier 서버 먼저: `bash scripts/launch_eval_server.sh configs/diversity.yaml`)
 
 ## 5. 결정 이력 (2026-09-29)
 
@@ -86,6 +100,7 @@ rollout마다 `main + 0.5 × aux + truncation`, 가중치 `[1, 0.5, 1]`.
 | judge = gpt-5-nano, judge·채점 max output 8,000 | 2,000/4,000에서 추론만으로 응답이 잘려 재시도 발생 |
 | OpenAI 연결 풀 재사용 | step마다 수백 개 새 연결 → 약 20분 후 연결 거부 누적으로 학습 중단 |
 | 실험 순서 student_likeness → diversity, run 이름에 시작 시각 | 사용자 요청 |
+| diversity: test 평가 보류, 마지막 스냅샷(epoch-2.0) 업로드 (2026-09-30) | 사용자 요청. 파이프라인은 평가 직전에 중단 |
 
 ## 6. 중단된 run (`outputs/_aborted/`)
 
