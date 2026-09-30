@@ -77,6 +77,26 @@ python scripts/make_smoke_data.py
 bash scripts/run_train.sh configs/smoke_mock.yaml --run_name smoke_mock --max_steps 3   # mock rewards, no API
 ```
 
+## Evaluation on one 20 GB GPU (e.g. another server)
+
+The 7B Student (15 GB) and the 8B test verifier (16 GB) do not fit on one 20 GB GPU together, so generation and
+scoring run one after the other (`configs/eval_a100_20gb.yaml`: everything on GPU 0, memory utilization 0.92).
+
+```bash
+git clone https://github.com/WooYoungSeok/tutee_error.git && cd tutee_error/rl
+bash setup_server.sh
+# put OPENAI_API_KEY and HF_TOKEN in tutee_error/.env; copy train_model_inputs.jsonl + all_judgements.csv into rl/data/raw/
+source env.sh
+python scripts/prepare_eedi.py            # same deterministic split: test = 481 pairs, 242 questions
+M=WooYoungSeok/qwen2.5-7b-instruct-student-likeness-error-generator-epoch2
+python scripts/evaluate.py --config configs/eval_a100_20gb.yaml --checkpoints $M --include_base --out outputs/eval_20gb --stage generate
+bash scripts/launch_eval_server.sh configs/eval_a100_20gb.yaml
+python scripts/evaluate.py --config configs/eval_a100_20gb.yaml --checkpoints $M --include_base --out outputs/eval_20gb --stage score
+bash scripts/stop_servers.sh
+```
+
+Results: `outputs/eval_20gb/summary.json` (mean reward, success rate, correct-answer rate, distractor matches per model).
+
 ## GPU layout (4 × A100 80GB PCIe, no NVLink, all pairs `SYS`)
 
 | GPU | Role |
@@ -116,7 +136,8 @@ src/tutee_rl/clients.py              gpt-5-nano answer check, verifier client, p
 src/tutee_rl/orchestrator.py         TRL adapter: gather across ranks, score on rank 0, broadcast, logs, metrics
 scripts/run_pipeline.sh             both experiments end to end (prep, train with auto-resume, test eval)
 scripts/train.py, run_train.sh       GRPO training
-scripts/evaluate.py                  test generation (vLLM) + scoring with the half-B verifier, best epoch
+scripts/evaluate.py                  test generation (vLLM) + scoring with the half-B verifier, best epoch (--stage for one small GPU)
 scripts/launch_servers.sh, launch_eval_server.sh, stop_servers.sh, server_settings.py, check_verifier_server.py
 scripts/prepare_eedi.py, prepare_mathedu_examples.py, make_smoke_data.py
+scripts/set_generation_config.py     write the RL sampling into saved models' generation_config.json (train.py does it for new snapshots)
 ```

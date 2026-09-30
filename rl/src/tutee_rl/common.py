@@ -208,3 +208,19 @@ def student_messages(template: str, row: Mapping[str, Any]) -> list[dict[str, st
 def eval_verifier_cfg(cfg: Mapping[str, Any]) -> dict[str, Any]:
     """The reward `verifier` settings with the held-out test verifier swapped in (same sampling and parsing)."""
     return {**cfg["verifier"], **cfg["evaluation"]["verifier"]}
+
+
+def write_generation_config(model_dir: str | Path, cfg: Mapping[str, Any]) -> dict[str, Any]:
+    """Put the Student sampling used in training/evaluation into a saved model's generation_config.json.
+
+    Saved snapshots otherwise keep the base model's defaults (Qwen2.5: T 0.7, top_p 0.8, top_k 20, rep. 1.05).
+    """
+    path = Path(model_dir) / "generation_config.json"
+    base = json.loads(path.read_text(encoding="utf-8")) if path.exists() else {}
+    gen = cfg["generation"]
+    out = {k: base[k] for k in ("bos_token_id", "eos_token_id", "pad_token_id", "transformers_version") if k in base}
+    out.update({"do_sample": True, "temperature": float(gen["temperature"]), "top_p": float(gen["top_p"]),
+                "top_k": int(gen["top_k"]), "repetition_penalty": float(gen["repetition_penalty"]),
+                "max_new_tokens": int(gen["max_completion_tokens"])})
+    path.write_text(json.dumps(out, indent=2) + "\n", encoding="utf-8")
+    return out
