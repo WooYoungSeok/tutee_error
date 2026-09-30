@@ -192,6 +192,16 @@ rollout마다 `main + 0.5 × aux + truncation`, 가중치 `[1, 0.5, 1]`.
 
 답 채점 프롬프트 재사용과 GSM8K 답 형식 계약, 학생다움 judge 재사용 승인(RL 전), C 생성 이력 없는 원본 포함 여부. taxonomy·verifier·Student 프롬프트는 2026-10-01 승인. 자세한 것은 `newman_experiment/docs/decisions.md`.
 
+## N8. 실행 확인 — verifier SFT (A100 80GB × 2 서버, 사용자 지시로 SFT만 먼저)
+
+`scripts/run_sft_pipeline.sh`(A 학습 → B 학습과 A 평가 동시 → B 평가)를 tmux `newman_sft`에서 실행.
+
+| run | 기록 (`run_meta.json`) |
+|---|---|
+| `verifier_half_a_seed42_20261001_051819` | 시작 2026-10-01T05:20:00+09:00, W&B `tutee_error_newman_verifier/runs/baee62a2`, backbone `Qwen/Qwen2.5-Math-7B-Instruct`, 2162 쌍 행 / 1081 앵커(mapping verified True), lr 1e-05, 5 epoch, batch 8×4×1 = 32, 총 340 step, DeepSpeed True, optimizer DeepSpeedCPUAdam (betas [0.9, 0.999], eps 1e-08, wd 0.01), 사전 점검 경고 0, git `048c179`. 진행 중 (첫 로그 step 10 loss 4.412, step당 약 20 s) |
+
+결과(epoch별 test 지표, 선택된 checkpoint)는 평가 후 `scripts/record_experiment.py`로 옮긴다.
+
 ## N7. 중단된 run
 
 없음.

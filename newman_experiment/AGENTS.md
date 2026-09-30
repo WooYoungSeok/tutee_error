@@ -57,8 +57,10 @@ source env.sh        # RL venv (verifier SFT는 source env.sh sft)
 ## 4. 다음 단계 (순서대로)
 
 1. **남은 승인(RL 전까지)**: `../rl/prompts/answer_judge_*.txt` + `prompts/gsm8k_answer_contract.txt`, `../rl/prompts/student_likeness_*.txt` + MathEDU 예시를 사용자에게 보여 주고 확인을 받은 뒤 `approve.py`를 실행한다. verifier SFT는 승인 없이 바로 진행 가능.
-2. **verifier SFT**: 먼저 smoke(`README.md`)를 돌린 뒤
+2. **verifier SFT**: 먼저 smoke(`README.md`)를 돌린 뒤 `tmux new -s newman_sft 'bash scripts/run_sft_pipeline.sh'`
+   (A 학습 → B 학습과 A 평가 동시 → B 평가, 로그 `logs/sft_pipeline.log`). 따로 돌릴 때는
    `GPU=0 bash scripts/run_train_verifier.sh configs/verifier_half_a.yaml` → `configs/verifier_half_b.yaml`
+   - 2026-10-01: 사용자 지시로 A100 80GB × 2 서버(이전 서버)에서 SFT만 먼저 시작했다. 진행 상황은 `rl/EXPERIMENTS.md` Newman 절.
 3. **verifier 평가·선택**: `source env.sh sft; python scripts/eval_verifier.py --config configs/verifier_half_a.yaml --run_dir outputs/<run> --include_base`(B도 같게). best는 `test_eval/summary.json`의 `best_checkpoint_path`에 남는다. 이를 `configs/rl_common.yaml`의 `verifier.checkpoint`(A), `evaluation.verifier.checkpoint`(B)에 적는다(필요하면 HF private 업로드 후 hub id). 결과는 `rl/EXPERIMENTS.md`에 기록한다.
 4. **서빙 확인**: `bash scripts/launch_eval_servers.sh configs/diversity.yaml`, `python scripts/check_verifier_server.py --config configs/diversity.yaml --role a` / `--role b`
 6. **RL**: `python scripts/make_smoke_data.py` + `configs/smoke/rl_mock.yaml`(GPU 번호를 서버에 맞게)로 smoke → `tmux new -s newman 'bash scripts/run_rl_pipeline.sh student_likeness diversity'`. 파이프라인은 학습 → validation으로 snapshot 선택 → test(base + 모든 snapshot) 보고 순서다.
