@@ -58,6 +58,9 @@ def parse_args() -> argparse.Namespace:
     p.add_argument("--out", default=None, help="default <run>/test_eval")
     p.add_argument("--limit", type=int, default=None, help="first N test prompts (pipeline check only)")
     p.add_argument("--rescore", action="store_true", help="score again although metrics.json exists")
+    p.add_argument("--stage", choices=["all", "generate", "score"], default="all",
+                   help="generate: completions only (no verifier, no API); score: score existing completions. "
+                        "On one small GPU run generate, then start the test verifier, then score.")
     p.add_argument("--generate_one", nargs=2, metavar=("CHECKPOINT", "OUT_DIR"), help=argparse.SUPPRESS)
     return p.parse_args()
 
@@ -202,7 +205,7 @@ def main() -> int:
         os._exit(0)
 
     load_dotenv(REPO_ROOT / ".env")
-    if not os.environ.get("OPENAI_API_KEY"):
+    if args.stage != "generate" and not os.environ.get("OPENAI_API_KEY"):
         print("refusing to start: OPENAI_API_KEY is not set (put it in tutee_error/.env)", file=sys.stderr)
         return 2
     if cfg.get("smoke", {}).get("mock_reward_clients"):
@@ -226,6 +229,15 @@ def main() -> int:
     out_root = resolve(out_root)
     jobs = [(name, ckpt, out_root / name) for name, ckpt, _ in jobs]
 
+    if args.stage in ("all", "generate"):
+        run_generation(args, cfg, jobs)
+        if args.stage == "generate":
+            print(f"generation done -> {out_root}; start the test verifier, then rerun with --stage score")
+            return 0
+    missing = [name for name, _, out_dir in jobs if not (out_dir / "completions.jsonl").exists()]
+    if missing:
+        raise SystemExit(f"no completions for {missing}; run --stage generate first")
+
     import urllib.request
 
     health = cfg["verifier"]["base_url"].rsplit("/v1", 1)[0] + "/health"
@@ -234,7 +246,6 @@ def main() -> int:
     except OSError as exc:
         raise SystemExit(f"test verifier is not up at {health} ({exc}); run scripts/launch_eval_server.sh first") from exc
 
-    run_generation(args, cfg, jobs)
     summary = {}
     for name, ckpt, out_dir in jobs:
         if (out_dir / "metrics.json").exists() and not args.rescore:

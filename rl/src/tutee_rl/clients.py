@@ -21,7 +21,8 @@ from typing import Any, Mapping, Sequence
 from .common import hash_obj, render, sha256_text
 
 RETRYABLE_STATUS = {408, 409, 429, 500, 502, 503, 504}
-NULL_STRINGS = {"null", "none", "nil", "n/a", ""}
+NULL_STRINGS = {"null", ""}                    # never a real extracted answer: JSON null was meant
+PLACEHOLDER_STRINGS = {"none", "nil", "n/a"}   # a real answer ("there is no mode" -> "none") unless verdict is null
 
 
 class RewardExecutionError(RuntimeError):
@@ -117,8 +118,9 @@ ANSWER_SCHEMA = {
 def parse_answer_check(text: str) -> dict[str, Any]:
     """Strict: JSON object with exactly the three fields; JSON null (Python None) for unclear answers.
 
-    A missing answer with a correct/incorrect verdict, or the strings "null"/"None", is a schema violation
-    (retried), never silently mapped to incorrect.
+    A missing answer with a correct/incorrect verdict, the string "null"/"", or "None"/"n/a" standing in for a
+    missing answer (verdict null) is a schema violation (retried), never silently mapped to incorrect. "none" with a
+    verdict is a real answer (e.g. the student says a data set has no mode).
     """
     try:
         obj = json.loads(text)
@@ -129,7 +131,8 @@ def parse_answer_check(text: str) -> dict[str, Any]:
     answer, verdict, reason = obj["extracted_answer"], obj["verdict"], obj["reason"]
     if answer is not None and not isinstance(answer, str):
         raise SchemaViolation("extracted_answer must be a string or null")
-    if isinstance(answer, str) and answer.strip().lower() in NULL_STRINGS:
+    if isinstance(answer, str) and (answer.strip().lower() in NULL_STRINGS
+                                    or (verdict is None and answer.strip().lower() in PLACEHOLDER_STRINGS)):
         raise SchemaViolation(f"extracted_answer is the string {answer!r} instead of JSON null")
     if verdict is not None and verdict not in ("correct", "incorrect"):
         raise SchemaViolation(f"verdict {verdict!r}")

@@ -168,12 +168,17 @@ def test_parse_answer_check_valid_and_null():
     assert null["extracted_answer"] is None and null["verdict"] is None
     kept = parse_answer_check('{"extracted_answer": "7", "verdict": null, "reason": "conflicting reference"}')
     assert kept["extracted_answer"] == "7" and kept["verdict"] is None
+    # a student may really answer "none" (e.g. "this data set has no mode"): with a verdict it is an answer
+    none_answer = parse_answer_check('{"extracted_answer": "none", "verdict": "incorrect", "reason": "modes are 1 and 7"}')
+    assert none_answer["extracted_answer"] == "none" and none_answer["verdict"] == "incorrect"
 
 
 @pytest.mark.parametrize("text", [
     '{"extracted_answer": null, "verdict": "incorrect", "reason": "x"}',   # null answer with a verdict
     '{"extracted_answer": "null", "verdict": null, "reason": "x"}',        # string "null"
     '{"extracted_answer": "None", "verdict": null, "reason": "x"}',
+    '{"extracted_answer": "null", "verdict": "incorrect", "reason": "x"}',  # string "null" even with a verdict
+    '{"extracted_answer": "", "verdict": "incorrect", "reason": "x"}',
     '{"extracted_answer": "5", "verdict": "wrong", "reason": "x"}',
     '{"extracted_answer": "5", "verdict": "incorrect"}',
     '{"extracted_answer": "5", "verdict": "incorrect", "reason": "x", "extra": 1}',

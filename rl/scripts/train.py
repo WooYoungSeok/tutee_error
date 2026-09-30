@@ -30,6 +30,7 @@ from tutee_rl.common import (  # noqa: E402
     sha256_file,
     student_messages,
     validate_for_training,
+    write_generation_config,
     write_json,
 )
 
@@ -65,7 +66,7 @@ def build_dataset(cfg, tokenizer, limit):
     return Dataset.from_list(records), stats
 
 
-def epoch_save_callback(run_dir: Path, tokenizer, every_epochs: float):
+def epoch_save_callback(run_dir: Path, tokenizer, every_epochs: float, cfg):
     """Model-only snapshot every `every_epochs` epochs -> <run>/epoch_checkpoints/epoch-X.X (never rotated).
 
     All snapshots are kept so the best one can be chosen on test afterwards. The Trainer's own
@@ -92,6 +93,7 @@ def epoch_save_callback(run_dir: Path, tokenizer, every_epochs: float):
             self.trainer.save_model(str(out))  # collective under DeepSpeed; every rank calls it
             if state.is_world_process_zero:
                 tokenizer.save_pretrained(str(out))
+                write_generation_config(out, cfg)  # sample like the RL run, not with the base model's defaults
                 write_json(out / "epoch_meta.json", {"epoch": epoch, "state_epoch": state.epoch, "global_step": state.global_step,
                                                      "saved_at": datetime.now(timezone.utc).isoformat(timespec="seconds")})
             return control
@@ -258,7 +260,7 @@ def main() -> int:
         write_json(run_dir / meta_name, meta)
         print(json.dumps({k: meta[k] for k in ("run_name", "completions_per_step", "prompts_per_step", "reward")}, indent=2, ensure_ascii=False))
 
-    epoch_cb = epoch_save_callback(run_dir, tokenizer, float(t.get("model_save_every_epochs", 1.0)))
+    epoch_cb = epoch_save_callback(run_dir, tokenizer, float(t.get("model_save_every_epochs", 1.0)), cfg)
     trainer = GRPOTrainer(
         model=cfg["policy"]["model"],
         reward_funcs=funcs,
@@ -273,6 +275,7 @@ def main() -> int:
     trainer.save_model(str(run_dir / "final"))
     if state.is_main_process:
         tokenizer.save_pretrained(str(run_dir / "final"))
+        write_generation_config(run_dir / "final", cfg)
         print(f"done: {run_dir / 'final'}")
     return 0
 
