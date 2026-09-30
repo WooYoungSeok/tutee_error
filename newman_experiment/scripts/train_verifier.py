@@ -212,7 +212,7 @@ def main() -> int:
             chain, opt, adamw_mode = [], optimizer, None
             while opt is not None and len(chain) < 4:
                 chain.append(f"{type(opt).__module__}.{type(opt).__name__}")
-                adamw_mode = getattr(opt, "adamw_mode", adamw_mode)  # DeepSpeedCPUAdam: decoupled weight decay if True
+                adamw_mode = getattr(opt, "adam_w_mode", adamw_mode)  # DeepSpeedCPUAdam: decoupled weight decay (AdamW) if True
                 opt = getattr(opt, "optimizer", None)
             groups = getattr(optimizer, "param_groups", None) or []
             hp = {k: groups[0].get(k) for k in ("lr", "betas", "eps", "weight_decay") if groups and k in groups[0]}

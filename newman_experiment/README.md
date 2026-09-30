@@ -61,6 +61,7 @@ python scripts/approve.py --status
 python scripts/approve.py taxonomy_definitions --note "..."
 
 # 2) verifier SFT (GPU 1장, 한 번에 하나: 7-8B 한 run이 host RAM ~229 GiB)
+#    한 번에: tmux new -s newman_sft 'bash scripts/run_sft_pipeline.sh'   (A 학습 → B 학습 + A 평가(GPU 1) → B 평가)
 GPU=0 bash scripts/run_train_verifier.sh configs/verifier_half_a.yaml
 GPU=0 bash scripts/run_train_verifier.sh configs/verifier_half_b.yaml
 source env.sh sft
