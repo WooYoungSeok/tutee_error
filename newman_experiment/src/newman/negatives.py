@@ -1,18 +1,26 @@
 """One positive and one negative per anchor case, drawn once and fixed in the manifest (plan 5.4, 5.5).
 
 positive  (Q, S, N, E)   -> aligned       E = the case's own adopted source type, N = mapping(E)
-negative  (Q, S, N', E') -> not_aligned   E' uniform over all 16 adopted types other than E, from any source
-                                          dataset (same-stage types included); N' = mapping(E')
-The candidate set follows llm_tutee_tutor finetuning/train_new_label*.py and reward_model/train_04*.py (every category
-except the true one; user decision 2026-10-01, replacing the same-dataset rule of plan 4.3). Labels of different
-datasets can overlap in meaning (e.g. the arithmetic types of EIC, MathEDU, MathClean, Stepwise), so a cross-dataset
-negative may be semantically aligned; the audit counts same- and other-dataset negatives.
+negative  (Q, S, N', E') -> not_aligned   E' uniform over the adopted types of the candidate scope other than E
+                                          (same-stage types included); N' = mapping(E')
+Candidate scope (configs/data.yaml negatives.candidates):
+  same_dataset       the anchor's own source dataset (plan 4.3; in use again since 2026-10-01)
+  all_adopted_types  all 16 types, as llm_tutee_tutor finetuning. Tried on 2026-10-01 and dropped: the verifiers then
+                     rejected every other-dataset negative (0/360 accepted) but accepted 32-44% of same-dataset ones,
+                     i.e. they learned the label's source dataset instead of the error.
 Unit priority (user decision 2026-10-01): on an allowlisted question whose own type is not unit-related, E' is drawn
 uniformly from the two unit-related types only, because those questions are the only places the unit types can be
 negatives. An anchor whose own type is unit-related keeps the uniform draw (the other unit type is a near-synonym).
 Q and S are never replaced. The two unit-related types are candidates only when the question is on the
 confirmed unit-conversion allowlist (eligibility True); unknown (None) and False both drop them, and nothing
 else is restricted. An anchor without a candidate is dropped with its positive (1:1 pairs), never relaxed.
+
+Second negative (configs/data.yaml negatives.cross_dataset_different_stage, user decision 2026-10-01, data v3):
+one more negative per anchor, E'' uniform over the adopted types of ANOTHER source dataset whose Newman stage differs
+from the anchor's (unit-related types only on allowlisted questions, with the same unit priority). It is drawn with
+its own RNG (random.Random(f"{seed}|cross_dataset_different_stage"), once per region) after the same-dataset draw,
+so the same-dataset negatives are identical to the one-negative version. pair_id suffix `::neg_cross`.
+An anchor without a cross candidate is dropped with its other rows (never relaxed).
 
 RNG: random.Random(seed), created once per region (half_a, half_b, test); anchors in sample_id order and
 candidates in type-id order, so each region's pairs are independent of the other regions and of epochs.
@@ -31,10 +39,16 @@ REGIONS = ("half_a", "half_b", "test")
 ALIGNED, NOT_ALIGNED = "aligned", "not_aligned"
 
 
-def candidates(anchor: Mapping[str, Any], taxonomy: Taxonomy) -> tuple[list[str], list[str]]:
+SCOPES = ("same_dataset", "all_adopted_types")
+
+
+def candidates(anchor: Mapping[str, Any], taxonomy: Taxonomy, scope: str = "same_dataset") -> tuple[list[str], list[str]]:
     """(allowed negative types, unit-related types removed because the question is not confirmed eligible)."""
+    if scope not in SCOPES:
+        raise ValueError(f"negatives.candidates must be one of {SCOPES}, got {scope!r}")
+    pool = taxonomy.types_for_dataset(anchor["dataset"]) if scope == "same_dataset" else taxonomy.types.values()
     allowed, removed = [], []
-    for t in sorted(taxonomy.types.values(), key=lambda t: t.id):
+    for t in sorted(pool, key=lambda t: t.id):
         if t.id == anchor["error_id"]:
             continue
         if t.unit_related and anchor["unit_conversion_eligible"] is not True:
@@ -44,7 +58,21 @@ def candidates(anchor: Mapping[str, Any], taxonomy: Taxonomy) -> tuple[list[str]
     return allowed, removed
 
 
-def pair_record(anchor: Mapping[str, Any], target_error_id: str, target: str, taxonomy: Taxonomy) -> dict[str, Any]:
+def cross_candidates(anchor: Mapping[str, Any], taxonomy: Taxonomy) -> tuple[list[str], list[str]]:
+    """Second negative: types of another source dataset at another Newman stage (allowed, unit types removed)."""
+    allowed, removed = [], []
+    for t in sorted(taxonomy.types.values(), key=lambda t: t.id):
+        if t.dataset == anchor["dataset"] or t.newman_stage == anchor["newman_stage"]:
+            continue
+        if t.unit_related and anchor["unit_conversion_eligible"] is not True:
+            removed.append(t.id)
+            continue
+        allowed.append(t.id)
+    return allowed, removed
+
+
+def pair_record(anchor: Mapping[str, Any], target_error_id: str, target: str, taxonomy: Taxonomy,
+                suffix: str | None = None) -> dict[str, Any]:
     target_stage = taxonomy.stage_of(target_error_id)
     target_dataset = taxonomy.types[target_error_id].dataset
     kind = relation = None
@@ -52,7 +80,7 @@ def pair_record(anchor: Mapping[str, Any], target_error_id: str, target: str, ta
         kind = "same_stage" if target_stage == anchor["newman_stage"] else "different_stage"
         relation = "same_dataset" if target_dataset == anchor["dataset"] else "other_dataset"
     return {
-        "pair_id": f"{anchor['sample_id']}::{'pos' if target == ALIGNED else 'neg'}",
+        "pair_id": f"{anchor['sample_id']}::{suffix or ('pos' if target == ALIGNED else 'neg')}",
         "region": anchor["region"],
         "split": anchor["split"],
         "half": anchor["half"],
@@ -81,8 +109,9 @@ def unit_priority(anchor: Mapping[str, Any], allowed: list[str], taxonomy: Taxon
     return [t for t in allowed if taxonomy.types[t].unit_related]
 
 
-def make_pairs(anchors: Iterable[Mapping[str, Any]], taxonomy: Taxonomy, seed: int,
-               prioritize_unit: bool = True) -> tuple[list[dict[str, Any]], list[dict[str, Any]]]:
+def make_pairs(anchors: Iterable[Mapping[str, Any]], taxonomy: Taxonomy, seed: int, prioritize_unit: bool = True,
+               scope: str = "same_dataset", cross_dataset_different_stage: bool = False
+               ) -> tuple[list[dict[str, Any]], list[dict[str, Any]]]:
     by_region: dict[str, list[Mapping[str, Any]]] = defaultdict(list)
     for a in anchors:
         by_region[a["region"]].append(a)
@@ -93,8 +122,9 @@ def make_pairs(anchors: Iterable[Mapping[str, Any]], taxonomy: Taxonomy, seed: i
     manifest: list[dict[str, Any]] = []
     for region in REGIONS:
         rng = random.Random(seed)
+        cross_rng = random.Random(f"{seed}|cross_dataset_different_stage")
         for anchor in sorted(by_region.get(region, []), key=lambda a: a["sample_id"]):
-            allowed, removed = candidates(anchor, taxonomy)
+            allowed, removed = candidates(anchor, taxonomy, scope)
             entry = {"anchor_sample_id": anchor["sample_id"], "region": region, "dataset": anchor["dataset"],
                      "question_group_id": anchor["question_group_id"], "anchor_error_id": anchor["error_id"],
                      "unit_conversion_eligible": anchor["unit_conversion_eligible"],
@@ -111,8 +141,20 @@ def make_pairs(anchors: Iterable[Mapping[str, Any]], taxonomy: Taxonomy, seed: i
             pos_rec = pair_record(anchor, anchor["error_id"], ALIGNED, taxonomy)
             neg_rec = pair_record(anchor, neg, NOT_ALIGNED, taxonomy)
             entry.update(negative_error_id=neg, negative_kind=neg_rec["negative_kind"])
+            rows = [pos_rec, neg_rec]
+            if cross_dataset_different_stage:
+                c_allowed, c_removed = cross_candidates(anchor, taxonomy)
+                entry.update(cross_candidates=c_allowed, cross_unit_types_removed=c_removed, cross_negative_error_id=None)
+                if not c_allowed:
+                    entry.update(status="excluded", reason="no_cross_negative_candidate")
+                    manifest.append(entry)
+                    continue
+                c_priority = unit_priority(anchor, c_allowed, taxonomy) if prioritize_unit else []
+                cross = cross_rng.choice(c_priority or c_allowed)
+                entry.update(cross_negative_error_id=cross, cross_draw="unit_priority" if c_priority else "uniform")
+                rows.append(pair_record(anchor, cross, NOT_ALIGNED, taxonomy, suffix="neg_cross"))
             manifest.append(entry)
-            pairs += [pos_rec, neg_rec]
+            pairs += rows
     return pairs, manifest
 
 
@@ -127,13 +169,13 @@ def audit(pairs: list[Mapping[str, Any]], manifest: list[Mapping[str, Any]], tax
         neg = Counter(p["target_error_id"] for p in rp if p["target"] == NOT_ALIGNED)
         kinds = Counter(p["negative_kind"] for p in rp if p["target"] == NOT_ALIGNED)
         relations = Counter(p["negative_dataset_relation"] for p in rp if p["target"] == NOT_ALIGNED)
-        removed = Counter(t for m in rm for t in m["unit_types_removed"])
+        removed = Counter(t for m in rm for t in m["unit_types_removed"] + m.get("cross_unit_types_removed", []))
         types = {}
         for tid in taxonomy.adopted_ids():
             types[tid] = {"positives": pos[tid], "negatives_as_target": neg[tid], "unit_candidate_removed": removed[tid]}
         out[region] = {
             "anchors": len(rm), "paired": sum(1 for m in rm if m["status"] == "paired"),
-            "no_negative_candidate": sum(1 for m in rm if m["reason"] == "no_negative_candidate"),
+            "no_negative_candidate": sum(1 for m in rm if m["reason"] in ("no_negative_candidate", "no_cross_negative_candidate")),
             "negative_kind": dict(kinds), "negative_dataset_relation": dict(relations), "types": types,
             "types_without_negatives": sorted(t for t, v in types.items() if v["positives"] and not v["negatives_as_target"]),
         }

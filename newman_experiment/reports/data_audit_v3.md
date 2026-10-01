@@ -1,6 +1,6 @@
 # Newman data audit (sft)
 
-Created 2026-10-01T13:11:05+09:00 (Asia/Seoul) · seed 42 · git `7c7c02879b73` · mapping verified: **True**
+Created 2026-10-01T14:25:58+09:00 (Asia/Seoul) · seed 42 · git `7c7c02879b73` · mapping verified: **True**
 
 Targets of the SFT pairs are automatic (own type = aligned, another type of the same source dataset = not_aligned); negatives are not semantically reviewed (plan 5.4).
 
@@ -138,43 +138,45 @@ Forced into train: 34 groups; into half A: 2.
 
 Negative type: uniform over the candidate scope `same_dataset` except the anchor's own type; unit-related types only on allowlisted questions, where they have priority unless the anchor's own type is unit-related.
 
+Second negative per anchor (`::neg_cross`): uniform over the types of another source dataset at another Newman stage, with the same unit rules and priority; separate RNG, so the first negatives equal the one-negative version.
+
 Draws with unit priority: half_a 27, half_b 25, test 10.
+
+Second-negative draws with unit priority: half_a 26, half_b 19, test 12.
 
 | region | anchors | paired | no candidate | same-stage neg | different-stage neg | same-dataset neg | other-dataset neg | pair rows |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| half_a | 1081 | 1081 | 0 | 146 | 935 | 1081 | 0 | 2162 |
-| half_b | 1063 | 1063 | 0 | 158 | 905 | 1063 | 0 | 2126 |
-| test | 528 | 528 | 0 | 55 | 473 | 528 | 0 | 1056 |
+| half_a | 1081 | 1081 | 0 | 146 | 2016 | 1081 | 1081 | 3243 |
+| half_b | 1063 | 1063 | 0 | 158 | 1968 | 1063 | 1063 | 3189 |
+| test | 528 | 528 | 0 | 55 | 1001 | 528 | 528 | 1584 |
 
 Positives / negatives carrying the type, per region:
 
 | type | half_a | half_b | test |
 | --- | --- | --- | --- |
-| eic.adding_irrelevant_information | 80 / 96 | 75 / 91 | 45 / 49 |
-| eic.calculation_error | 86 / 93 | 87 / 87 | 42 / 42 |
-| eic.confusing_formula_error | 70 / 84 | 83 / 88 | 36 / 44 |
-| eic.operator_error | 82 / 82 | 76 / 83 | 38 / 38 |
-| eic.referencing_context_value_error | 88 / 73 | 76 / 74 | 36 / 39 |
-| eic.referencing_previous_step_value_error | 68 / 92 | 73 / 87 | 35 / 42 |
-| eic.unit_conversion_error | 73 / 27 (unit removed 447) | 65 / 25 (unit removed 445) | 32 / 10 (unit removed 222) |
-| mathclean.computing_error | 78 / 102 | 77 / 103 | 38 / 51 |
-| mathclean.logic_error | 102 / 78 | 103 / 77 | 51 / 38 |
-| mathedu.algebraic_error | 16 / 83 | 16 / 81 | 9 / 39 |
-| mathedu.arithmetical_error | 28 / 99 | 27 / 89 | 14 / 49 |
-| mathedu.comprehension_error | 66 / 69 | 64 / 79 | 32 / 39 |
-| mathedu.measurement_error | 5 / 0 (unit removed 284) | 4 / 0 (unit removed 278) | 2 / 0 (unit removed 142) |
-| mathedu.wrong_mathematical_operation_concept | 174 / 38 | 171 / 33 | 87 / 17 |
-| stepwise.calculation_error_easily_solved_by_a_calculator | 19 / 46 | 19 / 47 | 8 / 23 |
-| stepwise.misunderstanding_of_a_question | 46 / 19 | 47 / 19 | 23 / 8 |
-
-**Types with positives but no negative** (the label name alone predicts `aligned` there, plan 5.4): half_a: mathedu.measurement_error; half_b: mathedu.measurement_error; test: mathedu.measurement_error
+| eic.adding_irrelevant_information | 80 / 162 | 75 / 164 | 45 / 81 |
+| eic.calculation_error | 86 / 133 | 87 / 124 | 42 / 76 |
+| eic.confusing_formula_error | 70 / 114 | 83 / 113 | 36 / 61 |
+| eic.operator_error | 82 / 113 | 76 / 117 | 38 / 58 |
+| eic.referencing_context_value_error | 88 / 142 | 76 / 140 | 36 / 73 |
+| eic.referencing_previous_step_value_error | 68 / 147 | 73 / 146 | 35 / 68 |
+| eic.unit_conversion_error | 73 / 34 (unit removed 688) | 65 / 30 (unit removed 689) | 32 / 13 (unit removed 340) |
+| mathclean.computing_error | 78 / 186 | 77 / 196 | 38 / 94 |
+| mathclean.logic_error | 102 / 156 | 103 / 153 | 51 / 69 |
+| mathedu.algebraic_error | 16 / 164 | 16 / 148 | 9 / 89 |
+| mathedu.arithmetical_error | 28 / 181 | 27 / 174 | 14 / 75 |
+| mathedu.comprehension_error | 66 / 183 | 64 / 196 | 32 / 83 |
+| mathedu.measurement_error | 5 / 19 (unit removed 723) | 4 / 14 (unit removed 713) | 2 / 9 (unit removed 357) |
+| mathedu.wrong_mathematical_operation_concept | 174 / 119 | 171 / 116 | 87 / 55 |
+| stepwise.calculation_error_easily_solved_by_a_calculator | 19 / 149 | 19 / 145 | 8 / 72 |
+| stepwise.misunderstanding_of_a_question | 46 / 160 | 47 / 150 | 23 / 80 |
 
 ## 7. Length
 
 | half | tokenizer | regions | pairs | min | median | p99 | max |
 | --- | --- | --- | --- | --- | --- | --- | --- |
-| A | Qwen/Qwen2.5-Math-7B-Instruct | half_a, test | 3218 | 303 | 465 | 1702 | 2721 |
-| B | deepseek-ai/DeepSeek-R1-0528-Qwen3-8B | half_b, test | 3182 | 336 | 493 | 1494 | 2641 |
+| A | Qwen/Qwen2.5-Math-7B-Instruct | half_a, test | 4827 | 303 | 461 | 1712 | 2721 |
+| B | deepseek-ai/DeepSeek-R1-0528-Qwen3-8B | half_b, test | 4773 | 336 | 488 | 1489 | 2641 |
 
 Anchors dropped for length (> 4096): 0.
 
@@ -210,7 +212,9 @@ GSM8K source splits ['train', 'test'] (6 conditions per optimizer step at 48 com
 | every pair's stage = mapping(its type) | pass |  |
 | unit-related negatives only on allowlisted questions | pass |  |
 | no excluded type in any pair | pass |  |
-| every kept anchor has one positive and one negative | pass |  |
+| every kept anchor has one positive and 2 negative(s) | pass |  |
+| the first negative comes from the anchor's own dataset | pass |  |
+| the second negative is another dataset and another Newman stage | pass |  |
 | Q and S of a negative are the anchor's own | pass |  |
 | forced-train groups (prompt dev, judge examples) not in test | pass | 0 |
 | judge-example groups in half A | pass | 0 |

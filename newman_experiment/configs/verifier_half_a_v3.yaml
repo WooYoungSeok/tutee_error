@@ -1,0 +1,5 @@
+# Verifier A on data v3 (1 positive + same-dataset negative + other-dataset/other-stage negative per solution,
+# configs/data_v3.yaml). Everything else = configs/verifier_half_a.yaml (user decision 2026-10-01: trained as is).
+inherits: verifier_half_a.yaml
+experiment: verifier_half_a_v3
+data_dir: data/prepared_v3/sft

@@ -1,0 +1,15 @@
+# Data v3 (user decision 2026-10-01): per source solution 1 positive + 2 negatives.
+#   negative 1: another adopted type of the SAME source dataset (same Newman stage allowed) = v2, drawn identically
+#   negative 2: an adopted type of ANOTHER source dataset at ANOTHER Newman stage (pair_id suffix ::neg_cross)
+# Both negatives: unit-related types only on allowlisted questions, unit priority there (user decision 2026-10-01).
+# Same global split, halves and anchors as v2 (configs/data.yaml); only the SFT stage is prepared from this file
+# (RL data does not depend on the negatives and stays in data/prepared/rl).
+# Positive : negative = 1 : 2, trained as is (no loss weighting, user decision 2026-10-01).
+inherits: data.yaml
+negatives:
+  per_anchor: 2
+  cross_dataset_different_stage: true
+output:
+  prepared_dir: data/prepared_v3     # sft/{half_a,half_b,test}.jsonl + meta.json
+  manifest_dir: manifests_v3
+  report: reports/data_audit_v3.md

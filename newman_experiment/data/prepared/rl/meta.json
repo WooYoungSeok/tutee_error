@@ -1,5 +1,5 @@
 {
-  "created_at": "2026-10-01T04:50:22+09:00",
+  "created_at": "2026-10-01T13:11:10+09:00",
   "timezone": "Asia/Seoul",
   "stage": "rl",
   "seed": 42,
@@ -7,10 +7,10 @@
     "chain": [
       "newman_experiment/configs/data.yaml"
     ],
-    "sha256": "5fca99f12d7139bd3ce6fa87bc4e10179f0abaf3fefbe0c5eeac0b5448455291"
+    "sha256": "b777b45818f783b0d7fab078ca6c2bcbe578dd249bfec5913507ea82e3a4a50d"
   },
   "git": {
-    "commit": "8ac2aef3e1ecdc60194f4762498da146a8646f1f",
+    "commit": "7c7c02879b73444ac4b7df98feb7a53f658e886c",
     "branch": "rl-grpo",
     "tracked_changes": true
   },

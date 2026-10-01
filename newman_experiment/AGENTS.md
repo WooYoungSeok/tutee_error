@@ -29,9 +29,10 @@
 
 | 항목 | 상태 |
 |---|---|
-| 코드 | 완료. 단위 테스트 51개(네트워크·GPU 없음) |
+| 코드 | 완료. 단위 테스트 53개(네트워크·GPU 없음) |
 | 데이터 | 검증된 워크북(sha256 `9324bac2…`)으로 준비 완료, 커밋 대상: `data/prepared/sft`(half A 1,081 / half B 1,063 / test 528 앵커, 쌍 행 2,162 / 2,126 / 1,056), `data/prepared/rl`(train 6,336 / validation 704 / test 1,752 조건), `manifests/`, `reports/data_audit.md`, `reports/format_check_*.md`(실패 0) |
-| smoke (이전 서버, A100 × 2) | verifier SFT → 평가, GRPO(mock) 3 step + 재개, Student 평가까지 통과. 실제 7B/8B 학습과 유료 API 호출은 아직 없음 |
+| smoke (이전 서버, A100 × 2) | verifier SFT → 평가, GRPO(mock) 3 step + 재개, Student 평가까지 통과 |
+| verifier SFT (2026-10-01, A100 80GB × 2) | 1차(16개 유형 전체 negative)는 데이터셋 지름길로 폐기. **2차**(`data/prepared/sft`, 같은 데이터셋 negative)와 **3차**(`data/prepared_v3/sft`, + 다른 데이터셋·다른 단계 negative, `configs/*_v3.yaml`) A/B 학습·평가. best는 HF private `WooYoungSeok/newman-<run>-<checkpoint>`(3차 A는 epoch-4도 업로드). API verifier(gpt-5.6-sol, gpt-5.1) 비교와 test 간 교차 평가 결과는 `../rl/EXPERIMENTS.md` N8–N11, `reports/verifier_comparison_*.md`. 다음: v3 8 epoch 학습 방식(새로 8 epoch / epoch-5에서 이어서) 사용자 결정 대기, RL용 A checkpoint(3차 A epoch-4 vs epoch-5) 결정 |
 | 승인 | 완료: `verifier_backbones`, `taxonomy_definitions`(워크북 이름·정의 + NEA 개요·단계 정의), `verifier_prompt`, `student_prompt` → **verifier SFT는 바로 시작 가능**. 대기: `answer_judge_prompt`(GSM8K 답 형식 계약 포함), `student_likeness_prompt` → RL 전에 사용자 확인 |
 | `REQUIRED` | `configs/rl_common.yaml`의 `verifier.checkpoint`(A), `evaluation.verifier.checkpoint`(B): SFT 평가 후 채운다 |
 | 열린 결정 | `docs/decisions.md`의 "열린 결정" 표 |

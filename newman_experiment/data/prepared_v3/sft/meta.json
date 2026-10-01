@@ -1,13 +1,14 @@
 {
-  "created_at": "2026-10-01T13:11:05+09:00",
+  "created_at": "2026-10-01T14:25:58+09:00",
   "timezone": "Asia/Seoul",
   "stage": "sft",
   "seed": 42,
   "config": {
     "chain": [
-      "newman_experiment/configs/data.yaml"
+      "newman_experiment/configs/data.yaml",
+      "newman_experiment/configs/data_v3.yaml"
     ],
-    "sha256": "b777b45818f783b0d7fab078ca6c2bcbe578dd249bfec5913507ea82e3a4a50d"
+    "sha256": "fc8569c3fd01a0dfe951e61887e1ccb9d2822fcd87f39a2d638a49308c87d1a6"
   },
   "git": {
     "commit": "7c7c02879b73444ac4b7df98feb7a53f658e886c",
@@ -49,22 +50,22 @@
   },
   "regions": {
     "half_a": {
-      "pair_rows": 2162,
+      "pair_rows": 3243,
       "anchors": 1081,
       "question_groups": 963,
-      "sha256": "6844546702c89f392a8ed5fa58698383bed5b98b0db610e5ff29a32c621babf9"
+      "sha256": "e20634c563167a8a129eb485a6c62319dcdd560f1eb255f0caa87a56e810fa9b"
     },
     "half_b": {
-      "pair_rows": 2126,
+      "pair_rows": 3189,
       "anchors": 1063,
       "question_groups": 961,
-      "sha256": "f203c910aa414ff0aa757230f6be7980823e1f8b0603dac84e4148d6d7c286c0"
+      "sha256": "d803ed248315a34b036059c0e2d4a5a0d849ed77ad50a0e123920fea13bdcc93"
     },
     "test": {
-      "pair_rows": 1056,
+      "pair_rows": 1584,
       "anchors": 528,
       "question_groups": 474,
-      "sha256": "3c95e572aa6e3d8f08c45a51243d5ae58bc84be821a0d57352ef2028198aa029"
+      "sha256": "0aac89ffa7e3345a575813776acad16fbd3441986a6ef4e21334576c6dc82cc5"
     }
   },
   "length": {
@@ -76,10 +77,10 @@
           "half_a",
           "test"
         ],
-        "pairs": 3218,
+        "pairs": 4827,
         "min": 303,
-        "median": 465,
-        "p99": 1702,
+        "median": 461,
+        "p99": 1712,
         "max": 2721
       },
       "B": {
@@ -88,10 +89,10 @@
           "half_b",
           "test"
         ],
-        "pairs": 3182,
+        "pairs": 4773,
         "min": 336,
-        "median": 493,
-        "p99": 1494,
+        "median": 488,
+        "p99": 1489,
         "max": 2641
       }
     },
@@ -103,291 +104,288 @@
       "paired": 1081,
       "no_negative_candidate": 0,
       "negative_kind": {
-        "different_stage": 935,
+        "different_stage": 2016,
         "same_stage": 146
       },
       "negative_dataset_relation": {
-        "same_dataset": 1081
+        "same_dataset": 1081,
+        "other_dataset": 1081
       },
       "types": {
         "eic.adding_irrelevant_information": {
           "positives": 80,
-          "negatives_as_target": 96,
+          "negatives_as_target": 162,
           "unit_candidate_removed": 0
         },
         "eic.calculation_error": {
           "positives": 86,
-          "negatives_as_target": 93,
+          "negatives_as_target": 133,
           "unit_candidate_removed": 0
         },
         "eic.confusing_formula_error": {
           "positives": 70,
-          "negatives_as_target": 84,
+          "negatives_as_target": 114,
           "unit_candidate_removed": 0
         },
         "eic.operator_error": {
           "positives": 82,
-          "negatives_as_target": 82,
+          "negatives_as_target": 113,
           "unit_candidate_removed": 0
         },
         "eic.referencing_context_value_error": {
           "positives": 88,
-          "negatives_as_target": 73,
+          "negatives_as_target": 142,
           "unit_candidate_removed": 0
         },
         "eic.referencing_previous_step_value_error": {
           "positives": 68,
-          "negatives_as_target": 92,
+          "negatives_as_target": 147,
           "unit_candidate_removed": 0
         },
         "eic.unit_conversion_error": {
           "positives": 73,
-          "negatives_as_target": 27,
-          "unit_candidate_removed": 447
+          "negatives_as_target": 34,
+          "unit_candidate_removed": 688
         },
         "mathclean.computing_error": {
           "positives": 78,
-          "negatives_as_target": 102,
+          "negatives_as_target": 186,
           "unit_candidate_removed": 0
         },
         "mathclean.logic_error": {
           "positives": 102,
-          "negatives_as_target": 78,
+          "negatives_as_target": 156,
           "unit_candidate_removed": 0
         },
         "mathedu.algebraic_error": {
           "positives": 16,
-          "negatives_as_target": 83,
+          "negatives_as_target": 164,
           "unit_candidate_removed": 0
         },
         "mathedu.arithmetical_error": {
           "positives": 28,
-          "negatives_as_target": 99,
+          "negatives_as_target": 181,
           "unit_candidate_removed": 0
         },
         "mathedu.comprehension_error": {
           "positives": 66,
-          "negatives_as_target": 69,
+          "negatives_as_target": 183,
           "unit_candidate_removed": 0
         },
         "mathedu.measurement_error": {
           "positives": 5,
-          "negatives_as_target": 0,
-          "unit_candidate_removed": 284
+          "negatives_as_target": 19,
+          "unit_candidate_removed": 723
         },
         "mathedu.wrong_mathematical_operation_concept": {
           "positives": 174,
-          "negatives_as_target": 38,
+          "negatives_as_target": 119,
           "unit_candidate_removed": 0
         },
         "stepwise.calculation_error_easily_solved_by_a_calculator": {
           "positives": 19,
-          "negatives_as_target": 46,
+          "negatives_as_target": 149,
           "unit_candidate_removed": 0
         },
         "stepwise.misunderstanding_of_a_question": {
           "positives": 46,
-          "negatives_as_target": 19,
+          "negatives_as_target": 160,
           "unit_candidate_removed": 0
         }
       },
-      "types_without_negatives": [
-        "mathedu.measurement_error"
-      ]
+      "types_without_negatives": []
     },
     "half_b": {
       "anchors": 1063,
       "paired": 1063,
       "no_negative_candidate": 0,
       "negative_kind": {
-        "different_stage": 905,
+        "different_stage": 1968,
         "same_stage": 158
       },
       "negative_dataset_relation": {
-        "same_dataset": 1063
+        "same_dataset": 1063,
+        "other_dataset": 1063
       },
       "types": {
         "eic.adding_irrelevant_information": {
           "positives": 75,
-          "negatives_as_target": 91,
+          "negatives_as_target": 164,
           "unit_candidate_removed": 0
         },
         "eic.calculation_error": {
           "positives": 87,
-          "negatives_as_target": 87,
+          "negatives_as_target": 124,
           "unit_candidate_removed": 0
         },
         "eic.confusing_formula_error": {
           "positives": 83,
-          "negatives_as_target": 88,
+          "negatives_as_target": 113,
           "unit_candidate_removed": 0
         },
         "eic.operator_error": {
           "positives": 76,
-          "negatives_as_target": 83,
+          "negatives_as_target": 117,
           "unit_candidate_removed": 0
         },
         "eic.referencing_context_value_error": {
           "positives": 76,
-          "negatives_as_target": 74,
+          "negatives_as_target": 140,
           "unit_candidate_removed": 0
         },
         "eic.referencing_previous_step_value_error": {
           "positives": 73,
-          "negatives_as_target": 87,
+          "negatives_as_target": 146,
           "unit_candidate_removed": 0
         },
         "eic.unit_conversion_error": {
           "positives": 65,
-          "negatives_as_target": 25,
-          "unit_candidate_removed": 445
+          "negatives_as_target": 30,
+          "unit_candidate_removed": 689
         },
         "mathclean.computing_error": {
           "positives": 77,
-          "negatives_as_target": 103,
+          "negatives_as_target": 196,
           "unit_candidate_removed": 0
         },
         "mathclean.logic_error": {
           "positives": 103,
-          "negatives_as_target": 77,
+          "negatives_as_target": 153,
           "unit_candidate_removed": 0
         },
         "mathedu.algebraic_error": {
           "positives": 16,
-          "negatives_as_target": 81,
+          "negatives_as_target": 148,
           "unit_candidate_removed": 0
         },
         "mathedu.arithmetical_error": {
           "positives": 27,
-          "negatives_as_target": 89,
+          "negatives_as_target": 174,
           "unit_candidate_removed": 0
         },
         "mathedu.comprehension_error": {
           "positives": 64,
-          "negatives_as_target": 79,
+          "negatives_as_target": 196,
           "unit_candidate_removed": 0
         },
         "mathedu.measurement_error": {
           "positives": 4,
-          "negatives_as_target": 0,
-          "unit_candidate_removed": 278
+          "negatives_as_target": 14,
+          "unit_candidate_removed": 713
         },
         "mathedu.wrong_mathematical_operation_concept": {
           "positives": 171,
-          "negatives_as_target": 33,
+          "negatives_as_target": 116,
           "unit_candidate_removed": 0
         },
         "stepwise.calculation_error_easily_solved_by_a_calculator": {
           "positives": 19,
-          "negatives_as_target": 47,
+          "negatives_as_target": 145,
           "unit_candidate_removed": 0
         },
         "stepwise.misunderstanding_of_a_question": {
           "positives": 47,
-          "negatives_as_target": 19,
+          "negatives_as_target": 150,
           "unit_candidate_removed": 0
         }
       },
-      "types_without_negatives": [
-        "mathedu.measurement_error"
-      ]
+      "types_without_negatives": []
     },
     "test": {
       "anchors": 528,
       "paired": 528,
       "no_negative_candidate": 0,
       "negative_kind": {
-        "different_stage": 473,
+        "different_stage": 1001,
         "same_stage": 55
       },
       "negative_dataset_relation": {
-        "same_dataset": 528
+        "same_dataset": 528,
+        "other_dataset": 528
       },
       "types": {
         "eic.adding_irrelevant_information": {
           "positives": 45,
-          "negatives_as_target": 49,
+          "negatives_as_target": 81,
           "unit_candidate_removed": 0
         },
         "eic.calculation_error": {
           "positives": 42,
-          "negatives_as_target": 42,
+          "negatives_as_target": 76,
           "unit_candidate_removed": 0
         },
         "eic.confusing_formula_error": {
           "positives": 36,
-          "negatives_as_target": 44,
+          "negatives_as_target": 61,
           "unit_candidate_removed": 0
         },
         "eic.operator_error": {
           "positives": 38,
-          "negatives_as_target": 38,
+          "negatives_as_target": 58,
           "unit_candidate_removed": 0
         },
         "eic.referencing_context_value_error": {
           "positives": 36,
-          "negatives_as_target": 39,
+          "negatives_as_target": 73,
           "unit_candidate_removed": 0
         },
         "eic.referencing_previous_step_value_error": {
           "positives": 35,
-          "negatives_as_target": 42,
+          "negatives_as_target": 68,
           "unit_candidate_removed": 0
         },
         "eic.unit_conversion_error": {
           "positives": 32,
-          "negatives_as_target": 10,
-          "unit_candidate_removed": 222
+          "negatives_as_target": 13,
+          "unit_candidate_removed": 340
         },
         "mathclean.computing_error": {
           "positives": 38,
-          "negatives_as_target": 51,
+          "negatives_as_target": 94,
           "unit_candidate_removed": 0
         },
         "mathclean.logic_error": {
           "positives": 51,
-          "negatives_as_target": 38,
+          "negatives_as_target": 69,
           "unit_candidate_removed": 0
         },
         "mathedu.algebraic_error": {
           "positives": 9,
-          "negatives_as_target": 39,
+          "negatives_as_target": 89,
           "unit_candidate_removed": 0
         },
         "mathedu.arithmetical_error": {
           "positives": 14,
-          "negatives_as_target": 49,
+          "negatives_as_target": 75,
           "unit_candidate_removed": 0
         },
         "mathedu.comprehension_error": {
           "positives": 32,
-          "negatives_as_target": 39,
+          "negatives_as_target": 83,
           "unit_candidate_removed": 0
         },
         "mathedu.measurement_error": {
           "positives": 2,
-          "negatives_as_target": 0,
-          "unit_candidate_removed": 142
+          "negatives_as_target": 9,
+          "unit_candidate_removed": 357
         },
         "mathedu.wrong_mathematical_operation_concept": {
           "positives": 87,
-          "negatives_as_target": 17,
+          "negatives_as_target": 55,
           "unit_candidate_removed": 0
         },
         "stepwise.calculation_error_easily_solved_by_a_calculator": {
           "positives": 8,
-          "negatives_as_target": 23,
+          "negatives_as_target": 72,
           "unit_candidate_removed": 0
         },
         "stepwise.misunderstanding_of_a_question": {
           "positives": 23,
-          "negatives_as_target": 8,
+          "negatives_as_target": 80,
           "unit_candidate_removed": 0
         }
       },
-      "types_without_negatives": [
-        "mathedu.measurement_error"
-      ]
+      "types_without_negatives": []
     }
   },
   "unit_eligibility": {

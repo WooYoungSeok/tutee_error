@@ -1,0 +1,234 @@
+{
+  "verified": true,
+  "workbook": "Newman_relabeling_영석_마무리 (1).xlsx",
+  "sha256": "9324bac2d5112d3bbc4e6fc27a1b7d3a128bcc017c6586389d1d345c28b3da7b",
+  "expected_sha256": "9324bac2d5112d3bbc4e6fc27a1b7d3a128bcc017c6586389d1d345c28b3da7b",
+  "sheet": "Newman 재분류",
+  "columns": {
+    "label_column": "A",
+    "definition_column": "B",
+    "decision_column": "D",
+    "other_annotator_column": "C"
+  },
+  "types": {
+    "mathedu.wrong_mathematical_operation_concept": {
+      "row": 2,
+      "label_cell": "Wrong Mathematical Operation/Concept",
+      "definition_cell": "Student applies an incorrect mathematical operation or uses an inappropriate mathematical concept to solve a problem.",
+      "mapping_cell_raw": "Transformation",
+      "decision": "transformation",
+      "note": ""
+    },
+    "mathedu.comprehension_error": {
+      "row": 3,
+      "label_cell": "Comprehension error",
+      "definition_cell": "Error in understanding the meaning of a problem.",
+      "mapping_cell_raw": "Comprehension",
+      "decision": "comprehension",
+      "note": ""
+    },
+    "mathedu.unfinished_answer": {
+      "row": 4,
+      "label_cell": "Unfinished answer",
+      "definition_cell": "Student used a correct formula or procedure, but they did not finish it.",
+      "mapping_cell_raw": "제외(85)",
+      "decision": "excluded",
+      "note": "(85)"
+    },
+    "mathedu.lack_of_necessary_mathematical_concepts": {
+      "row": 5,
+      "label_cell": "Lack of Necessary Mathematical Concepts",
+      "definition_cell": "Errors in answering caused by a lack of essential mathematical knowledge or techniques.",
+      "mapping_cell_raw": "제외(57) - 빈칸이라서",
+      "decision": "excluded",
+      "note": "(57) - 빈칸이라서"
+    },
+    "mathedu.arithmetical_error": {
+      "row": 6,
+      "label_cell": "Arithmetical error",
+      "definition_cell": "Error in calculation.",
+      "mapping_cell_raw": "Process Skills",
+      "decision": "process_skills",
+      "note": ""
+    },
+    "mathedu.algebraic_error": {
+      "row": 7,
+      "label_cell": "Algebraic error",
+      "definition_cell": "Error in solving algebraic expression or function.",
+      "mapping_cell_raw": "Process Skills",
+      "decision": "process_skills",
+      "note": ""
+    },
+    "mathedu.careless_error": {
+      "row": 8,
+      "label_cell": "Careless Error",
+      "definition_cell": "Errors caused by students’ carelessness in answering, including number substitution errors and missing digits.",
+      "mapping_cell_raw": "제외(20)",
+      "decision": "excluded",
+      "note": "(20)"
+    },
+    "mathedu.measurement_error": {
+      "row": 9,
+      "label_cell": "Measurement error",
+      "definition_cell": "Student could not convert between standard units (from m/minute to km/h) or from non-standard units to standard units (from step/minute to m/minute).",
+      "mapping_cell_raw": "Transformation(9)",
+      "decision": "transformation",
+      "note": "(9)"
+    },
+    "mathclean.expression_error": {
+      "row": 10,
+      "label_cell": "Expression error",
+      "definition_cell": "Expression errors included incomplete answers, redundant steps, and grammatically incorrect responses.",
+      "mapping_cell_raw": "제외(200)",
+      "decision": "excluded",
+      "note": "(200)"
+    },
+    "mathclean.logic_error": {
+      "row": 11,
+      "label_cell": "Logic error",
+      "definition_cell": "Logic errors included the use of incorrect mathematical methods, flawed problem-solving approaches, or failure to consider all cases of the problem.",
+      "mapping_cell_raw": "Transformation",
+      "decision": "transformation",
+      "note": ""
+    },
+    "mathclean.computing_error": {
+      "row": 12,
+      "label_cell": "Computing error",
+      "definition_cell": "Computing errors included errors in the PoT steps and incorrect numerical approximations.",
+      "mapping_cell_raw": "Process Skills",
+      "decision": "process_skills",
+      "note": ""
+    },
+    "eic.calculation_error": {
+      "row": 13,
+      "label_cell": "Calculation Error",
+      "definition_cell": "The operands and operators of the formula in the first wrong step are exactly correct, and only the result is calculated incorrectly.",
+      "mapping_cell_raw": "Process Skills",
+      "decision": "process_skills",
+      "note": ""
+    },
+    "eic.counting_error": {
+      "row": 14,
+      "label_cell": "Counting Error",
+      "definition_cell": "Only an error in the counting process, such as counting Saturday and Sunday as 3 days instead of 2 days, which may cause an error in the operand of the formula in the first wrong step.",
+      "mapping_cell_raw": "제외 - 100",
+      "decision": "excluded",
+      "note": "- 100"
+    },
+    "eic.referencing_context_value_error": {
+      "row": 15,
+      "label_cell": "referencing context value error",
+      "definition_cell": "Only an error in the operand of the formula in the first wrong step when referencing the number in the Question.",
+      "mapping_cell_raw": "Reading",
+      "decision": "reading",
+      "note": ""
+    },
+    "eic.referencing_previous_step_value_error": {
+      "row": 16,
+      "label_cell": "referencing previous step value error",
+      "definition_cell": "Only an error in the operand of the formula in the first wrong step when referencing the result of its previous step.",
+      "mapping_cell_raw": "Process Skills",
+      "decision": "process_skills",
+      "note": ""
+    },
+    "eic.unit_conversion_error": {
+      "row": 17,
+      "label_cell": "Unit Conversion Error",
+      "definition_cell": "The incorrect use of unit conversion, for example, there are 12 inches in a foot, 1000 grams in a kilogram, 60 minutes in an hour, and 60 seconds in a minute, which may cause an error in the operand of the formula in the first wrong step.",
+      "mapping_cell_raw": "Transformation",
+      "decision": "transformation",
+      "note": ""
+    },
+    "eic.operator_error": {
+      "row": 18,
+      "label_cell": "Operator Error",
+      "definition_cell": "Only an error in the operator of the formula in the first wrong step.",
+      "mapping_cell_raw": "Transformation",
+      "decision": "transformation",
+      "note": ""
+    },
+    "eic.missing_step": {
+      "row": 19,
+      "label_cell": "Missing Step",
+      "definition_cell": "The absence of a necessary reasoning step, and if this absent step is added, the entire reasoning will become correct.",
+      "mapping_cell_raw": "제외 - 100*2",
+      "decision": "excluded",
+      "note": "- 100*2"
+    },
+    "eic.confusing_formula_error": {
+      "row": 20,
+      "label_cell": "confusing formula error",
+      "definition_cell": "The incorrect use of a formula, such as confusing the rectangular perimeter formula with the rectangular area formula, the square area formula with the square perimeter formula, and the cuboid volume formula with the cuboid surface area formula, which may cause errors in the operands and operators of the formula in the first wrong step.",
+      "mapping_cell_raw": "Transformation",
+      "decision": "transformation",
+      "note": ""
+    },
+    "eic.adding_irrelevant_information": {
+      "row": 21,
+      "label_cell": "adding irrelevant information",
+      "definition_cell": "The first wrong step adds some information that is not included in the Question statement, which affects the final result.",
+      "mapping_cell_raw": "Reading",
+      "decision": "reading",
+      "note": ""
+    },
+    "stepwise.calculation_error_easily_solved_by_a_calculator": {
+      "row": 22,
+      "label_cell": "Calculation error easily solved by a calculator",
+      "definition_cell": null,
+      "mapping_cell_raw": "Process Skills",
+      "decision": "process_skills",
+      "note": ""
+    },
+    "stepwise.extra_quantity_or_missing_quantity": {
+      "row": 23,
+      "label_cell": "Extra quantity or Missing quantity",
+      "definition_cell": null,
+      "mapping_cell_raw": "제외 - 100*2",
+      "decision": "excluded",
+      "note": "- 100*2"
+    },
+    "stepwise.missing_or_wrong_factual_knowledge": {
+      "row": 24,
+      "label_cell": "Missing / Wrong factual knowledge",
+      "definition_cell": null,
+      "mapping_cell_raw": "제외 - 100*2",
+      "decision": "excluded",
+      "note": "- 100*2"
+    },
+    "stepwise.misunderstanding_of_a_question": {
+      "row": 25,
+      "label_cell": "Misunderstanding of a question",
+      "definition_cell": null,
+      "mapping_cell_raw": "Comprehension",
+      "decision": "comprehension",
+      "note": ""
+    },
+    "stepwise.reached_correct_solution_but_proceeded_further": {
+      "row": 26,
+      "label_cell": "Reached correct solution but proceeded further",
+      "definition_cell": null,
+      "mapping_cell_raw": "제외 - 100*2",
+      "decision": "excluded",
+      "note": "- 100*2"
+    },
+    "stepwise.unit_conversion_error": {
+      "row": 27,
+      "label_cell": "Unit conversion error",
+      "definition_cell": null,
+      "mapping_cell_raw": "제외 - 100*2",
+      "decision": "excluded",
+      "note": "- 100*2"
+    }
+  },
+  "unmatched_rows": [],
+  "problems": [],
+  "header_row": 1,
+  "headers": {
+    "label_column": "라벨명",
+    "definition_column": "라벨 설명",
+    "decision_column": "영석 분류",
+    "other_annotator_column": "혁규 분류"
+  },
+  "taxonomy_sha256": "9b7cc796466492a7433cb3f2ff6ffcb9a1315fedd5abdd968cb8aa916ceebdba",
+  "mapping_version": "youngseok_20260930_v2"
+}

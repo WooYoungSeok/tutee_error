@@ -1,6 +1,6 @@
-# Format and loss-mask check — verifier_half_a
+# Format and loss-mask check — verifier_half_a_v3
 
-Tokenizer `Qwen/Qwen2.5-Math-7B-Instruct` · prompt sha256 system `a2513fd9a228951e` user `e8d93eafa9523a32` · taxonomy `9b7cc796466492a7` · pairs checked 3218 · failures 0
+Tokenizer `Qwen/Qwen2.5-Math-7B-Instruct` · prompt sha256 system `a2513fd9a228951e` user `e8d93eafa9523a32` · taxonomy `9b7cc796466492a7` · pairs checked 4827 · failures 0
 
 Answer budget (label + eos tokens): {'aligned': 2, 'not_aligned': 3} (max_new_tokens 10)
 

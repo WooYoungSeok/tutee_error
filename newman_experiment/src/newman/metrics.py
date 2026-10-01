@@ -21,9 +21,61 @@ from .verifier_format import ALIGNED, INVALID, NOT_ALIGNED, _vc
 # --- verifier (SFT test pairs) -----------------------------------------------------
 
 
+def basic_metrics(rows: Sequence[Mapping[str, Any]]) -> dict[str, Any]:
+    """verifier_common.compute_metrics with the anchor-level score fixed for any number of negatives per anchor.
+
+    compute_metrics keys an anchor's rows by target, so with two negatives (data v3) the second overwrites the first
+    and its pair_accuracy would silently check only the positive and the last negative. Here `pairs` counts anchors
+    with a positive and at least one negative, and `pair_accuracy` = share of those whose rows are ALL correct
+    (identical to compute_metrics with one negative per anchor)."""
+    base = _vc.compute_metrics(rows)
+    by_anchor: dict[str, list[Mapping[str, Any]]] = defaultdict(list)
+    for r in rows:
+        by_anchor[r["anchor_sample_id"]].append(r)
+    full = [v for v in by_anchor.values() if any(r["target"] == ALIGNED for r in v) and any(r["target"] == NOT_ALIGNED for r in v)]
+    base["pairs"] = len(full)
+    base["pair_accuracy"] = (sum(1 for v in full if all(r["prediction"] == r["target"] for r in v)) / len(full)) if full else None
+    return base
+
+
+def breakdown(rows: Sequence[Mapping[str, Any]], key, min_support: int = 1) -> dict[str, dict[str, Any]]:
+    groups: dict[str, list[Mapping[str, Any]]] = defaultdict(list)
+    for r in rows:
+        groups[key(r)].append(r)
+    return {k: basic_metrics(v) for k, v in sorted(groups.items()) if len(v) >= min_support}
+
+
+def bootstrap_ci(rows: Sequence[Mapping[str, Any]], n_samples: int, seed: int,
+                 metrics: Sequence[str] = ("accuracy", "macro_f1", "pair_accuracy"), alpha: float = 0.05) -> dict[str, Any]:
+    """verifier_common.bootstrap_ci (question-group resampling, same RNG use) on basic_metrics."""
+    import numpy as np
+
+    groups: dict[str, list[Mapping[str, Any]]] = defaultdict(list)
+    for r in rows:
+        groups[r["question_group_id"]].append(r)
+    keys = sorted(groups)
+    rng = np.random.RandomState(seed)
+    values: dict[str, list[float]] = {m: [] for m in metrics}
+    for _ in range(n_samples):
+        picked = rng.randint(0, len(keys), size=len(keys))
+        sample = [{**r, "anchor_sample_id": f"{r['anchor_sample_id']}#{copy}"} for copy, i in enumerate(picked) for r in groups[keys[i]]]
+        result = basic_metrics(sample)
+        for m in metrics:
+            if result[m] is not None:
+                values[m].append(result[m])
+    out: dict[str, Any] = {}
+    for m in metrics:
+        if values[m]:
+            lo, hi = np.percentile(values[m], [100 * alpha / 2, 100 * (1 - alpha / 2)])
+            out[m] = {"low": float(lo), "high": float(hi)}
+        else:
+            out[m] = {"low": None, "high": None}
+    return out
+
+
 def verifier_metrics(rows: Sequence[Mapping[str, Any]], min_support: int = 1) -> dict[str, Any]:
     """rows: pair records with `prediction` (aligned / not_aligned / invalid)."""
-    base = _vc.compute_metrics(rows)
+    base = basic_metrics(rows)
     negatives = [r for r in rows if r["target"] == NOT_ALIGNED]
     positives = [r for r in rows if r["target"] == ALIGNED]
     out = {
@@ -34,12 +86,13 @@ def verifier_metrics(rows: Sequence[Mapping[str, Any]], min_support: int = 1) ->
         "invalid_rate_positives": (sum(1 for r in positives if r["prediction"] == INVALID) / len(positives)) if positives else None,
         "invalid_rate_negatives": (sum(1 for r in negatives if r["prediction"] == INVALID) / len(negatives)) if negatives else None,
     }
-    out["by_negative_kind"] = _vc.breakdown(negatives, lambda r: r["negative_kind"], min_support)
-    out["by_target_type"] = _vc.breakdown(rows, lambda r: r["target_error_id"], min_support)
-    out["by_anchor_type"] = _vc.breakdown(rows, lambda r: r["anchor_error_id"], min_support)
-    out["by_target_stage"] = _vc.breakdown(rows, lambda r: r["target_newman_stage"], min_support)
-    out["by_dataset"] = _vc.breakdown(rows, lambda r: f"{r['dataset']}|{r['benchmark'] or '-'}", min_support)
-    out["by_unit_eligibility"] = _vc.breakdown(rows, lambda r: str(r["unit_conversion_eligible"]), min_support)
+    out["by_negative_kind"] = breakdown(negatives, lambda r: r["negative_kind"], min_support)
+    out["by_target_type"] = breakdown(rows, lambda r: r["target_error_id"], min_support)
+    out["by_anchor_type"] = breakdown(rows, lambda r: r["anchor_error_id"], min_support)
+    out["by_negative_dataset_relation"] = breakdown(negatives, lambda r: str(r.get("negative_dataset_relation")), min_support)
+    out["by_target_stage"] = breakdown(rows, lambda r: r["target_newman_stage"], min_support)
+    out["by_dataset"] = breakdown(rows, lambda r: f"{r['dataset']}|{r['benchmark'] or '-'}", min_support)
+    out["by_unit_eligibility"] = breakdown(rows, lambda r: str(r["unit_conversion_eligible"]), min_support)
     return out
 
 

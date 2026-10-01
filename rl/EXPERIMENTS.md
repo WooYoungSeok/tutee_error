@@ -160,8 +160,9 @@ rollout마다 `main + 0.5 × aux + truncation`, 가중치 `[1, 0.5, 1]`.
 | 적격 SFT 사례 | 2,672 = EIC 1,346 / MathEDU 715 / MathClean 449 / Stepwise 162 |
 | 다중 라벨 풀이 제외 | 풀이 EIC 2 / Stepwise 173 (그중 pool 밖 원자료 라벨로만 드러난 Stepwise 28), 레코드 EIC 4 / Stepwise 356 |
 | SFT 영역: 앵커 / 쌍 행 / 문제 그룹 | half A 1,081 / 2,162 / 963 · half B 1,063 / 2,126 / 961 · test 528 / 1,056 / 474 |
-| negative (2026-10-01 재생성) | 16개 유형 중 자기 유형 제외 균등 추출 + 허용 목록 문제에서는 단위 유형 우선(자기 라벨이 단위 유형이면 제외). 우선 배정 39 / 31 / 16건. same-stage 270 / 269 / 126, other-dataset 763 / 754 / 360 (half A / half B / test), 후보 없음 0. 단위 외 유형은 half A에서 유형당 62–88건 |
-| 단위 유형 negative | EIC Unit Conversion Error 20 / 14 / 8 (positive 73 / 65 / 32), MathEDU Measurement error 21 / 17 / 8 (positive 5 / 4 / 2). negative 없는 유형 0 |
+| negative (2026-10-01 13:10 재생성, 현재) | 같은 데이터셋의 다른 유형에서 균등 추출(계획서 4.3) + 허용 목록 문제에서는 단위 유형 우선(자기 라벨이 단위 유형이면 제외). 우선 배정 27 / 25 / 10건. same-stage 146 / 158 / 55 (half A / half B / test), 후보 없음 0 |
+| 단위 유형 negative | EIC Unit Conversion Error 27 / 25 / 10 (positive 73 / 65 / 32). MathEDU Measurement error 0 (positive 5 / 4 / 2): MathQA 질문에는 허용 목록이 없음 |
+| (폐기된 구성) | 같은 날 16개 유형 전체에서 뽑았던 구성은 N8의 superseded run 결과로 폐기 |
 | 길이 (2026-10-01, NEA 개요를 넣은 프롬프트) | verifier 입력: Qwen2.5-Math 최대 2,721, DeepSeek-R1-Qwen3 최대 2,652 토큰, 4,096 초과 0. Student 프롬프트(Qwen2.5-7B-Instruct): 최대 562, 평균 379 토큰, 1,024 초과 0 |
 | 형식·loss mask | 3,218 / 3,182 쌍, 실패 0 |
 | RL 조건 | train 6,336 / validation 704 / test 1,752 (질문당 1). 유형별 train 371–400. 단계: Comprehension 800, Process Skills 2,396, Reading 800, Transformation 2,340. 허용 목록 질문 train 763 / validation 80 / test 205 |
@@ -192,7 +193,12 @@ rollout마다 `main + 0.5 × aux + truncation`, 가중치 `[1, 0.5, 1]`.
 
 답 채점 프롬프트 재사용과 GSM8K 답 형식 계약, 학생다움 judge 재사용 승인(RL 전), C 생성 이력 없는 원본 포함 여부. taxonomy·verifier·Student 프롬프트는 2026-10-01 승인. 자세한 것은 `newman_experiment/docs/decisions.md`.
 
-## N8. 실행 확인 — verifier SFT (A100 80GB × 2 서버, 사용자 지시로 SFT만 먼저)
+## N8. 실행 확인 — verifier SFT 1차 (superseded: negative를 16개 유형 전체에서 뽑은 데이터)
+
+이 절의 두 run은 끝까지 학습·평가했지만, 아래 지름길 문제로 사용자 결정(2026-10-01)에 따라 쓰지 않는다. 모두 `outputs/_superseded/`에 보관.
+B `verifier_half_b_seed42_20261001_070425`(W&B `5dd66872`, 07:06–08:57, 335 step): epoch-5 accuracy 0.9167, macro-F1 0.9166, negative false acceptance 0.1004, positive recall 0.9337, invalid 0. 같은 데이터셋 negative 53 / 168 수락, 다른 데이터셋 0 / 360.
+
+### A 1차
 
 `scripts/run_sft_pipeline.sh`(A 학습 → B 학습과 A 평가 동시 → B 평가)를 tmux `newman_sft`에서 실행.
 
@@ -200,8 +206,206 @@ rollout마다 `main + 0.5 × aux + truncation`, 가중치 `[1, 0.5, 1]`.
 |---|---|
 | `verifier_half_a_seed42_20261001_051819` | 시작 2026-10-01T05:20:00+09:00, W&B `tutee_error_newman_verifier/runs/baee62a2`, backbone `Qwen/Qwen2.5-Math-7B-Instruct`, 2162 쌍 행 / 1081 앵커(mapping verified True), lr 1e-05, 5 epoch, batch 8×4×1 = 32, 총 340 step, DeepSpeed True, optimizer DeepSpeedCPUAdam (betas [0.9, 0.999], eps 1e-08, wd 0.01), 사전 점검 경고 0, git `048c179`. 진행 중 (첫 로그 step 10 loss 4.412, step당 약 20 s) |
 
-결과(epoch별 test 지표, 선택된 checkpoint)는 평가 후 `scripts/record_experiment.py`로 옮긴다.
+A 학습 종료 2026-10-01 07:04 (340 step, 1시간 42분). A 평가 `test_eval/summary.json` (SFT test 1,056행, 선택 규칙 macro-F1 → negative false acceptance, test에서 골라 낙관적):
 
-## N7. 중단된 run
+| checkpoint | accuracy | macro-F1 | neg. recall | neg. false acceptance | pos. recall | invalid | pair acc. | test loss |
+|---|---|---|---|---|---|---|---|---|
+| base | 0.0000 | 0.0000 | 0.0000 | 0.0038 | 0.0000 | 0.9981 | 0.0000 | 5.5965 |
+| epoch-1 | 0.6203 | 0.6147 | 0.7405 | 0.2595 | 0.5000 | 0.0000 | 0.3807 | 0.2290 |
+| epoch-2 | 0.8258 | 0.8257 | 0.8125 | 0.1875 | 0.8390 | 0.0000 | 0.6742 | 0.1095 |
+| epoch-3 | 0.8731 | 0.8721 | 0.7841 | 0.2159 | 0.9621 | 0.0000 | 0.7519 | 0.0846 |
+| epoch-4 | 0.9025 | 0.9022 | 0.8504 | 0.1496 | 0.9545 | 0.0000 | 0.8068 | 0.0716 |
+| **epoch-5 (best)** | 0.9138 | 0.9136 | 0.8598 | 0.1402 | 0.9678 | 0.0000 | 0.8277 | 0.0644 |
 
-없음.
+- epoch-5 95% CI(질문 그룹 bootstrap): accuracy [0.899, 0.929], macro-F1 [0.899, 0.928].
+- **잘못 수락한 negative 74건이 모두 같은 데이터셋 negative**: 같은 데이터셋 74 / 168 (44%), 다른 데이터셋 0 / 360. 풀이의 출처와 라벨의 출처가 다른지를 단서로 쓰는 것으로 보인다(16개 유형 전체에서 negative를 뽑은 결과). 많이 틀린 쌍: MathEDU Wrong operation/concept ← Comprehension error 9, MathClean logic ↔ computing 11, Stepwise misunderstanding ← calculation 5.
+- 목표 유형별로 가장 약한 것: MathEDU Comprehension error 0.823, EIC referencing context value 0.833, MathEDU Arithmetical 0.836.
+- epoch 1→5 동안 계속 좋아졌고 5 epoch(계획 최대)에서 끝났다.
+
+## N7. 중단·폐기된 run
+
+| run | 이유 |
+|---|---|
+| `_superseded/verifier_half_a_seed42_20261001_051819`, `_superseded/verifier_half_b_seed42_20261001_070425` | 학습·평가는 끝났으나 negative를 16개 유형 전체에서 뽑아 verifier가 라벨의 출처 데이터셋을 단서로 씀(다른 데이터셋 negative 0/360 수락, 같은 데이터셋 32–44% 수락). 같은 데이터셋 negative로 되돌려 다시 학습(사용자 결정 2026-10-01) |
+
+## N9. 실행 확인 — verifier SFT 2차 (같은 데이터셋 negative, 진행 중)
+
+`scripts/run_sft_pipeline.sh`, tmux `newman_sft`. A 13:12–14:58, B 14:58–16:52, 평가 종료 17:11. 둘 다 best epoch-5.
+
+#### verifier_half_a_seed42_20261001_131155 (실행 확인)
+
+| 항목 | 값 |
+|---|---|
+| run / W&B | `verifier_half_a_seed42_20261001_131155` / tutee_error_newman_verifier |
+| 역할 / half | reward / A |
+| backbone | `Qwen/Qwen2.5-Math-7B-Instruct` |
+| 데이터 | `newman_experiment/data/prepared/sft/half_a.jsonl` sha256 `6844546702c8`, 2162 rows / 1081 anchors, mapping verified True |
+| 학습 | 5 epoch, lr 1e-05, wd 0.01, warmup 0.1, linear, batch 8x4x1 = 32, max grad norm 1.0, bf16 True, max len 4096 |
+| optimizer (실제) | accelerate.utils.deepspeed.DeepSpeedOptimizerWrapper > deepspeed.runtime.zero.stage_1_and_2.DeepSpeedZeroOptimizer > deepspeed.ops.adam.cpu_adam.DeepSpeedCPUAdam {'lr': 0.0, 'betas': [0.9, 0.999], 'eps': 1e-08, 'weight_decay': 0.01} |
+| 저장 | snapshots epoch-1 (15.24 GB), epoch-2 (15.24 GB), epoch-3 (15.24 GB), epoch-4 (15.24 GB), epoch-5 (15.24 GB); resume checkpoints none |
+| 프롬프트 / taxonomy | system `a2513fd9a228` user `e8d93eafa952` / `9b7cc7964664` |
+| 승인 | taxonomy_definitions: approved, verifier_prompt: approved, verifier_backbones: approved |
+| 버전 / git | torch 2.11.0+cu128, transformers 5.17.0, deepspeed 0.19.7 / `7c7c02879b73` dirty True |
+| 시간 | 2026-10-01T13:12:19+09:00 → 2026-10-01T14:57:56+09:00 |
+
+SFT test (`newman_experiment/data/prepared/sft/test.jsonl` 1056 rows, sha256 `3c95e572aa6e`), selection rule ['macro_f1:max', 'negative_false_acceptance:min'], best **epoch-5** — chosen on the test split (user rule 5): the chosen checkpoint's test score is optimistic
+
+| checkpoint | accuracy | macro_f1 | negative_recall | negative_false_acceptance | positive_recall | invalid_rate | test_loss |
+|---|---|---|---|---|---|---|---|
+| base | 0.0000 | 0.0000 | 0.0000 | 0.0019 | 0.0000 | 0.9991 | 5.6107 |
+| epoch-1 | 0.5701 | 0.5248 | 0.8788 | 0.1212 | 0.2614 | 0.0000 | 0.2064 |
+| epoch-2 | 0.6127 | 0.5972 | 0.4167 | 0.5833 | 0.8087 | 0.0000 | 0.1841 |
+| epoch-3 | 0.6686 | 0.6465 | 0.4186 | 0.5814 | 0.9186 | 0.0000 | 0.1730 |
+| epoch-4 | 0.7017 | 0.6972 | 0.8239 | 0.1761 | 0.5795 | 0.0000 | 0.1558 |
+| epoch-5 | 0.7528 | 0.7528 | 0.7367 | 0.2633 | 0.7689 | 0.0000 | 0.1352 |
+
+#### verifier_half_b_seed42_20261001_145835 (실행 확인)
+
+| 항목 | 값 |
+|---|---|
+| run / W&B | `verifier_half_b_seed42_20261001_145835` / tutee_error_newman_verifier |
+| 역할 / half | test / B |
+| backbone | `deepseek-ai/DeepSeek-R1-0528-Qwen3-8B` |
+| 데이터 | `newman_experiment/data/prepared/sft/half_b.jsonl` sha256 `f203c910aa41`, 2126 rows / 1063 anchors, mapping verified True |
+| 학습 | 5 epoch, lr 1e-05, wd 0.01, warmup 0.1, linear, batch 8x4x1 = 32, max grad norm 1.0, bf16 True, max len 4096 |
+| optimizer (실제) | accelerate.utils.deepspeed.DeepSpeedOptimizerWrapper > deepspeed.runtime.zero.stage_1_and_2.DeepSpeedZeroOptimizer > deepspeed.ops.adam.cpu_adam.DeepSpeedCPUAdam {'lr': 0.0, 'betas': [0.9, 0.999], 'eps': 1e-08, 'weight_decay': 0.01} |
+| 저장 | snapshots epoch-1 (16.39 GB), epoch-2 (16.39 GB), epoch-3 (16.39 GB), epoch-4 (16.39 GB), epoch-5 (16.39 GB); resume checkpoints none |
+| 프롬프트 / taxonomy | system `a2513fd9a228` user `e8d93eafa952` / `9b7cc7964664` |
+| 승인 | taxonomy_definitions: approved, verifier_prompt: approved, verifier_backbones: approved |
+| 버전 / git | torch 2.11.0+cu128, transformers 5.17.0, deepspeed 0.19.7 / `7c7c02879b73` dirty True |
+| 시간 | 2026-10-01T14:59:02+09:00 → 2026-10-01T16:51:25+09:00 |
+
+SFT test (`newman_experiment/data/prepared/sft/test.jsonl` 1056 rows, sha256 `3c95e572aa6e`), selection rule ['macro_f1:max', 'negative_false_acceptance:min'], best **epoch-5** — chosen on the test split (user rule 5): the chosen checkpoint's test score is optimistic
+
+| checkpoint | accuracy | macro_f1 | negative_recall | negative_false_acceptance | positive_recall | invalid_rate | test_loss |
+|---|---|---|---|---|---|---|---|
+| base | 0.0000 | 0.0000 | 0.0000 | 0.0000 | 0.0000 | 1.0000 | 20.4009 |
+| epoch-1 | 0.5473 | 0.4554 | 0.1364 | 0.8636 | 0.9583 | 0.0000 | 0.3046 |
+| epoch-2 | 0.6648 | 0.6629 | 0.7386 | 0.2614 | 0.5909 | 0.0000 | 0.2349 |
+| epoch-3 | 0.7633 | 0.7633 | 0.7595 | 0.2405 | 0.7670 | 0.0000 | 0.1900 |
+| epoch-4 | 0.7727 | 0.7726 | 0.7973 | 0.2027 | 0.7481 | 0.0000 | 0.1969 |
+| epoch-5 | 0.7812 | 0.7811 | 0.8049 | 0.1951 | 0.7576 | 0.0000 | 0.3058 |
+
+v2 test(같은 데이터셋 negative) 비교 (`newman_experiment/reports/verifier_comparison_v2_test_20261001.md`):
+
+| verifier | accuracy [95% CI] | macro-F1 | neg. false acceptance | pos. recall | pair acc. | gpt-5.6-sol 대비 accuracy |
+|---|---|---|---|---|---|---|
+| A 2차 epoch-5 | 0.7528 [0.718, 0.782] | 0.7528 | 0.2633 | 0.7689 | 0.6420 | −0.075 [−0.109, −0.040] |
+| B 2차 epoch-5 | 0.7812 [0.750, 0.810] | 0.7811 | 0.1951 | 0.7576 | 0.6705 | −0.046 [−0.078, −0.015] |
+| A 1차 (폐기) | 0.7055 | 0.6837 | 0.5568 | 0.9678 | 0.4242 | −0.122 |
+| B 1차 (폐기) | 0.7443 | 0.7346 | 0.4470 | 0.9356 | 0.5133 | −0.083 |
+| gpt-5.6-sol | 0.8277 | 0.8276 | 0.1951 | 0.8504 | 0.7254 | – |
+| gpt-5.1 | 0.6998 | 0.6962 | 0.4091 | 0.8087 | 0.5000 | −0.128 |
+
+- 같은 데이터셋 negative 수락률이 1차의 0.557 / 0.447에서 0.263 / 0.195로 내려감. B 2차의 수락률은 gpt-5.6-sol과 같음(0.195), 대신 positive recall이 0.093 낮음.
+- 학습 곡선이 불안정함(A: neg. false acceptance 0.12 → 0.58 → 0.58 → 0.18 → 0.26). epoch-5까지 accuracy가 계속 올라 5 epoch에서 수렴하지 않았을 수 있음.
+- 가장 약한 곳: MathClean(0.58–0.60), Comprehension 단계(0.60–0.61).
+
+2차 best 교차 평가 (`scripts/run_verifier_v2_v3_chain.sh`, 17:12–17:25, `<run>/test_eval_{v3_test,alltype_test}/epoch-5`), HF private 업로드 완료(`WooYoungSeok/newman-verifier_half_{a,b}_seed42_…-epoch-5`, missing 0):
+
+| test | verifier | accuracy | neg. false acceptance | 같은 데이터셋 neg. 수락 | 다른 데이터셋 neg. 수락 | pos. recall | 원본 풀이 단위 acc. |
+|---|---|---|---|---|---|---|---|
+| v3 (1,584행) | A 2차 | 0.7090 | 0.3201 | 0.269 | 0.371 | 0.7670 | 0.447 |
+| v3 | B 2차 | 0.7620 | 0.2348 | 0.191 | 0.278 | 0.7557 | 0.513 |
+| v3 | gpt-5.6-sol | 0.8258 | 0.1856 | 0.203 | 0.169 | 0.8485 | 0.608 |
+| v3 | gpt-5.1 | 0.6237 | 0.4593 | 0.428 | 0.491 | 0.7898 | 0.258 |
+| 1차 (all-type, 1,056행) | A 2차 | 0.7206 | 0.3220 | 0.238 | 0.361 | 0.7633 | 0.525 |
+| 1차 | B 2차 | 0.7367 | 0.2879 | 0.137 | 0.358 | 0.7614 | 0.551 |
+
+- 2차 verifier는 다른 데이터셋·다른 단계 negative를 28–37% 수락(gpt-5.6-sol 17%)한다. 같은 데이터셋 negative만으로 학습해 이 유형의 negative를 본 적이 없음. v3 학습이 겨냥하는 부분.
+
+## N10. 실행 확인 — API 모델 verifier와 비교 (SFT test 1,056행, 같은 데이터셋 negative, data sha256 `3c95e572…`)
+
+사용자 지시(2026-10-01). API 모델에도 학습한 verifier와 **같은 system/user 메시지**를 같은 역할로 보냄(행마다 메시지 해시 대조). 같은 엄격 판정을 적용했고, reasoning은 보내지 않았으며 max_output_tokens는 8000, 행당 1회 호출. 1차(폐기) best는 이 test로 다시 평가함(`<run>/test_eval_same_dataset_negatives/epoch-5`, 원래 `test_eval/`은 보존). 표 전체: `newman_experiment/reports/verifier_comparison_superseded_vs_api_20261001.md`.
+
+| verifier | run | accuracy [95% CI] | macro-F1 | neg. false acceptance | pos. recall | pair acc. | invalid | 사용량 (입력 / 출력 토큰) |
+|---|---|---|---|---|---|---|---|---|
+| A 1차 epoch-5 (폐기) | `_superseded/verifier_half_a_seed42_20261001_051819` | 0.7055 [0.682, 0.728] | 0.6837 | 0.5568 | 0.9678 | 0.4242 | 0 | – |
+| B 1차 epoch-5 (폐기) | `_superseded/verifier_half_b_seed42_20261001_070425` | 0.7443 [0.719, 0.769] | 0.7346 | 0.4470 | 0.9356 | 0.5133 | 0 | – |
+| gpt-5.6-sol | `verifier_api_gpt-5.6-sol_seed42_20261001_132300` | 0.8277 [0.801, 0.852] | 0.8276 | 0.1951 | 0.8504 | 0.7254 | 0 | 542,737 / 104,174 |
+| gpt-5.1 | `verifier_api_gpt-5.1_seed42_20261001_132300` | 0.6998 [0.671, 0.729] | 0.6962 | 0.4091 | 0.8087 | 0.5000 | 0 | 542,737 / 12,442 |
+
+- 잘린 응답 0, 느슨한 판정을 써도 invalid 0.
+- 1차 verifier는 같은 데이터셋 negative를 거르지 못함(다른 단계 negative 수락 A 0.586, B 0.471). 데이터셋 지름길이라는 판단과 맞음.
+- gpt-5.6-sol 기준 짝지은 차이(question-group bootstrap): accuracy A −0.122 [−0.151, −0.094], B −0.083 [−0.111, −0.056], gpt-5.1 −0.128 [−0.159, −0.099].
+- 2차(재학습) A/B best는 평가가 끝나면 이 표에 추가한다.
+
+### N10-2. 1차 학습 때의 test set(negative를 16개 유형 전체에서 무작위, sha256 `af37b797…`)으로 비교
+
+1차 평가의 `predictions.jsonl`에서 예측 필드를 빼 복원했고 sha256이 1차 평가 기록과 일치함(`newman_experiment/data/prepared/sft_all_type_negatives_test/`). negative 528개 중 다른 데이터셋 360개, 같은 데이터셋 168개. 1차 A/B는 원래 `test_eval/epoch-5` 결과를 씀. 표 전체: `newman_experiment/reports/verifier_comparison_alltype_test_superseded_vs_api_20261001.md`.
+
+| verifier | run | accuracy [95% CI] | macro-F1 | neg. false acceptance | 다른 데이터셋 neg. 수락 | 같은 데이터셋 neg. 수락 | pos. recall |
+|---|---|---|---|---|---|---|---|
+| A 1차 epoch-5 (폐기) | `_superseded/verifier_half_a_seed42_20261001_051819` | 0.9138 [0.899, 0.929] | 0.9136 | 0.1402 | 0 / 360 | 74 / 168 | 0.9678 |
+| B 1차 epoch-5 (폐기) | `_superseded/verifier_half_b_seed42_20261001_070425` | 0.9167 [0.901, 0.934] | 0.9166 | 0.1004 | 0 / 360 | 53 / 168 | 0.9337 |
+| gpt-5.6-sol | `verifier_api_gpt-5.6-sol_alltype_test_seed42_20261001_134120` | 0.8040 [0.779, 0.828] | 0.8035 | 0.2443 | 108 / 360 | 21 / 168 | 0.8523 |
+| gpt-5.1 | `verifier_api_gpt-5.1_alltype_test_seed42_20261001_134120` | 0.7093 [0.682, 0.737] | 0.7050 | 0.4110 | 158 / 360 | 59 / 168 | 0.8295 |
+
+- 이 test에서는 1차 A/B가 gpt-5.6-sol보다 accuracy가 높음(+0.110, +0.113). 그러나 다른 데이터셋 negative는 출처만 보고도 거를 수 있어 1차 verifier가 0/360을 수락한 반면, 같은 데이터셋 negative는 32–44%를 수락함.
+- gpt-5.6-sol이 수락한 다른 데이터셋 negative 108개는 같은 단계가 62/99, 다른 단계가 46/261. 뜻이 거의 같은 유형 쌍이 많음: EIC operator → MathClean logic 5/5, EIC confusing formula → MathEDU wrong operation/concept 5/5, EIC referencing previous step value → MathEDU arithmetical 5/5, EIC calculation → MathEDU arithmetical 3/3. 무작위 전체 유형 negative에는 실제로는 맞는 라벨인 경우가 섞여 있어, 이 test의 1차 verifier 점수는 부풀려진 값으로 봐야 함.
+
+- HF private 업로드(1차, 참고용): `WooYoungSeok/newman-verifier_half_a_seed42_20261001_051819-epoch-5`, `…half_b_seed42_20261001_070425-epoch-5`.
+
+## N11. 계획 → 진행 중 — 데이터 v3 verifier (사용자 결정 2026-10-01)
+
+- **데이터 (실행 확인, `data/prepared_v3/sft/meta.json`, 검사 모두 통과)**
+  - 원본 풀이당 3행이다: positive, 같은 데이터셋 negative(`::neg`, v2와 바이트 단위로 같음), 다른 데이터셋·다른 단계 negative(`::neg_cross`).
+  - 원본 풀이 수: half A 1,081 / half B 1,063 / test 528. 행 수: 3,243 / 3,189 / 1,584.
+  - 두 번째 negative의 단위 우선 배정: 26 / 19 / 12건. MathEDU Measurement error가 negative로 들어간 수: 19 / 14 / 9.
+  - 형식 검사 실패 0.
+- **학습 (계획)**: `configs/verifier_half_{a,b}_v3.yaml`. v2와 같은 하이퍼파라미터(lr 1e-5, 5 epoch, batch 32), positive:negative 1:2를 가중치 없이 학습, 선택은 macro-F1 → negative false acceptance(v3 test 기준). `scripts/run_verifier_v2_v3_chain.sh`가 v2 종료 뒤 자동 시작.
+- **평가 지표 수정**: `verifier_common.compute_metrics`는 negative가 둘이면 마지막 것만 쳐서 pair accuracy를 계산한다. `newman.metrics.basic_metrics`가 이를 원본 풀이의 모든 행이 맞은 비율로 바로잡는다. negative가 1개인 데이터에서는 기존 값·CI와 같음을 저장된 예측으로 확인했다.
+- **API (실행 확인, v3 test 1,584행)**: 2차(v2) best와 v3 best는 결과가 나오면 이 표에 추가한다.
+
+| verifier | run | accuracy | macro-F1 | neg. false acceptance | invalid |
+|---|---|---|---|---|---|
+| gpt-5.6-sol | `verifier_api_gpt-5.6-sol_v3_test_seed42_20261001_142734` | 0.8258 | 0.8131 | 0.1856 | 0 |
+| gpt-5.1 | `verifier_api_gpt-5.1_v3_test_seed42_20261001_142734` | 0.6237 | 0.6201 | 0.4593 | 0 |
+
+- **1차 checkpoint 삭제**: 사용자 지시로 `_superseded/verifier_half_{a,b}_*`의 epoch_checkpoints(70 + 76 GiB)를 삭제했다. best(epoch-5)는 HF private에 있고, 기록은 `<run>/checkpoints_deleted.json`.
+
+### N11-1. 실행 확인 — A 3차 (`verifier_half_a_v3_seed42_20261001_171232`, 17:12–19:47, 평가 20:10)
+
+#### verifier_half_a_v3_seed42_20261001_171232 (실행 확인)
+
+| 항목 | 값 |
+|---|---|
+| run / W&B | `verifier_half_a_v3_seed42_20261001_171232` / tutee_error_newman_verifier |
+| 역할 / half | reward / A |
+| backbone | `Qwen/Qwen2.5-Math-7B-Instruct` |
+| 데이터 | `newman_experiment/data/prepared_v3/sft/half_a.jsonl` sha256 `e20634c56316`, 3243 rows / 1081 anchors, mapping verified True |
+| 학습 | 5 epoch, lr 1e-05, wd 0.01, warmup 0.1, linear, batch 8x4x1 = 32, max grad norm 1.0, bf16 True, max len 4096 |
+| optimizer (실제) | accelerate.utils.deepspeed.DeepSpeedOptimizerWrapper > deepspeed.runtime.zero.stage_1_and_2.DeepSpeedZeroOptimizer > deepspeed.ops.adam.cpu_adam.DeepSpeedCPUAdam {'lr': 0.0, 'betas': [0.9, 0.999], 'eps': 1e-08, 'weight_decay': 0.01} |
+| 저장 | snapshots epoch-1 (15.24 GB), epoch-2 (15.24 GB), epoch-3 (15.24 GB), epoch-4 (15.24 GB), epoch-5 (15.24 GB); resume checkpoints none |
+| 프롬프트 / taxonomy | system `a2513fd9a228` user `e8d93eafa952` / `9b7cc7964664` |
+| 승인 | taxonomy_definitions: approved, verifier_prompt: approved, verifier_backbones: approved |
+| 버전 / git | torch 2.11.0+cu128, transformers 5.17.0, deepspeed 0.19.7 / `7c7c02879b73` dirty True |
+| 시간 | 2026-10-01T17:13:00+09:00 → 2026-10-01T19:46:30+09:00 |
+
+SFT test (`newman_experiment/data/prepared_v3/sft/test.jsonl` 1584 rows, sha256 `0aac89ffa7e3`), selection rule ['macro_f1:max', 'negative_false_acceptance:min'], best **epoch-5** — chosen on the test split (user rule 5): the chosen checkpoint's test score is optimistic
+
+| checkpoint | accuracy | macro_f1 | negative_recall | negative_false_acceptance | positive_recall | invalid_rate | test_loss |
+|---|---|---|---|---|---|---|---|
+| base | 0.0000 | 0.0000 | 0.0000 | 0.0028 | 0.0000 | 0.9981 | 5.3690 |
+| epoch-1 | 0.7064 | 0.5343 | 0.9858 | 0.0142 | 0.1477 | 0.0000 | 0.1508 |
+| epoch-2 | 0.7891 | 0.7365 | 0.9271 | 0.0729 | 0.5133 | 0.0000 | 0.1062 |
+| epoch-3 | 0.8390 | 0.8136 | 0.9062 | 0.0938 | 0.7045 | 0.0000 | 0.0885 |
+| epoch-4 | 0.8668 | 0.8467 | 0.9214 | 0.0786 | 0.7576 | 0.0000 | 0.0734 |
+| epoch-5 | 0.8662 | 0.8508 | 0.8902 | 0.1098 | 0.8182 | 0.0000 | 0.0834 |
+
+best epoch-5 (macro-F1 0.8508 > epoch-4 0.8467). 다른 test에서의 결과 (`test_eval_{v2_test,alltype_test}/epoch-5`):
+
+| test | verifier | accuracy [95% CI] | macro-F1 | neg. false acceptance | 같은 데이터셋 neg. 수락 | 다른 데이터셋 neg. 수락 | pos. recall |
+|---|---|---|---|---|---|---|---|
+| v3 | A 3차 | 0.8662 [0.846, 0.885] | 0.8508 | 0.1098 | 0.220 | 0.000 | 0.8182 |
+| v3 | gpt-5.6-sol | 0.8258 | 0.8131 | 0.1856 | 0.203 | 0.169 | 0.8485 |
+| v2 | A 3차 | 0.8011 [0.772, 0.830] | 0.8011 | 0.2159 | 0.216 | – | 0.8182 |
+| v2 | A 2차 | 0.7528 | 0.7528 | 0.2633 | 0.263 | – | 0.7689 |
+| v2 | gpt-5.6-sol | 0.8277 | 0.8276 | 0.1951 | 0.195 | – | 0.8504 |
+| 1차 (all-type) | A 3차 | 0.8816 [0.860, 0.903] | 0.8812 | 0.0549 | 0.161 | 0.006 | 0.8182 |
+| 1차 (all-type) | gpt-5.6-sol | 0.8040 | 0.8035 | 0.2443 | 0.125 | 0.300 | 0.8523 |
+
+- v3 test에서 gpt-5.6-sol 대비 accuracy +0.040 [+0.018, +0.062], 틀린 negative 수락률은 −0.076.
+- v2 test(같은 데이터셋 negative만)에서는 A 2차보다 +0.048 높지만 gpt-5.6-sol보다 −0.027 낮다.
+- 다른 데이터셋 negative는 단계가 같아도 거의 다 거부한다(1차 test 0.006, gpt-5.6-sol 0.300). 뜻이 같은 다른 데이터셋 유형도 거부하므로 출처 단서를 쓰고 있을 가능성이 있다.
+

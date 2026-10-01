@@ -78,26 +78,27 @@ def test_negatives_follow_the_plan_rules():
     for sid, n in neg.items():
         t = TAX.types[n["target_error_id"]]
         assert n["target_error_id"] != n["anchor_error_id"]
-        assert n["target_dataset"] == t.dataset
-        assert n["negative_dataset_relation"] == ("same_dataset" if t.dataset == n["dataset"] else "other_dataset")
+        assert n["target_dataset"] == t.dataset == n["dataset"]                # plan 4.3: same source dataset
+        assert n["negative_dataset_relation"] == "same_dataset"
         assert n["target_newman_stage"] == t.newman_stage                     # N' = mapping(E')
         assert n["question"] == pos[sid]["question"] and n["solution"] == pos[sid]["solution"]
         if t.unit_related:
             assert n["unit_conversion_eligible"] is True
         assert n["negative_kind"] == ("same_stage" if t.newman_stage == n["anchor_newman_stage"] else "different_stage")
-    relations = {n["negative_dataset_relation"] for n in neg.values()}
-    assert relations == {"same_dataset", "other_dataset"}                   # candidates span all 16 types
     measurement = [n for n in neg.values() if n["target_error_id"] == "mathedu.measurement_error"]
-    assert measurement and all(n["unit_conversion_eligible"] is True for n in measurement)   # only allowlisted Q
-    assert all(len(m["candidates"]) + len(m["unit_types_removed"]) == 15 for m in manifest)
-    for m in manifest:  # unit priority: allowlisted non-unit anchors always get a unit-related negative
+    assert not measurement                                                  # MathEDU questions are never allowlisted here
+    assert all(len(m["candidates"]) + len(m["unit_types_removed"]) == len(TAX.types_for_dataset(m["dataset"])) - 1
+               for m in manifest)
+    for m in manifest:  # unit priority: an allowlisted non-unit anchor gets a unit-related negative when its dataset has one
         own_unit = TAX.types[m["anchor_error_id"]].unit_related
-        if m["unit_conversion_eligible"] is True and not own_unit:
+        unit_available = any(TAX.types[c].unit_related for c in m["candidates"])
+        if m["unit_conversion_eligible"] is True and not own_unit and unit_available:
             assert m["draw"] == "unit_priority" and TAX.types[m["negative_error_id"]].unit_related
         else:
             assert m["draw"] == "uniform"
     assert any(m["unit_types_removed"] for m in manifest)
-
+    cross, _ = make_pairs(cs, TAX, 42, scope="all_adopted_types")           # the dropped variant still works
+    assert {p["negative_dataset_relation"] for p in cross if p["target"] == "not_aligned"} == {"same_dataset", "other_dataset"}
 
 def test_negatives_are_fixed_and_regions_independent():
     cs = cases()
@@ -114,7 +115,7 @@ def test_anchor_without_candidate_is_dropped_with_its_positive(monkeypatch):
     cs = [c for c in cases(1) if c["dataset"] == "mathclean"]
     for c in cs:
         c.update(split="train", half="A", region="half_a")
-    monkeypatch.setattr(TAX, "types", {cs[0]["error_id"]: TAX.types[cs[0]["error_id"]]})
+    monkeypatch.setattr(TAX, "types_for_dataset", lambda ds: [TAX.types[cs[0]["error_id"]]])
     pairs, manifest = make_pairs(cs[:1], TAX, 42)
     assert pairs == [] and manifest[0]["reason"] == "no_negative_candidate"
 
@@ -172,3 +173,28 @@ def test_multi_label_rule_counts_labels_outside_the_pool():
     stats = exclude_multi_label_solutions(cs, raw)
     assert cs[0]["exclusion_reason"] == "multi_label_solution" and cs[1]["exclusion_reason"] == ""
     assert stats["solutions_found_only_with_raw_labels"] == {"stepwise": 1}
+
+
+def test_second_negative_is_other_dataset_other_stage_and_keeps_the_first():
+    """Data v3 (user decision 2026-10-01): + one negative from another dataset at another Newman stage, unit priority."""
+    cs = cases()
+    split_all(cs, gsm8k(20))
+    one, _ = make_pairs(cs, TAX, 42)
+    two, manifest = make_pairs(cs, TAX, 42, cross_dataset_different_stage=True)
+    assert [p for p in two if not p["pair_id"].endswith("::neg_cross")] == one      # first negatives unchanged
+    cross = {p["anchor_sample_id"]: p for p in two if p["pair_id"].endswith("::neg_cross")}
+    assert set(cross) == {c["sample_id"] for c in cs}
+    for p in cross.values():
+        t = TAX.types[p["target_error_id"]]
+        assert p["target"] == "not_aligned" and t.dataset != p["dataset"] and t.newman_stage != p["anchor_newman_stage"]
+        assert p["negative_dataset_relation"] == "other_dataset" and p["negative_kind"] == "different_stage"
+        if t.unit_related:
+            assert p["unit_conversion_eligible"] is True
+    for m in manifest:
+        own_unit = TAX.types[m["anchor_error_id"]].unit_related
+        unit_available = any(TAX.types[c].unit_related for c in m["cross_candidates"])
+        if m["unit_conversion_eligible"] is True and not own_unit and unit_available:
+            assert m["cross_draw"] == "unit_priority" and TAX.types[m["cross_negative_error_id"]].unit_related
+        else:
+            assert m["cross_draw"] == "uniform"
+    assert any(m["cross_draw"] == "unit_priority" for m in manifest)

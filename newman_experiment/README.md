@@ -69,6 +69,18 @@ python scripts/eval_verifier.py --config configs/verifier_half_a.yaml --run_dir 
 python scripts/eval_verifier.py --config configs/verifier_half_b.yaml --run_dir outputs/<verifier_half_b run> --include_base
 #    best(macro-F1 → neg. false acceptance; test loss는 보고만)의 경로를 configs/rl_common.yaml
 #    verifier.checkpoint (A), evaluation.verifier.checkpoint (B)에 적는다
+python scripts/upload_verifier_hf.py --run_dir outputs/<run>          # best → HF private repo (HF_TOKEN)
+#    API 모델 verifier 비교 (같은 system/user 메시지, 같은 판정; RL venv: source env.sh)
+python scripts/eval_verifier_api.py --model gpt-5.6-sol               # --model gpt-5.1
+python scripts/compare_verifiers.py --entry A=outputs/<A run>/test_eval/epoch-K --entry B=... \
+    --entry gpt-5.6-sol=outputs/verifier_api_gpt-5.6-sol_seed42_<stamp> --entry gpt-5.1=...   # reports/verifier_comparison_*.md
+#    다른 test로 다시 평가할 때 기존 test_eval/을 지키려면 eval_verifier.py --only epoch-K --eval_dir <새 폴더>
+
+# 데이터 v3 (원본 풀이당 positive 1 + 같은 데이터셋 negative 1 + 다른 데이터셋·다른 단계 negative 1)
+python scripts/prepare_data.py --config configs/data_v3.yaml --stage sft      # -> data/prepared_v3/sft, manifests_v3/
+CFG_A=configs/verifier_half_a_v3.yaml CFG_B=configs/verifier_half_b_v3.yaml PIPELINE_LOG=logs/sft_pipeline_v3.log \
+    bash scripts/run_sft_pipeline.sh
+#    2026-10-01 실행은 scripts/run_verifier_v2_v3_chain.sh (v2 끝 → v3 학습, HF 업로드, 서로의 test로 교차 평가)
 
 # 3) 서빙된 verifier 확인 (보상 경로 그대로: greedy + n=2/T=0.6)
 bash scripts/launch_eval_servers.sh configs/diversity.yaml
@@ -107,7 +119,7 @@ bash scripts/run_train_student.sh configs/smoke/rl_mock.yaml --run_name smoke_rl
 - **라벨**: 이름은 워크북 A열, 정의는 B열 원문을 쓴다(Stepwise 두 유형은 정의가 없어 그 줄을 뺀다). 단계는 D열이다. 데이터 라벨은 데이터셋 안의 승인된 alias로만 해석한다. N = mapping(E)는 `Taxonomy.condition()`만 만든다.
 - **품질 필터**: v2 필터(status ok, 그림 없는 문제 제외, 중복 제거)에 더해, 같은 학생 풀이에 오류 라벨이 둘 이상이면 그 풀이를 제외한다. 이때 pool 밖 원자료의 라벨(Stepwise "None of the above" 등)도 센다.
 - **전역 분할**: SFT 사례와 GSM8K 전체를 한 문제 키로 묶어 80:20으로 나눈다. SFT train은 A/B 50:50이다. RL은 train을 90:10으로 나눠 validation을 만드는데, SFT 풀이가 없는 GSM8K 전용 그룹에서만 뽑는다. 층마다 독립 난수를 쓴다. 같은 그룹은 같은 split이므로 RL validation/test 질문은 verifier 학습에 없고, SFT test 질문은 RL train에 없다.
-- **negative**: 원본 풀이당 positive 1 + negative 1이다. `random.Random(42)`를 영역마다 새로 만들고, 16개 채택 유형 중 자기 유형을 뺀 전체에서 균등하게 뽑는다(데이터셋 무관, llm_tutee_tutor finetuning 방식). N' = mapping(E'). 단위 두 유형은 허용 목록 True인 질문에만 쓰고, 그런 질문에서는 단위 두 유형 중에서만 뽑는다(자기 라벨이 단위 유형인 풀이 제외).
+- **negative**: 원본 풀이당 positive 1 + negative 1이다. `random.Random(42)`를 영역마다 새로 만들고, 같은 원본 데이터셋의 다른 채택 유형에서 균등하게 뽑는다(계획서 4.3; 전체 16개 유형에서 뽑는 방식은 verifier가 라벨 출처를 배워서 폐기). N' = mapping(E'). 단위 두 유형은 허용 목록 True인 질문에만 쓰고, 그런 질문에서는 데이터셋에 단위 유형이 있으면 그것을 우선한다(자기 라벨이 단위 유형인 풀이 제외).
 - **단위 허용 목록**: llm_tutee_tutor `UNIT_CONV_RAW` 원문을 쓴다(AST 추출, 출처 해시). 보정 후 train 845 / test 203이며, 준비 때마다 고정 parquet 내용과 대조한다.
 - **보상과 지표**: `main`은 정답·판정 불가 −0.75 / 오답 + A 2/2 aligned 1 / 그 외 0이다. 절단은 −0.5, 보조항은 × 0.5다. 학습 지표는 `verifier_a/*`, 평가 지표는 `b_*`로 이름을 구분한다. gpt-5-nano 두 역할은 요청에 `reasoning: {effort: low}`를 보낸다.
 - **IS 보정**: TRL 1.14 키를 명시하고, 가중치가 0인 rollout 비율 `sampling/importance_sampling_zero_weight_fraction`을 추가로 기록한다.

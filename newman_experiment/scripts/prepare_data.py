@@ -177,7 +177,7 @@ def length_check(cfg, taxonomy: Taxonomy, pairs: list[dict[str, Any]], manifest:
 
 
 def run_checks(built: dict[str, Any], pairs: list[dict[str, Any]], manifest: list[dict[str, Any]], taxonomy: Taxonomy,
-               max_len: int | None) -> list[tuple[str, bool, str]]:
+               max_len: int | None, cross: bool = False) -> list[tuple[str, bool, str]]:
     groups = built["groups"]
     eligible = {c["sample_id"]: c for c in built["eligible"]}
     checks = []
@@ -201,8 +201,17 @@ def run_checks(built: dict[str, Any], pairs: list[dict[str, Any]], manifest: lis
                    all(p["target_error_id"] in taxonomy.types and p["anchor_error_id"] in taxonomy.types for p in pairs), ""))
     per_anchor = Counter((p["anchor_sample_id"], p["target"]) for p in pairs)
     anchors = {p["anchor_sample_id"] for p in pairs}
-    checks.append(("every kept anchor has one positive and one negative",
-                   all(per_anchor[(a, "aligned")] == 1 and per_anchor[(a, "not_aligned")] == 1 for a in anchors), ""))
+    n_neg = 2 if cross else 1
+    checks.append((f"every kept anchor has one positive and {n_neg} negative(s)",
+                   all(per_anchor[(a, "aligned")] == 1 and per_anchor[(a, "not_aligned")] == n_neg for a in anchors), ""))
+    first = [p for p in negs if p["pair_id"].endswith("::neg")]
+    checks.append(("the first negative comes from the anchor's own dataset",
+                   all(p["negative_dataset_relation"] == "same_dataset" for p in first), ""))
+    if cross:
+        second = [p for p in negs if p["pair_id"].endswith("::neg_cross")]
+        checks.append(("the second negative is another dataset and another Newman stage",
+                       len(second) == len(anchors) and all(p["negative_dataset_relation"] == "other_dataset"
+                                                           and p["negative_kind"] == "different_stage" for p in second), ""))
     checks.append(("Q and S of a negative are the anchor's own",
                    all(p["question"] == eligible[p["anchor_sample_id"]]["question"]
                        and p["solution"] == eligible[p["anchor_sample_id"]]["solution"] for p in pairs), ""))
@@ -289,11 +298,18 @@ def write_report(path: Path, cfg, taxonomy: Taxonomy, mapping_report, built, pai
     L += [f"Forced into train: {len(built['split_info']['forced_train'])} groups; into half A: {len(built['half_info']['forced_a'])}.", ""]
 
     L += ["## 6. SFT pairs and negatives (plan 5.4)", ""]
-    L += ["Negative type: uniform over all 16 adopted types except the anchor's own (any source dataset, as llm_tutee_tutor "
-          "finetuning; user decision 2026-10-01); unit-related types only on allowlisted questions, where they have priority "
-          "unless the anchor's own type is unit-related.", ""]
+    L += [f"Negative type: uniform over the candidate scope `{cfg['negatives']['candidates']}` except the anchor's own type; "
+          "unit-related types only on allowlisted questions, where they have priority unless the anchor's own type is "
+          "unit-related.", ""]
+    if cfg["negatives"].get("cross_dataset_different_stage"):
+        L += ["Second negative per anchor (`::neg_cross`): uniform over the types of another source dataset at another "
+              "Newman stage, with the same unit rules and priority; separate RNG, so the first negatives equal the "
+              "one-negative version.", ""]
     draws = Counter((m["region"], m.get("draw")) for m in manifest if m["status"] == "paired")
     L += [f"Draws with unit priority: " + ", ".join(f"{r} {draws[(r, 'unit_priority')]}" for r in REGIONS) + ".", ""]
+    cdraws = Counter((m["region"], m.get("cross_draw")) for m in manifest if m["status"] == "paired" and m.get("cross_draw"))
+    if cdraws:
+        L += [f"Second-negative draws with unit priority: " + ", ".join(f"{r} {cdraws[(r, 'unit_priority')]}" for r in REGIONS) + ".", ""]
     rows = [[r, a["anchors"], a["paired"], a["no_negative_candidate"], a["negative_kind"].get("same_stage", 0),
              a["negative_kind"].get("different_stage", 0), a["negative_dataset_relation"].get("same_dataset", 0),
              a["negative_dataset_relation"].get("other_dataset", 0), sum(1 for p in pairs if p["region"] == r)]
@@ -373,10 +389,14 @@ def main() -> int:
         report_path = report_path.with_name(report_path.stem + "_preview.md")
 
     built = build(cfg, taxonomy, fetch=not args.no_fetch)
-    pairs, manifest = make_pairs(built["eligible"], taxonomy, int(cfg["seed"]), bool(cfg["negatives"].get("unit_priority", False)))
+    cross = bool(cfg["negatives"].get("cross_dataset_different_stage", False))
+    if int(cfg["negatives"]["per_anchor"]) != (2 if cross else 1):
+        raise SystemExit("negatives.per_anchor must be 2 with cross_dataset_different_stage, else 1")
+    pairs, manifest = make_pairs(built["eligible"], taxonomy, int(cfg["seed"]), bool(cfg["negatives"].get("unit_priority", False)),
+                                 cfg["negatives"]["candidates"], cross)
     length_info = None if args.skip_length_check else length_check(cfg, taxonomy, pairs, manifest)
     neg_audit = negative_audit(pairs, manifest, taxonomy)
-    checks = run_checks(built, pairs, manifest, taxonomy, None if length_info is None else length_info["max_seq_length"])
+    checks = run_checks(built, pairs, manifest, taxonomy, None if length_info is None else length_info["max_seq_length"], cross)
     prompts_per_step = 6
     rl_scen = {str(s): scenario_sizes(rl_questions(built, s), taxonomy, prompts_per_step) for s in (["train"], ["train", "test"])}
 
