@@ -131,3 +131,14 @@ def test_data_decisions():
         ["train", "test"], 0.1, "balanced", 1)
     assert cfg["split"]["test_ratio"] == 0.2 and cfg["filters"]["description_status"] == "ok"
     assert cfg["filters"]["exclude_multi_label_solutions"] and len(cfg["filters"]["multi_label_extra_sources"]) == 4
+
+
+def test_pair_accuracy_needs_every_row_of_the_anchor_with_two_negatives():
+    from newman.metrics import basic_metrics
+
+    rows = [pair("a", "aligned", "aligned"), pair("a", "not_aligned", "not_aligned", "same_stage"),
+            pair("a", "not_aligned", "aligned", "different_stage"),
+            pair("b", "aligned", "aligned"), pair("b", "not_aligned", "aligned", "same_stage"),
+            pair("b", "not_aligned", "not_aligned", "different_stage")]
+    m = basic_metrics(rows)
+    assert m["pairs"] == 2 and m["pair_accuracy"] == 0.0     # each anchor has one wrong negative

@@ -36,7 +36,7 @@ from newman.common import (  # noqa: E402
     write_json,
     write_jsonl,
 )
-from newman.metrics import rank_checkpoints, verifier_metrics  # noqa: E402
+from newman.metrics import bootstrap_ci, rank_checkpoints, verifier_metrics  # noqa: E402
 from newman.taxonomy import Taxonomy  # noqa: E402
 from newman.verifier_format import (  # noqa: E402
     _vc,
@@ -59,6 +59,8 @@ def parse_args() -> argparse.Namespace:
     p.add_argument("--include_base", action="store_true", help="also the untrained backbone (reference)")
     p.add_argument("--limit", type=int, default=None, help="smoke: first N test rows (written as <name>_limitN)")
     p.add_argument("--rescore", action="store_true")
+    p.add_argument("--only", action="append", default=None, help="evaluate only these snapshots (e.g. epoch-5), repeatable")
+    p.add_argument("--eval_dir", default="test_eval", help="output folder inside the run (another name keeps test_eval/ untouched)")
     p.add_argument("--no_wandb", action="store_true")
     return p.parse_args()
 
@@ -115,7 +117,7 @@ def evaluate_one(cfg, model_path: str, rows, prompt, taxonomy, out_dir: Path) ->
         preds.append({**r, "raw_output": text, "prediction": pred, "correct": pred == r["target"]})
     metrics = verifier_metrics(preds, int(ev["min_support"]))
     metrics["test_loss"] = test_loss
-    metrics["bootstrap_ci_question_groups"] = _vc.bootstrap_ci(preds, int(ev["bootstrap_samples"]), int(cfg["seed"]),
+    metrics["bootstrap_ci_question_groups"] = bootstrap_ci(preds, int(ev["bootstrap_samples"]), int(cfg["seed"]),
                                                                metrics=("accuracy", "macro_f1", "pair_accuracy"))
     out_dir.mkdir(parents=True, exist_ok=True)
     write_jsonl(out_dir / "predictions.jsonl", preds)
@@ -150,13 +152,14 @@ def main() -> int:
     if args.include_base:
         jobs.append(("base", cfg["model"]["name"]))
     for d in sorted((run_dir / "epoch_checkpoints").glob("epoch-*"), key=lambda p: float(p.name.split("-")[1])):
-        jobs.append((d.name, str(d)))
+        if args.only is None or d.name in args.only:
+            jobs.append((d.name, str(d)))
     if not jobs:
         raise SystemExit(f"no epoch_checkpoints in {run_dir}")
     results = {}
     for name, path in jobs:
         out_name = f"{name}_limit{args.limit}" if args.limit else name
-        out_dir = run_dir / "test_eval" / out_name
+        out_dir = run_dir / args.eval_dir / out_name
         done = out_dir / "metrics.json"
         if done.exists() and not args.rescore:
             prev = read_json(done)
@@ -185,10 +188,10 @@ def main() -> int:
                "selection_rule": rule, "ranking": ranking, "best_checkpoint": best,
                "best_checkpoint_path": results[best]["checkpoint"] if best else None, "selection_note": note, "results": table}
     if not args.limit:
-        write_json(run_dir / "test_eval" / "summary.json", summary)
+        write_json(run_dir / args.eval_dir / "summary.json", summary)
     print(f"best: {best} ({note})")
 
-    if args.no_wandb or args.limit:
+    if args.no_wandb or args.limit or args.only or args.eval_dir != "test_eval":
         return 0
     meta = read_json(run_dir / "run_meta.json") if (run_dir / "run_meta.json").exists() else {}
     id_file = run_dir / "wandb_run_id.txt"

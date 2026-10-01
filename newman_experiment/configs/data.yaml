@@ -42,8 +42,9 @@ split:
 
 negatives:
   per_anchor: 1                   # plan 5.4: one positive + one negative per source solution, fixed once
-  candidates: all_adopted_types   # user decision 2026-10-01: every adopted type except the anchor's own, any dataset
-                                  # (llm_tutee_tutor finetuning), uniform; unit-related types only on allowlisted Q
+  candidates: same_dataset        # plan 4.3, restored by user decision 2026-10-01 after all_adopted_types (llm_tutee_tutor
+                                  # finetuning) let both verifiers learn the label's source dataset (0/360 other-dataset
+                                  # negatives accepted, 32-44% of same-dataset ones); unit-related types only on allowlisted Q
   unit_priority: true             # user decision 2026-10-01: on an allowlisted question whose own type is not
                                   # unit-related, draw E' from the two unit-related types only
 
