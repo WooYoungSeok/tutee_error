@@ -287,7 +287,7 @@ class RewardOrchestrator:
             if self.mode == "diversity":
                 aux_scores, detail = diversity_scores(texts, accepted_now, self.bleu)
                 glog.update(detail)
-            else:
+            elif self.mode == "student_likeness":
                 schedule = pair_schedule(accepted_now, self.seed, step, key)
                 calls = await asyncio.gather(*[self.judge.compare(problem, texts[a], texts[b]) for a, b in schedule])
                 aux_scores = normalized_win_scores(accepted_now, [(a, b, c["winner"]) for (a, b), c in zip(schedule, calls)])
@@ -372,7 +372,7 @@ class RewardOrchestrator:
                     for gl in group_logs if gl.get("bleu_matrix") for i in gl["accepted"]]
             m["diversity/max_bleu_mean"] = sum(sims) / len(sims) if sims else 0.0
             m["diversity/duplicate_rate"] = sum(1 for s in sims if s >= 0.999) / len(sims) if sims else 0.0
-        else:
+        elif self.mode == "student_likeness":
             pairs = [p for gl in group_logs for p in gl.get("pairs", [])]
             m["student_likeness/pairs"] = float(len(pairs))
             m["student_likeness/tie_rate"] = sum(1 for p in pairs if p["winner"] == "tie") / len(pairs) if pairs else 0.0

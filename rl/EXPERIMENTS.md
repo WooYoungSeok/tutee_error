@@ -409,3 +409,60 @@ best epoch-5 (macro-F1 0.8508 > epoch-4 0.8467). 다른 test에서의 결과 (`t
 - v2 test(같은 데이터셋 negative만)에서는 A 2차보다 +0.048 높지만 gpt-5.6-sol보다 −0.027 낮다.
 - 다른 데이터셋 negative는 단계가 같아도 거의 다 거부한다(1차 test 0.006, gpt-5.6-sol 0.300). 뜻이 같은 다른 데이터셋 유형도 거부하므로 출처 단서를 쓰고 있을 가능성이 있다.
 
+
+### N11-2. 실행 확인 — B 3차 (`verifier_half_b_v3_seed42_20261001_194709`, 19:47–22:33, 평가 22:46)
+
+원래 서버의 run 폴더 대신 HF private repo `WooYoungSeok/newman-verifier_half_b_v3_seed42_20261001_194709-epoch-5`(snapshot `ddae4e08`)의 `newman_meta/`(run_meta.json, test_eval_summary.json)에서 옮겼다. 다른 test(v2, all-type) 교차 평가와 유형별 결과는 이 서버에 없다.
+
+
+| 항목 | 값 |
+|---|---|
+| run / W&B | `verifier_half_b_v3_seed42_20261001_194709` / tutee_error_newman_verifier |
+| 역할 / half | test / B |
+| backbone | `deepseek-ai/DeepSeek-R1-0528-Qwen3-8B` |
+| 데이터 | `newman_experiment/data/prepared_v3/sft/half_b.jsonl` sha256 `d803ed248315`, 3189 rows / 1063 anchors, mapping verified True |
+| 학습 | 5 epoch, lr 1e-05, wd 0.01, warmup 0.1, linear, batch 8x4x1 = 32, max grad norm 1.0, bf16 True, max len 4096 |
+| optimizer (실제) | accelerate.utils.deepspeed.DeepSpeedOptimizerWrapper > deepspeed.runtime.zero.stage_1_and_2.DeepSpeedZeroOptimizer > deepspeed.ops.adam.cpu_adam.DeepSpeedCPUAdam {'lr': 0.0, 'betas': [0.9, 0.999], 'eps': 1e-08, 'weight_decay': 0.01} |
+| 저장 | snapshots epoch-1 (16.39 GB), epoch-2 (16.39 GB), epoch-3 (16.39 GB), epoch-4 (16.39 GB), epoch-5 (16.39 GB); resume checkpoints none |
+| 프롬프트 / taxonomy | system `a2513fd9a228` user `e8d93eafa952` / `9b7cc7964664` |
+| 승인 | taxonomy_definitions: approved, verifier_prompt: approved, verifier_backbones: approved |
+| 버전 / git | torch 2.11.0+cu128, transformers 5.17.0, deepspeed 0.19.7 / `7c7c02879b73` dirty True |
+| 시간 | 2026-10-01T19:47:47+09:00 → 2026-10-01T22:33:55+09:00 |
+
+SFT test (`newman_experiment/data/prepared_v3/sft/test.jsonl` 1584 rows, sha256 `0aac89ffa7e3`), selection rule ['macro_f1:max', 'negative_false_acceptance:min'], best **epoch-5** — chosen on the test split (user rule 5): the chosen checkpoint's test score is optimistic
+
+| checkpoint | accuracy | macro_f1 | negative_recall | negative_false_acceptance | positive_recall | invalid_rate | test_loss |
+|---|---|---|---|---|---|---|---|
+| base | 0.0000 | 0.0000 | 0.0000 | 0.0000 | 0.0000 | 1.0000 | 18.9044 |
+| epoch-1 | 0.7102 | 0.5830 | 0.9470 | 0.0530 | 0.2367 | 0.0000 | 0.2479 |
+| epoch-2 | 0.7424 | 0.7307 | 0.7131 | 0.2869 | 0.8011 | 0.0000 | 0.1713 |
+| epoch-3 | 0.8049 | 0.7933 | 0.7812 | 0.2188 | 0.8523 | 0.0000 | 0.1396 |
+| epoch-4 | 0.8535 | 0.8338 | 0.8987 | 0.1013 | 0.7633 | 0.0000 | 0.1450 |
+| epoch-5 | 0.8580 | 0.8423 | 0.8797 | 0.1203 | 0.8144 | 0.0000 | 0.1948 |
+
+
+## N12. 계획 — Student GRPO 시작 (2026-10-02, A100 80GB × 4, 드라이버 580)
+
+| 항목 | 계획 값 |
+|---|---|
+| 보상 verifier A | `WooYoungSeok/newman-verifier_half_a_v3_seed42_20261001_171232-epoch-5` (v3 A best, SFT test macro-F1 0.8508) — 사용자 결정 2026-10-02 |
+| 평가 verifier B | `WooYoungSeok/newman-verifier_half_b_v3_seed42_20261001_194709-epoch-5` (v3 B best, SFT test macro-F1 0.8423) — 사용자 결정 2026-10-02 |
+| GPU 배치 | 학습 GPU 0–2 (8 × 3 × 2 = 48 풀이 = 6 조건/step), GPU 3에 rollout(0.50) + verifier A(0.35). 계획 배치 그대로 |
+| step 수 (추정) | train 6,336 조건 / 6 = 1,056 step/epoch × **1 epoch** = 1,056 step/run (사용자 결정 2026-10-02, 처음 계획 2 epoch) |
+| 저장 | snapshot + 재개 checkpoint **0.25 epoch마다**, 모두 보관 (run당 4 × 15 GB + 4 × 약 122 GB) |
+| 평가 학생다움 judge | validation에서만 호출(student_likeness snapshot 선택), test는 호출 안 함(사람이 평가, aux = 0) |
+| checkpoint 선택 | RL validation 704 조건 × 8 rollout에서 verifier B 기준 `reward_total_mean`(= main + 0.5 × aux + truncation의 rollout 평균) 최고 0.5 epoch snapshot |
+| API baseline | gpt-5.6-sol, **조건당 1회**(사용자 결정 2026-10-02), 비교 지표 B joint success(오답 + B 2/2 aligned). 학습과 동시에 생성 |
+| 남은 차단 | 승인 `answer_judge_prompt`, `student_likeness_prompt` (사용자와 재논의 중) |
+
+### N12-1. 실행 확인 — smoke (`smoke_newman_diversity_seed42_20261002_112231`, 실제 보상 경로, 3 step)
+
+| 항목 | 값 |
+|---|---|
+| 구성 | `configs/diversity.yaml` 그대로(7B policy, verifier A v3 epoch-5, gpt-5-nano low), `--max_steps 3 --report_to none`, snapshot·재개 저장은 끝 1회로 override |
+| GPU | 학습 0–2(각 38–46 GiB), GPU 3 rollout + A 76 GiB. 48 풀이 = 6 조건/step |
+| step 시간 | 55 / 40 / 50 s (`step_time` 37.2 / 39.0 / 51.8 s) |
+| 답 채점 | correct 0.67–0.85, null 0, retry 0, 지연 2.8–3.8 s |
+| verifier A | 오답 수락률 0 / 0.125 / 0.214, invalid 0 |
+| 저장 실측 | snapshot 15.24 GB(16 s), 재개 checkpoint **121.86 GB**(설정 추정 114 GB) |
+| API baseline | `outputs/api_baselines/gpt-5.6-sol`: 1,752 조건 × 1, truncated 0, 입력 635,968 / 출력 390,230 토큰, 11:22–11:24 |

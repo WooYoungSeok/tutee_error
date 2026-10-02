@@ -59,7 +59,8 @@ def student_run(cfg: Mapping[str, Any], evaluation: bool = False) -> list[str]:
     used = {"student_prompt": [pr["student"]], "verifier_prompt": [pr["verifier_system"], pr["verifier_user"]],
             "taxonomy_definitions": [cfg["paths"]["taxonomy"]],
             "answer_judge_prompt": [pr["answer_judge_system"], pr["answer_judge_user"], pr["answer_contract"]]}
-    if cfg["rewards"]["auxiliary_reward"] == "student_likeness" or evaluation:
+    judge_in_eval = bool(cfg["evaluation"].get("student_likeness_judge_splits"))
+    if cfg["rewards"]["auxiliary_reward"] == "student_likeness" and (not evaluation or judge_in_eval):
         items.append("student_likeness_prompt")
         used["student_likeness_prompt"] = [pr["student_likeness_system"], pr["student_likeness_user"], cfg["student_likeness"]["examples"]]
     p += approvals.problems(items, used)

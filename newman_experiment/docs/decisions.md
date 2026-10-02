@@ -37,6 +37,10 @@
 | 2026-09-30 | 학생다움 직접 비교 | 같은 조건·같은 rollout 번호 k(같은 seed)의 두 출력이 모두 B 통과일 때만 비교 | `configs/rl_common.yaml` likeness_comparison |
 | 2026-09-30 | 브랜치 | SFT/RL 모두 `rl-grpo` 한 브랜치 (이름은 이전 프로젝트에서 이어받음, 기술적 필수는 아님) | `AGENTS.md` git 절 |
 | 2026-09-30 | 서버 | 이 서버(A100 × 2)에서는 실행하지 않고 서버를 옮겨 SFT·RL을 이어서 진행 | `AGENTS.md` |
+| 2026-10-02 | RL verifier checkpoint | **A = v3 A epoch-5** `WooYoungSeok/newman-verifier_half_a_v3_seed42_20261001_171232-epoch-5`(보상), **B = v3 B epoch-5** `WooYoungSeok/newman-verifier_half_b_v3_seed42_20261001_194709-epoch-5`(validation·test 채점). 둘 다 SFT 선택 규칙(macro-F1 → neg. FA)의 best이고, v3 8 epoch 재학습은 하지 않음. HF snapshot A `652129e4`, B `ddae4e08` | `configs/rl_common.yaml` verifier / evaluation.verifier |
+| 2026-10-02 | API baseline 샘플 수 | gpt-5.6-sol은 **조건당 1회** 생성(8회 아님). 비교 지표는 **B joint success**(오답이면서 B 2회 모두 aligned인 비율, Error-solution generation success rate). 1회 생성이므로 그룹 지표(zero-success, pass@8, 그룹 내 다양성·학생다움 보조항)는 비교에서 뺀다(계획서 10.1) | `configs/rl_common.yaml` api_baselines.samples_per_condition, `scripts/evaluate_student.py`(API는 자기 샘플 수로 채점) |
+| 2026-10-02 | RL epoch·저장 주기 | GSM8K train 조건(6,336)이 Eedi보다 약 3배 많아 **1 epoch**(1,056 step, Eedi 2 epoch = 682 step)로 줄임. warmup 10% + linear는 1 epoch 기준. model snapshot과 재개 checkpoint를 **0.25 epoch마다**(epoch-0.25/0.50/0.75/1.00, 이름은 소수 둘째 자리) 모두 보관, run당 4 × (15 + 122 GB) | `configs/rl_common.yaml` training, `scripts/train_student.py` |
+| 2026-10-02 | 평가의 학생다움 judge | **validation에서만 호출**(student_likeness run의 snapshot 선택 지표 `reward_total_mean`에 aux가 들어가야 하므로), **test에서는 호출하지 않음**(학생다움은 사람이 직접 평가, test 점수의 aux = 0). 같은 날 처음엔 평가 전체에서 빼기로 했다가 validation 용도를 확인하고 바로잡음. diversity는 BLEU aux 그대로 | `configs/rl_common.yaml` evaluation.student_likeness_judge_splits, `scripts/evaluate_student.py`, `src/newman/preflight.py` |
 | 2026-10-01 | 재개 checkpoint | 새 서버 디스크 2 TiB. RL 재개 checkpoint는 **0.5 epoch마다(snapshot과 같은 시점) 모두 보관**, run당 4개 × 약 114 GB. 전체 예상 약 1.3 TB | `configs/rl_common.yaml` training.resume_save_every_epochs |
 
 ## 구현 기본값 (결과 의미 불변, 사용자 확인 대기)
@@ -56,4 +60,4 @@
 |---|---|
 | 승인: 답 채점 프롬프트 재사용(`../rl/prompts/answer_judge_*.txt`) + GSM8K 답 형식 계약(`prompts/gsm8k_answer_contract.txt`), 학생다움 judge 재사용(`../rl/prompts/student_likeness_*.txt` + MathEDU 예시 2개). **RL 전에 필요**, verifier SFT에는 불필요 | `python scripts/approve.py --status` |
 | C 생성 이력이 없는 원본 포함 여부 | 기존 ok-only 유지 중 |
-| 다른 GPU 수 | effective batch(SFT 32, RL 48)를 유지할 per-device/accumulation 조합은 사용자와 확정 |
+| 다른 GPU 수 | effective batch(SFT 32, RL 48)를 유지할 per-device/accumulation 조합은 사용자와 확정. 2026-10-02 서버(A100 80GB × 4)는 계획 배치(학습 0–2, rollout+A 3) 그대로 |

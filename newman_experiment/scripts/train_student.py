@@ -237,7 +237,7 @@ def main() -> int:
             if state_.global_step not in self.save_at:
                 return control
             epoch = self.save_at[state_.global_step]
-            out = run_dir / "epoch_checkpoints" / f"epoch-{epoch:.1f}"
+            out = run_dir / "epoch_checkpoints" / f"epoch-{epoch:.2f}"
             started = time.monotonic()
             self.trainer.save_model(str(out))  # collective under DeepSpeed: every rank calls it
             if state_.is_world_process_zero:

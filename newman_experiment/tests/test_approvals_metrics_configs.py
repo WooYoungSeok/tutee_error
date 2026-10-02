@@ -27,14 +27,14 @@ def test_approval_is_bound_to_the_content(tmp_path, monkeypatch):
 
 
 def test_committed_approvals_block_real_runs_until_the_user_confirms():
-    approved = {"verifier_backbones", "taxonomy_definitions", "verifier_prompt", "student_prompt"}  # user 2026-09-30 / 10-01
+    approved = {"verifier_backbones", "taxonomy_definitions", "verifier_prompt", "student_prompt",  # user 2026-09-30 / 10-01
+                "answer_judge_prompt", "student_likeness_prompt"}                                    # user 2026-10-02
     assert {i for i in approvals.ITEMS if approvals.status(i)[0] == "approved"} == approved
     assert preflight.verifier_training(load_config("configs/verifier_half_a.yaml")) == []   # SFT may start
     assert preflight.verifier_training(load_config("configs/verifier_half_b.yaml")) == []
-    problems = preflight.student_run(load_config("configs/student_likeness.yaml"))
-    assert any("verifier.checkpoint" in p for p in problems)
-    assert any("answer_judge_prompt" in p for p in problems) and any("student_likeness_prompt" in p for p in problems)
-    assert not any("student_prompt:" in p for p in problems)
+    for name in ("student_likeness", "diversity"):  # verifier checkpoints and every prompt confirmed: RL may start
+        cfg = load_config(f"configs/{name}.yaml")
+        assert preflight.student_run(cfg) == [] and preflight.student_run(cfg, evaluation=True) == []
     assert preflight.is_smoke("smoke_x") and not preflight.is_smoke("newman_diversity_seed42_20261001_000000")
 
 
@@ -93,21 +93,25 @@ def test_run_name_and_timestamps_are_asia_seoul():
 def test_confirmed_rl_settings():
     cfg = load_config("configs/diversity.yaml")
     t, g = cfg["training"], cfg["generation"]
-    assert (t["learning_rate"], t["beta"], t["epsilon"], t["num_train_epochs"], t["loss_type"], t["scale_rewards"]) == (1e-6, 0.04, 0.2, 2, "dapo", "group")
+    assert (t["learning_rate"], t["beta"], t["epsilon"], t["num_train_epochs"], t["loss_type"], t["scale_rewards"]) == (1e-6, 0.04, 0.2, 1, "dapo", "group")
     assert (g["num_generations"], g["temperature"], g["top_p"], g["top_k"], g["repetition_penalty"]) == (8, 1.0, 1.0, 0, 1.0)
     assert t["per_device_train_batch_size"] * 3 * t["gradient_accumulation_steps"] == t["expected_completions_per_step"] == 48
-    assert (t["model_save_every_epochs"], t["resume_save_every_epochs"], t["resume_save_total_limit"]) == (0.5, 0.5, None)
+    assert (t["model_save_every_epochs"], t["resume_save_every_epochs"], t["resume_save_total_limit"]) == (0.25, 0.25, None)
     assert cfg["answer_check"]["reasoning_effort"] == cfg["student_likeness"]["reasoning_effort"] == "low"
     assert cfg["answer_check"]["model"] == cfg["student_likeness"]["model"] == "gpt-5-nano"
     v = cfg["verifier"]
     assert (v["samples"], v["temperature"], v["top_p"], v["repetition_penalty"], v["aggregation"]) == (2, 0.6, 1.0, 1.0, "all_aligned")
     r = cfg["rewards"]
     assert (r["lambda_correct_penalty"], r["null_verdict_main_reward"], r["auxiliary_weight"], r["format"]["truncation_penalty"]) == (0.75, -0.75, 0.5, 0.5)
-    assert set(find_required(cfg)) == {"verifier.checkpoint", "evaluation.verifier.checkpoint"}
+    assert find_required(cfg) == []
+    assert cfg["verifier"]["checkpoint"] == "WooYoungSeok/newman-verifier_half_a_v3_seed42_20261001_171232-epoch-5"  # user 2026-10-02
+    assert cfg["evaluation"]["verifier"]["checkpoint"] == "WooYoungSeok/newman-verifier_half_b_v3_seed42_20261001_194709-epoch-5"
     ev = cfg["evaluation"]
     assert (ev["select_split"], ev["select_metric"], ev["split"]) == ("validation", "reward_total_mean", "test")
     assert cfg["api_baselines"]["models"] == ["gpt-5.6-sol"] and cfg["api_baselines"]["reasoning_effort"] is None
     assert cfg["api_baselines"]["max_output_tokens"] == 8000 and cfg["likeness_comparison"]["pairing"] == "rollout_index"
+    assert cfg["api_baselines"]["samples_per_condition"] == 1  # user 2026-10-02
+    assert cfg["evaluation"]["student_likeness_judge_splits"] == ["validation"]  # user 2026-10-02
 
 
 def test_confirmed_verifier_settings_and_independent_halves():

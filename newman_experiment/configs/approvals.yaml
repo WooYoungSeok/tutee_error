@@ -1,9 +1,23 @@
 # Written by scripts/approve.py after the user confirmed each item (user rule 1).
 # Real runs check these hashes; editing an approved file re-opens its item.
 answer_judge_prompt:
-  approved: false
+  approved: true
+  approved_on: '2026-10-02T11:46:18+09:00'
+  files:
+    ../rl/prompts/answer_judge_system.txt: b29a3e992ef2e6d1974f219b5f13839c638ba48423a3b264ef08590fccce7d98
+    ../rl/prompts/answer_judge_user.txt: 9b1c770ab82968235e9baf133fdab29bbdf8a4f7bb52bad01b6296a152662b82
+    prompts/gsm8k_answer_contract.txt: 1607115f5e4b5cd446fc240922a8a3f73827847f21c24f526aff43753dc888cc
+  note: 'user confirmed on 2026-10-02: rl/prompts/answer_judge_* reused + GSM8K NUMBER
+    answer contract'
 student_likeness_prompt:
-  approved: false
+  approved: true
+  approved_on: '2026-10-02T11:46:19+09:00'
+  files:
+    ../rl/data/mathedu_student_examples.json: d04d558deb4a64e8930265ece26c7f5401f49c6c7ffe0b60710df24bc60420de
+    ../rl/prompts/student_likeness_system.txt: 199506ca241f55580072429bb295909a29b90355715c1768672d05303a8f469e
+    ../rl/prompts/student_likeness_user.txt: fb29450cceb53aaa5f88421f536e495a7d3c2b81b76f284e62f8961c56bacb94
+  note: 'user confirmed on 2026-10-02: rl/prompts/student_likeness_* reused + MathEDU
+    13427/8584 examples (question + solution only)'
 student_prompt:
   approved: true
   approved_on: '2026-10-01T04:53:14+09:00'
