@@ -601,3 +601,98 @@ test (481쌍 × 8, verifier B, `test_eval/summary.json`, best = test 평균 rewa
 ### D6. checkpoint 정리 (사용자 지시 2026-10-03)
 
 수렴하지 않은 run은 best 하나만 남김: `distractor_student_likeness_seed42_20261003_011448` → epoch-2.0(test best)만, `newman_student_likeness_seed42_20261002_154536` → 평가하지 않아 best가 없으므로 가장 많이 학습된 epoch-0.50만. 재개 checkpoint와 나머지 snapshot, smoke 가중치는 삭제(각 폴더 `checkpoints_deleted.json`). rollout·평가 기록은 보관.
+
+### D7. 실행 확인 — distractor 1차 test를 gpt-5.6-sol verifier로 채점 (사용자 요청 2026-10-03)
+
+`distractor_rl/scripts/score_api_verifier.py`, 결과 `<run>/test_eval_api_verifier_gpt-5.6-sol/{base,epoch-2.0}/metrics.json`. test rollout의 gpt-5-nano 오답 판정을 그대로 쓰고, 오답만 gpt-5.6-sol에 Eedi verifier(half-A/B)와 같은 system/user 메시지(`verifier_sft/prompts/system.txt`, `user.txt`: 질문·풀이·misconception 설명)로 보냄. 오답당 2회, 둘 다 aligned면 통과. reasoning 미전송, max_output_tokens 8000, invalid 0. 질문 그룹 bootstrap 1000.
+
+| 모델 | 오답률 | 오답 중 sol 통과 [95% CI] | **sol success** (오답 + sol 2/2) [95% CI] | 1회 호출 success | 오답 중 B 통과 | B success | 오답 중 sol 통과: distractor 일치 / 불일치 | sol·B 불일치 (오답 중) | 사용량 (입력 / 출력) |
+|---|---|---|---|---|---|---|---|---|---|
+| base | 0.417 | 0.783 [0.739, 0.824] | **0.327** [0.287, 0.368] | 0.332 | 0.978 | 0.408 | 0.966 / 0.608 | 0.199 | 1,037,164 / 135,080 |
+| epoch-2.0 | 0.806 | 0.808 [0.782, 0.834] | **0.651** [0.618, 0.683] | 0.665 | 0.993 | 0.800 | 0.960 / 0.669 | 0.189 | 2,369,792 / 279,746 |
+
+- gpt-5.6-sol은 B보다 엄격함(오답 중 통과 0.78–0.81 vs 0.98–0.99). distractor와 일치한 오답은 96–97% 통과, 일치하지 않는 오답은 61–67%만 통과.
+- sol 기준으로도 success는 base 0.327 → epoch-2.0 0.651로 두 배. 오답 중 통과율은 0.783 → 0.808로 거의 같아, 늘어난 몫은 대부분 오답이 늘어난 데서 옴.
+
+### D8. Hugging Face 업로드 (사용자 요청 2026-10-03, private)
+
+| repo | 내용 |
+|---|---|
+| `WooYoungSeok/newman-newman_student_likeness_seed42_20261002_154536-epoch-0.50` | Newman 중단 run의 step 528 snapshot(평가 안 함) + `newman_meta/run_meta.json`, 모델 카드에 verifier A 문체 단서 주의 |
+| `WooYoungSeok/distractor-distractor_student_likeness_seed42_20261003_011448-epoch-2.0` | distractor 1차 best + `distractor_meta/`(run_meta, test 요약, gpt-5.6-sol 채점 base/epoch-2.0) |
+
+두 repo 모두 private 확인, `model.safetensors` 크기가 로컬과 같음. `training_args.bin`은 올리지 않음. Newman epoch-0.50의 test 평가는 사용자가 다른 서버(A100 3g.20gb)에서 진행: `newman_experiment/configs/eval_a100_20gb.yaml`(생성 → B 채점 두 단계, verifier A 진단 끔).
+
+### N12-7. 실행 확인 — Newman API baseline을 verifier B로 채점 (사용자 요청 2026-10-03)
+
+`evaluate_student.py --config configs/eval_a100_20gb.yaml --api_dirs outputs/api_baselines/{gpt-5.6-sol,gpt-5.1} --stage score`, 결과 `outputs/api_baselines_verifierB/test_eval/summary.json`. test verifier B(`WooYoungSeok/newman-verifier_half_b_v3_seed42_20261001_194709-epoch-5`, n=2, T=0.6, 둘 다 aligned), A 진단 끔. gpt-5-nano(low) 정오답 판정을 새로 했으므로 오답률이 N12-3과 조금 다름(0.932 → 0.941, 0.833 → 0.834).
+
+| 생성 모델 | 오답률 | 오답 중 B 통과 | **오답 + B 2/2** [95% CI] | 단계별 (Comp. / Proc. / Read. / Transf.) | 비교: 오답 + A (N12-3) / 오답 + sol (N12-4) |
+|---|---|---|---|---|---|
+| gpt-5.6-sol | 0.941 | 0.535 | **0.503** [0.479, 0.529] | 0.516 / 0.516 / 0.770 / 0.394 | 0.158 / 0.899 |
+| gpt-5.1 | 0.834 | 0.509 | **0.425** [0.402, 0.448] | 0.566 / 0.370 / 0.613 / 0.368 | 0.136 / 0.678 |
+
+- B는 A보다 훨씬 관대하고 gpt-5.6-sol보다는 엄격함. A에서 0이던 EIC 유형도 B는 일부 통과(gpt-5.6-sol 생성물: calculation 0.351, unit conversion 0.353, operator 0.227). 다만 confusing formula는 0.009 / 0.027로 여전히 거의 0.
+
+### D9. 실행 확인 — distractor 2차(verifiable) epoch-0.5 / epoch-1.0의 B·gpt-5.6-sol success (사용자 요청 2026-10-03)
+
+학습은 사용자 요청으로 step 342에서 멈춤(`checkpoint-342`, `epoch-1.0` 저장 뒤, 17:28). 평가: `distractor_rl/scripts/eval_verifiable_snapshots.sh`(`configs/eval_parallel_gpu123.yaml`, GPU 1–3). 채점은 1차와 같은 경로(Eedi 채점 지시문으로 정오답, 오답만 distractor 판정, test verifier B; 보조항은 BLEU로 바꿔 judge 호출 없음) → `<run>/test_eval_b/`. 이어서 오답만 gpt-5.6-sol(Eedi verifier 메시지, 2회) → `<run>/test_eval_b_api_verifier_gpt-5.6-sol/`. base와 1차 epoch-2.0은 D3/D7 값.
+
+| 모델 | 정답률 | 오답률 | 오답 중 B 통과 | **B success** [95% CI] | 오답 중 sol 통과 | **sol success** [95% CI] | distractor 일치 (전체 / 오답 중) | 오답 중 sol 통과: 일치 / 불일치 |
+|---|---|---|---|---|---|---|---|---|
+| base | 0.583 | 0.417 | 0.978 | 0.408 | 0.783 | 0.327 [0.287, 0.368] | 0.204 / 0.490 | 0.966 / 0.608 |
+| 2차 epoch-0.5 | 0.437 | 0.562 | 0.988 | 0.555 [0.516, 0.594] | 0.868 | 0.488 [0.449, 0.529] | 0.304 / 0.541 | 0.978 / 0.739 |
+| 2차 epoch-1.0 | 0.407 | 0.593 | 0.993 | 0.588 [0.547, 0.628] | 0.861 | 0.510 [0.468, 0.548] | 0.319 / 0.539 | 0.984 / 0.719 |
+| 1차 epoch-2.0 | 0.193 | 0.806 | 0.993 | 0.800 | 0.808 | 0.651 [0.618, 0.683] | 0.384 / 0.477 | 0.960 / 0.669 |
+
+- 2차는 다른 오답도 정답과 같은 −0.75라서 정답률이 1차만큼 내려가지 않음(0.41 vs 0.19). 대신 오답 중 distractor 일치율이 base 0.490 → 0.539로 오르고(1차는 0.477), 오답 중 sol 통과율도 0.861로 셋 중 가장 높음.
+- gpt-5.6-sol 사용량: 입력 2,837,584 / 출력 283,308 (epoch-0.5 + epoch-1.0).
+
+### D10. 실행 확인 — Eedi test API baseline gpt-5.1 (사용자 요청 2026-10-03)
+
+`distractor_rl/scripts/api_baseline_eedi.py --model gpt-5.1` → `distractor_rl/outputs/api_baselines_eedi/test_eval/api_gpt-5.1/`. 학습한 Student와 같은 입력(`rl/prompts/student.txt` + misconception 설명, 문제, 보기 숨김), 쌍당 1회, reasoning 미전송, max_output_tokens 8000, truncated 0, 사용량 입력 75,189 / 출력 70,367. 채점은 1차·2차 평가와 같은 경로(`rl/scripts/evaluate.py --stage score`, `generation.num_generations=1`, 보조항 BLEU): Eedi 채점 지시문(gpt-5-nano low) 정오답, 오답만 distractor 판정, test verifier B(half-B, n=2, T=0.6).
+
+| 모델 | 정답률 | 오답률 | 오답 중 B 통과 | **B success** [95% CI] | distractor 일치 (전체) [95% CI] | **오답 중 distractor 일치** [95% CI] |
+|---|---|---|---|---|---|---|
+| gpt-5.1 (쌍당 1회) | 0.160 | 0.840 | 0.993 | **0.834** [0.800, 0.869] | 0.570 [0.523, 0.618] | **0.678** [0.628, 0.728] |
+
+- 같은 test의 base / 1차 epoch-2.0 / 2차 epoch-1.0(쌍당 8회)과 비교: B success 0.408 / 0.800 / 0.588, 오답 중 distractor 일치 0.490 / 0.477 / 0.539. gpt-5.1이 두 지표 모두 가장 높음.
+
+### D11. 실행 확인 — gpt-5.1을 Eedi descriptive verifier로 평가 (사용자 요청 2026-10-03)
+
+`verifier_sft/eval_api_verifier.py --config config/descriptive_verifier_v2.json --api_model gpt-5.1 --name gpt-5.1`(gpt-5.6-sol과 같은 스크립트·지시문·설정: reasoning 모델 기본, max_output_tokens 4000). test = 4개 데이터셋 descriptive v2 test 688행(344쌍, sha256 `5c344e1d…`). 결과 `verifier_sft/outputs/descriptive_v2/gpt-5.1/`, `verifier_sft/reports/descriptive_v2/eval_gpt-5.1.md`. invalid 0, 사용량 입력 248,169 / 출력 8,262(reasoning 0).
+
+| verifier | macro P | macro R | **macro-F1** [95% CI] | neg. acceptance | pos. rejection | macro-F1: EIC / MathClean / MathEDU / Stepwise |
+|---|---|---|---|---|---|---|
+| gpt-5.1 | 0.920 | 0.920 | **0.920** [0.899, 0.939] | 0.076 | 0.084 | 0.927 / 0.924 / 0.901 / 0.927 |
+| gpt-5.6-sol | 0.965 | 0.964 | 0.964 [0.950, 0.976] | 0.058 | 0.015 | 0.956 / 0.957 / 0.983 / 0.963 |
+| half-A epoch-4 (Eedi 보상) | 0.970 | 0.970 | 0.970 [0.955, 0.981] | 0.038 | 0.023 | 0.974 / 0.957 / 0.953 / 1.000 |
+| half-B epoch-5 (Eedi 평가) | 0.966 | 0.965 | 0.965 [0.951, 0.977] | 0.055 | 0.015 | 0.968 / 0.978 / 0.942 / 0.988 |
+| base Qwen2.5-Math-7B (GPT로 답 추출) | 0.788 | 0.782 | 0.781 [0.750, 0.809] | 0.291 | 0.145 | 0.802 / 0.690 / 0.775 / 0.792 |
+
+### N12-8. 확인 — 서빙 경로 검증 (gpt-5.6-sol 생성물의 A 통과율 0.158이 설정 오류인지, 2026-10-03)
+
+- 입력 일치: 채점 때 쓴 verifier 지시문(system `a2513fd9`, user `e8d93eaf`)과 taxonomy(`9b7cc796`)가 A·B SFT 학습 기록과 같음. 요청은 SFT 평가와 같은 `verifier_messages` + `generation_prompt`(verifier 자체 chat template, token id).
+- 서빙된 verifier로 v3 SFT test(1,584행)를 다시 판정(`scripts/check_verifier_server.py --data data/prepared_v3/sft/test.jsonl`, `outputs/check_served_{a,b}_v3test/`):
+
+| verifier | greedy 정확도 (서빙) | SFT 평가 정확도 | 보상 규칙(n=2, T=0.6, 둘 다 aligned): positive 거부 / negative 수락 | 2회 판정 불일치 |
+|---|---|---|---|---|
+| A v3 epoch-5 | 0.8655 | 0.8662 | 0.290 / 0.094 | 0.072 |
+| B v3 epoch-5 | 0.8573 | 0.8580 | 0.216 / 0.101 | 0.044 |
+
+- 결론: 서빙 경로는 SFT 평가를 재현함(차이 0.0007). 0.158은 설정 오류가 아니라 A의 판정 자체. 원인은 N12-5의 문체 단서(`#### 답` 한 줄로 EIC 유형 수락률 0 → 0.87–0.95)와, 보상 규칙(2회 모두 aligned)이 in-distribution positive도 29% 거부하는 점.
+
+### N12-9. 진단 — verifier B도 데이터셋 문체를 단서로 쓰는가 (사용자 질문 2026-10-03)
+
+N12-5와 같은 실험을 B v3 epoch-5로 반복(같은 API 오답, 원래 vs 끝에 `#### <추출된 답>`, 2회 모두 aligned):
+
+| 목표 유형 | n | B 원래 | B + `####` | A 원래 | A + `####` |
+|---|---|---|---|---|---|
+| eic.calculation_error | 203 | 0.424 | 0.828 | 0.000 | 0.872 |
+| eic.confusing_formula_error | 196 | 0.020 | 0.128 | 0.000 | 0.112 |
+| eic.operator_error | 207 | 0.285 | 0.749 | 0.000 | 0.947 |
+| eic.unit_conversion_error | 168 | 0.411 | 0.679 | 0.000 | 0.369 |
+| mathedu.arithmetical_error | 203 | 0.611 | **0.000** | 0.025 | 0.000 |
+| mathedu.wrong_mathematical_operation_concept | 181 | 0.840 | **0.000** | 0.006 | 0.000 |
+
+- B도 같은 단서를 씀: `####` 한 줄로 EIC 유형 수락률이 오르고, MathEDU 유형은 0.61 / 0.84 → 0.000으로 떨어짐. 차이는 원래 상태에서 B가 API 풀이(LaTeX 위주)를 MathEDU 문체처럼 받아들여 MathEDU 유형과 EIC 일부를 통과시킨다는 점(A는 거의 다 거부). 같은 v3 데이터(다른 데이터셋·다른 단계 negative)로 학습한 결과로 보임.

@@ -28,7 +28,7 @@ from typing import Any, Callable, Mapping
 from tutee_rl.clients import RewardExecutionError
 from tutee_rl.common import append_jsonl, read_template, resolve
 from tutee_rl.orchestrator import RewardOrchestrator, _norm_answer, distractor_match
-from tutee_rl.rewards import normalized_win_scores, pair_schedule, truncation_info, truncation_reward, verifier_accepts
+from tutee_rl.rewards import diversity_scores, normalized_win_scores, pair_schedule, truncation_info, truncation_reward, verifier_accepts
 
 from .clients import DistractorMatcher, MockDistractorMatcher
 
@@ -177,7 +177,10 @@ class DistractorRewardOrchestrator(RewardOrchestrator):
         accepted = [i for i in range(len(block)) if mains[i] > 0]
         glog: dict[str, Any] = {"step": step, "PairId": pid, "K": len(accepted), "accepted": accepted, "cases": dict(Counter(cases))}
         aux_scores: dict[int, float] = {}
-        if len(accepted) >= 2:
+        if len(accepted) >= 2 and self.mode == "diversity":  # e.g. evaluation without judge calls (user 2026-10-03)
+            aux_scores, detail = diversity_scores(texts, accepted, self.bleu)
+            glog.update(detail)
+        elif len(accepted) >= 2:
             schedule = pair_schedule(accepted, self.seed, step, pid)
             calls = await asyncio.gather(*[self._flag_safe(
                 "student_likeness", lambda a=a, b=b: self.judge.compare(problem, texts[a], texts[b]),

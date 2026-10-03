@@ -117,3 +117,12 @@ def test_openai_refusal_does_not_stop_training(tmp_path):
     orch.answer.check = other_error
     with pytest.raises(RewardExecutionError):  # any other 400 still stops the run
         orch._run(orch._score_group(block, 0))
+
+
+def test_diversity_mode_needs_no_judge(tmp_path):
+    cfg = load_config(CONFIG, ["smoke.mock_reward_clients=true", "policy.model=/nonexistent", "rewards.auxiliary_reward=diversity"])
+    orch = DistractorRewardOrchestrator(cfg, FakeTokenizer(), tmp_path / "run", is_main=True)
+    assert orch.judge is None
+    _, block = block_for(orch)
+    rows, glog = orch._run(orch._score_group(block, 0))
+    assert "pairs" not in glog and all(0.0 <= r["aux"] <= 1.0 for r in rows)

@@ -1,0 +1,13 @@
+# Test evaluation on one 20 GB GPU (e.g. A100 MIG 3g.20gb on another server). The 7B Student (15.2 GB) and the
+# 8B test verifier B (16.4 GB) do not fit together, so run in two stages on GPU 0:
+#   evaluate_student.py --stage generate  ->  launch_eval_servers.sh  ->  evaluate_student.py --stage score
+# Verifier A is not served (no room for the A/B disagreement diagnostic). Reward settings = student_likeness.yaml.
+inherits: student_likeness.yaml
+evaluation:
+  generation_gpus: "0"
+  gpu_memory_utilization: 0.92
+  with_reward_verifier: false
+  server:
+    gpu: 0
+    gpu_memory_utilization: 0.92
+    max_model_len: 4096
