@@ -1,0 +1,10 @@
+# Evaluation beside another job that holds GPU 0 and port 8002 (2026-10-03): generation on GPUs 1-2, test verifier B
+# on GPU 3 port 8003. Everything else is the first distractor run's scoring (configs/student_likeness.yaml).
+inherits: student_likeness.yaml
+evaluation:
+  generation_gpus: "1,2"
+  verifier:
+    base_url: http://127.0.0.1:8003/v1
+  server:
+    gpu: 3
+    port: 8003

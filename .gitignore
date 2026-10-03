@@ -14,3 +14,6 @@ verifier_sft/reports/**/eval_*_limit*.md
 verifier_sft/outputs/**/api_responses.jsonl
 verifier_sft/logs/
 verifier_sft/outputs/**/gpt_parsing.jsonl
+
+# temporary folders (e.g. tempfile.TemporaryDirectory(dir=...) during HF uploads) must never be committed
+/tmp*/

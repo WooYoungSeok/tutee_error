@@ -128,6 +128,7 @@ def main() -> int:
     p.add_argument("--samples", type=int, default=2)
     p.add_argument("--concurrency", type=int, default=64)
     p.add_argument("--max_output_tokens", type=int, default=8000)
+    p.add_argument("--eval_dir", default="test_eval", help="evaluation folder inside the run (default test_eval)")
     args = p.parse_args()
     import verifier_common as vc
 
@@ -138,10 +139,10 @@ def main() -> int:
     prompt = {"system": sysp.read_text(encoding="utf-8"), "user": userp.read_text(encoding="utf-8")}  # as tutee_rl's orchestrator
     rows_meta = {r["PairId"]: r for r in read_jsonl(REPO / "rl/data/prepared/test.jsonl")}
     run = Path(args.run).resolve()
-    root = run / f"test_eval_api_verifier_{args.model}"
+    root = run / (f"test_eval_api_verifier_{args.model}" if args.eval_dir == "test_eval" else f"{args.eval_dir}_api_verifier_{args.model}")
     summary = {}
     for ck in args.checkpoints:
-        rows = read_jsonl(run / "test_eval" / ck / "rollouts" / "step_000000.jsonl")
+        rows = read_jsonl(run / args.eval_dir / ck / "rollouts" / "step_000000.jsonl")
         items = [{"key": {"PairId": r["PairId"], "group_pos": r["group_pos"]}, "question": rows_meta[r["PairId"]]["problem"],
                   "description": rows_meta[r["PairId"]]["target_misconception_description"], "solution": r["solution"]}
                  for r in rows if r["answer_check"]["verdict"] == "incorrect"]
