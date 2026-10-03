@@ -8,15 +8,19 @@ auxiliary term inside G and the truncation penalty. Model-only snapshots and res
 Launch through scripts/run_train_student.sh (servers first: scripts/launch_servers.sh):
   bash scripts/run_train_student.sh configs/student_likeness.yaml              # run name <experiment>_seed42_<KST stamp>
   bash scripts/run_train_student.sh configs/diversity.yaml --run_name newman_diversity_seed42_20261001_101500 --resume latest
+Another epoch after a finished run (prepared 2026-10-02, used only when the user decides; see continuation_plan()):
+  bash scripts/run_train_student.sh configs/student_likeness.yaml --continue_from outputs/<run>/epoch_checkpoints/epoch-1.00
 Refuses to start while a REQUIRED decision, an unapproved draft, or unverified data is involved (smoke_* runs excepted).
 """
 
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 import math
 import os
+import random
 import sys
 import time
 from pathlib import Path
@@ -58,7 +62,42 @@ def parse_args() -> argparse.Namespace:
     p.add_argument("--limit", type=int, default=None, help="smoke only: first N training conditions")
     p.add_argument("--resume", default=None, help="checkpoint dir, or 'latest' (needs --run_name)")
     p.add_argument("--report_to", default=None)
+    p.add_argument("--continue_from", default=None,
+                   help="model snapshot of a finished run (epoch_checkpoints/epoch-X): train one more stage from its weights "
+                        "with the KL reference kept on policy.model, no warmup and a new data order (continuation_plan)")
     return p.parse_args()
+
+
+def continuation_plan(cfg, path: str | None) -> dict | None:
+    """Settings of a continuation stage (prepared 2026-10-02 on the user's request; not yet decided to run).
+    - policy weights from the snapshot (Adam moments start fresh: snapshots hold weights only);
+    - KL reference stays the original policy.model, so the objective is the same as in the first stage;
+    - learning rate: cfg.continuation.warmup_ratio (0) warmup, then the same linear decay over num_train_epochs;
+    - data order: the training conditions are permuted with a stage-specific seed before TRL's own seeded shuffle,
+      so the stage does not replay the first epoch's order;
+    - snapshot names continue the epoch count (epoch-1.25 ... after a 1-epoch first stage)."""
+    if not path:
+        return None
+    snap = Path(path).resolve()
+    if not (snap / "config.json").exists():
+        raise SystemExit(f"--continue_from {path}: no model snapshot (config.json) there")
+    meta = snap / "epoch_meta.json"
+    if not meta.exists():
+        raise SystemExit(f"--continue_from {path}: no epoch_meta.json to read the finished epoch count from")
+    offset = float(read_json(meta)["epoch"])
+    stage = int(round(offset / float(cfg["training"]["num_train_epochs"]))) + 1
+    return {"from": rel(snap), "from_run": snap.parent.parent.name, "epoch_offset": offset, "stage": stage,
+            "reference_model": cfg["policy"]["model"], "warmup_ratio": float(cfg["continuation"]["warmup_ratio"]),
+            "data_permutation_seed": f"{cfg['seed']}|stage{stage}", "optimizer_state": "fresh (snapshot holds weights only)"}
+
+
+def permute_for_stage(rows: list, cont: dict | None) -> list:
+    if not cont:
+        return rows
+    rng = random.Random(int(hashlib.sha256(cont["data_permutation_seed"].encode()).hexdigest()[:16], 16))
+    rows = list(rows)
+    rng.shuffle(rows)
+    return rows
 
 
 def write_generation_config(model_dir: Path, cfg) -> None:
@@ -72,10 +111,10 @@ def write_generation_config(model_dir: Path, cfg) -> None:
     path.write_text(json.dumps(out, indent=2) + "\n", encoding="utf-8")
 
 
-def build_dataset(cfg, tokenizer, taxonomy, limit):
+def build_dataset(cfg, tokenizer, taxonomy, limit, cont=None):
     from datasets import Dataset
 
-    rows = read_jsonl(resolve(cfg["paths"]["prepared_dir"]) / "train.jsonl")
+    rows = permute_for_stage(read_jsonl(resolve(cfg["paths"]["prepared_dir"]) / "train.jsonl"), cont)
     if limit:
         rows = rows[:limit]
     template = load_student_template(cfg["prompts"]["student"])
@@ -98,11 +137,12 @@ def main() -> int:
     cfg = load_config(args.config, args.override)
     if args.resume == "latest" and not args.run_name:
         raise SystemExit("--resume latest needs --run_name of the run to continue")
+    cont = continuation_plan(cfg, args.continue_from)
     if args.resume and args.resume != "latest":
         run_dir = Path(args.resume).resolve().parent
         run_name = run_dir.name
     else:
-        run_name = args.run_name or default_run_name(cfg["experiment"], int(cfg["seed"]))
+        run_name = args.run_name or default_run_name(cfg["experiment"] + (f"_stage{cont['stage']}" if cont else ""), int(cfg["seed"]))
         run_dir = resolve(cfg["paths"]["output_root"]) / run_name
     smoke = preflight.is_smoke(run_name)
     mock = bool(cfg.get("smoke", {}).get("mock_reward_clients"))
@@ -144,7 +184,7 @@ def main() -> int:
     tokenizer = AutoTokenizer.from_pretrained(cfg["policy"]["model"])
     if tokenizer.pad_token is None:
         tokenizer.pad_token = tokenizer.eos_token
-    dataset, data_stats = build_dataset(cfg, tokenizer, taxonomy, args.limit)
+    dataset, data_stats = build_dataset(cfg, tokenizer, taxonomy, args.limit, cont)
 
     prompts_per_step = per_step // int(gen["num_generations"])
     steps_per_epoch = math.ceil(len(dataset) / prompts_per_step)
@@ -181,7 +221,8 @@ def main() -> int:
         scale_rewards=t["scale_rewards"], num_iterations=int(t["num_iterations"]), num_train_epochs=float(t["num_train_epochs"]),
         max_steps=args.max_steps, per_device_train_batch_size=int(t["per_device_train_batch_size"]),
         gradient_accumulation_steps=int(t["gradient_accumulation_steps"]), gradient_checkpointing=bool(t["gradient_checkpointing"]),
-        bf16=bool(t["bf16"]), lr_scheduler_type=t["lr_scheduler_type"], warmup_steps=float(t["warmup_ratio"]),
+        bf16=bool(t["bf16"]), lr_scheduler_type=t["lr_scheduler_type"],
+        warmup_steps=float(cont["warmup_ratio"] if cont else t["warmup_ratio"]),
         max_grad_norm=float(t["max_grad_norm"]), logging_steps=int(t["logging_steps"]),
         save_strategy="steps", save_steps=resume_ratio if resume_ratio < 1 else total_steps, save_total_limit=t["resume_save_total_limit"],
         report_to=report_to, ddp_timeout=int(t["ddp_timeout_s"]), mask_truncated_completions=bool(t["mask_truncated_completions"]),
@@ -236,7 +277,7 @@ def main() -> int:
         def on_step_end(self, args_, state_, control, **kw):
             if state_.global_step not in self.save_at:
                 return control
-            epoch = self.save_at[state_.global_step]
+            epoch = self.save_at[state_.global_step] + (cont["epoch_offset"] if cont else 0.0)
             out = run_dir / "epoch_checkpoints" / f"epoch-{epoch:.2f}"
             started = time.monotonic()
             self.trainer.save_model(str(out))  # collective under DeepSpeed: every rank calls it
@@ -278,6 +319,7 @@ def main() -> int:
             "deepspeed_config": os.environ.get("ACCELERATE_DEEPSPEED_CONFIG_FILE"),
             "gpus": [torch.cuda.get_device_name(i) for i in range(torch.cuda.device_count())],
             "report_to": report_to, "wandb_project": t["wandb_project"] if report_to == "wandb" else None,
+            "continuation": cont,
         }
         if args.resume and (run_dir / meta_name).exists():  # keep the original run's metadata
             meta_name = f"run_meta.resume_{run_stamp()}.json"
@@ -285,8 +327,20 @@ def main() -> int:
         print(json.dumps({k: meta[k] for k in ("run_name", "completions_per_step", "prompts_per_step", "total_steps_estimate")}, indent=2))
 
     epoch_cb = EpochSave()
-    trainer = NewmanGRPOTrainer(model=cfg["policy"]["model"], reward_funcs=funcs, args=grpo_args, train_dataset=dataset,
+    model = cfg["policy"]["model"]
+    if cont:  # weights from the snapshot; TRL copies the reference from config._name_or_path, which stays the base model
+        from transformers import AutoModelForCausalLM
+
+        model = AutoModelForCausalLM.from_pretrained(str(resolve(cont["from"])), dtype=torch.bfloat16,
+                                                     attn_implementation=cfg["policy"]["attn_implementation"])
+        model.config._name_or_path = cfg["policy"]["model"]
+    trainer = NewmanGRPOTrainer(model=model, reward_funcs=funcs, args=grpo_args, train_dataset=dataset,
                                 processing_class=tokenizer, callbacks=[epoch_cb])
+    if cont:
+        ref = getattr(trainer.ref_model, "module", trainer.ref_model)
+        if ref is None or ref.config._name_or_path != cfg["policy"]["model"]:
+            raise SystemExit(f"continuation: the KL reference is {getattr(getattr(ref, 'config', None), '_name_or_path', None)}, "
+                             f"not {cfg['policy']['model']}")
     epoch_cb.trainer = trainer
     trainer.train(resume_from_checkpoint=True if args.resume == "latest" else args.resume)
     trainer.save_model(str(run_dir / "final"))

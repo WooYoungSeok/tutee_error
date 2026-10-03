@@ -1,0 +1,33 @@
+# Eedi GRPO with a verifiable distractor reward (user decisions 2026-10-02). Everything not listed here is the Eedi
+# student_likeness run's setting (../../rl/configs/common.yaml + student_likeness.yaml). Paths resolve from rl/.
+inherits: ../../rl/configs/student_likeness.yaml
+experiment: distractor_student_likeness
+
+paths:
+  output_root: ../distractor_rl/outputs
+
+prompts:   # answer judge = the Eedi text (inherited, unchanged); a second call for incorrect answers only (user 2026-10-02)
+  distractor_match_system: ../distractor_rl/prompts/distractor_match_system.txt
+  distractor_match_user: ../distractor_rl/prompts/distractor_match_user.txt
+
+openai_client:
+  flagged_attempts: 3                   # OpenAI invalid_prompt refusal: 3 tries, then null verdict / no match / tie
+
+answer_check:
+  reasoning_effort: low                 # user 2026-10-02: every gpt-5-nano call (the Eedi run sent none)
+
+student_likeness:
+  reasoning_effort: low                 # user 2026-10-02
+
+rewards:
+  lambda_correct_penalty: 0.75          # correct final answer -> -0.75 (user 2026-10-02)
+  null_verdict_main_reward: -0.75       # no clear final answer -> -0.75
+  distractor_match_reward: 1.0          # incorrect and equal to a target distractor (literal guard or gpt-5-nano check)
+  verifier_pass_reward: 0.5             # incorrect, no target distractor, reward verifier 2/2 aligned
+  auxiliary_reward: student_likeness    # 0.5 x pairwise student-likeness inside G = {main > 0}
+
+training:
+  report_to: wandb
+  wandb_project: tutee_error_distractor_rl
+  resume_save_steps: 171                # every 0.5 epoch (341 steps/epoch), all kept (repo rule: checkpoints are never deleted)
+  resume_save_total_limit: 100

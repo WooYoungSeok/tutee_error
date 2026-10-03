@@ -66,6 +66,9 @@ training:
   wandb_project: tutee_error_newman_rl
   ddp_timeout_s: 5400
 
+continuation:                           # prepared 2026-10-02 (user asked to prepare only); read only with
+  warmup_ratio: 0.0                     # train_student.py --continue_from: no warmup, KL reference stays policy.model
+
 rewards:                                # plan 8.3
   lambda_correct_penalty: 0.75
   null_verdict_main_reward: -0.75
@@ -87,6 +90,8 @@ answer_check:                           # plan 8.1: every rollout
 
 openai_client:
   keepalive_expiry_s: 600
+  flagged_attempts: 3                   # user 2026-10-02: an OpenAI invalid_prompt refusal is retried 3 times, then the
+                                        # answer check counts as a null verdict (-0.75) and a likeness pair as a tie
 
 verifier:                               # reward verifier A (plan 8.2)
   checkpoint: WooYoungSeok/newman-verifier_half_a_v3_seed42_20261001_171232-epoch-5   # user 2026-10-02: v3 A best (HF private)
@@ -178,7 +183,7 @@ evaluation:                             # plan 10
     max_model_len: 4096
 
 api_baselines:                          # plan 10.1 (open): same conditions, same scoring, generated through the API
-  models: [gpt-5.6-sol]                 # user decision 2026-09-30
+  models: [gpt-5.6-sol, gpt-5.1]        # user decision 2026-09-30 (gpt-5.6-sol); gpt-5.1 added by the user 2026-10-02
   samples_per_condition: 1              # user 2026-10-02: one sample, compared by B joint success (wrong + B 2/2 aligned)
   reasoning_effort: null                # not sent: the model's default, as verifier_sft/eval_api_verifier.py (user 2026-09-30)
   max_output_tokens: 8000               # includes reasoning tokens (user 2026-09-30)

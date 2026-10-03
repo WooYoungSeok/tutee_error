@@ -108,7 +108,7 @@ def test_confirmed_rl_settings():
     assert cfg["evaluation"]["verifier"]["checkpoint"] == "WooYoungSeok/newman-verifier_half_b_v3_seed42_20261001_194709-epoch-5"
     ev = cfg["evaluation"]
     assert (ev["select_split"], ev["select_metric"], ev["split"]) == ("validation", "reward_total_mean", "test")
-    assert cfg["api_baselines"]["models"] == ["gpt-5.6-sol"] and cfg["api_baselines"]["reasoning_effort"] is None
+    assert cfg["api_baselines"]["models"] == ["gpt-5.6-sol", "gpt-5.1"] and cfg["api_baselines"]["reasoning_effort"] is None
     assert cfg["api_baselines"]["max_output_tokens"] == 8000 and cfg["likeness_comparison"]["pairing"] == "rollout_index"
     assert cfg["api_baselines"]["samples_per_condition"] == 1  # user 2026-10-02
     assert cfg["evaluation"]["student_likeness_judge_splits"] == ["validation"]  # user 2026-10-02

@@ -29,6 +29,7 @@ from pathlib import Path
 from typing import Any, Callable, Mapping, Sequence
 
 from tutee_rl.clients import AnswerChecker, PairwiseJudge, RewardExecutionError, openai_api_client
+from tutee_rl.common import append_jsonl
 from tutee_rl.orchestrator import GroupIntegrityError, policy_eos_ids
 from tutee_rl.rewards import (
     TruncationInfo,
@@ -55,6 +56,19 @@ def _dist():
 
 def accepted(labels: Sequence[str] | None) -> bool:
     return bool(labels) and all(x == "aligned" for x in labels)
+
+
+FLAGGED_CODE = "invalid_prompt"
+
+
+def is_flagged(exc: BaseException | None) -> bool:
+    """True when OpenAI refused the request content as a possible usage-policy violation (HTTP 400 invalid_prompt).
+    The reused tutee_rl clients treat every 400 as fatal; this one is caused by the Student's text, not the setup."""
+    while exc is not None:
+        if getattr(exc, "code", None) == FLAGGED_CODE or (type(exc).__name__ == "BadRequestError" and FLAGGED_CODE in str(exc)):
+            return True
+        exc = exc.__cause__
+    return False
 
 
 class RewardOrchestrator:
@@ -261,7 +275,11 @@ class RewardOrchestrator:
         problem, error_id = row["question"], row["source_error_id"]
 
         async def one(item):
-            check = await self.answer.check(problem, str(priv["answer_contract"]), str(priv["reference_answer"]), item["text"])
+            check = await self._flag_safe(
+                "answer_check", lambda: self.answer.check(problem, str(priv["answer_contract"]), str(priv["reference_answer"]), item["text"]),
+                {"extracted_answer": None, "verdict": None, "reason": "request flagged by OpenAI (invalid_prompt); scored as unjudgeable",
+                 "raw_text": None, "usage": None, "response_id": None, "request_id": None},
+                {"step": step, KEY: key, "position": block.index(item), "text": item["text"]})
             if check["verdict"] != "incorrect":
                 return check, None, None
             calls = [self.verifier.judge(problem, item["text"], error_id)]
@@ -289,12 +307,16 @@ class RewardOrchestrator:
                 glog.update(detail)
             elif self.mode == "student_likeness":
                 schedule = pair_schedule(accepted_now, self.seed, step, key)
-                calls = await asyncio.gather(*[self.judge.compare(problem, texts[a], texts[b]) for a, b in schedule])
+                calls = await asyncio.gather(*[self._flag_safe(
+                    "student_likeness", lambda a=a, b=b: self.judge.compare(problem, texts[a], texts[b]),
+                    {"winner": "tie", "raw_text": None, "response_id": None, "request_id": None, "usage": None},
+                    {"step": step, KEY: key, "pair": [a, b], "texts": [texts[a], texts[b]]}) for a, b in schedule])
                 aux_scores = normalized_win_scores(accepted_now, [(a, b, c["winner"]) for (a, b), c in zip(schedule, calls)])
                 glog["pairs"] = [{"A": a, "B": b, "winner": c["winner"],
                                   "winner_index": a if c["winner"] == "A" else b if c["winner"] == "B" else None,
                                   "raw_text": c["raw_text"], "response_id": c["response_id"], "request_id": c["request_id"],
-                                  "usage": c["usage"], "latency_s": c["latency_s"], "attempts": c["attempts"]}
+                                  "usage": c["usage"], "latency_s": c["latency_s"], "attempts": c["attempts"],
+                                  **({"flagged": True} if c.get("flagged") else {})}
                                  for (a, b), c in zip(schedule, calls)]
         rw = self.cfg["rewards"]
         combined = combine_group(verdicts, labels, trunc, lambda acc: aux_scores, float(rw["lambda_correct_penalty"]),
@@ -321,6 +343,25 @@ class RewardOrchestrator:
             out.append(rec)
         return out, glog
 
+    async def _flag_safe(self, role: str, call: Callable[[], Any], fallback: Mapping[str, Any], context: Mapping[str, Any]):
+        """User decision 2026-10-02: a request OpenAI flags (invalid_prompt) is sent again up to
+        openai_client.flagged_attempts times; if every attempt is flagged, the answer check becomes a null verdict
+        (main reward -0.75, as an unjudgeable answer) and a student-likeness pair a tie. Each case goes to
+        rollouts/flagged.jsonl. Every other error keeps the tutee_rl policy (retry or abort)."""
+        attempts = int(self.cfg["openai_client"].get("flagged_attempts", 3))
+        error = ""
+        for _ in range(attempts):
+            try:
+                return await call()
+            except RewardExecutionError as exc:
+                if not is_flagged(exc):
+                    raise
+                error = str(exc)[:500]
+        if self.is_main:
+            append_jsonl(self.run_dir / "rollouts" / "flagged.jsonl",
+                         [{"role": role, "attempts": attempts, "error": error, "at": time.strftime("%Y-%m-%dT%H:%M:%S"), **context}])
+        return {**fallback, "flagged": True, "attempts": attempts, "latency_s": 0.0, "cached": False}
+
     def _write_logs(self, step: int, results: list[dict[str, Any]], group_logs: list[dict[str, Any]]) -> None:
         # one scoring pass per optimizer step: a step redone after --resume replaces its earlier files
         write_jsonl(self.run_dir / "rollouts" / f"step_{step:06d}.jsonl", results)
@@ -337,6 +378,7 @@ class RewardOrchestrator:
         fresh = [r["answer_check"] for r in results if not r["answer_check"].get("cached")]
         m = {
             "answer/null_rate": verdicts[None] / n,
+            "answer/flagged_rate": sum(1 for r in results if r["answer_check"].get("flagged")) / n,
             "answer/correct_rate": verdicts["correct"] / n,
             "answer/incorrect_rate": verdicts["incorrect"] / n,
             "answer/incorrect_rate_judgeable": verdicts["incorrect"] / judged if judged else 0.0,
@@ -375,6 +417,7 @@ class RewardOrchestrator:
         elif self.mode == "student_likeness":
             pairs = [p for gl in group_logs for p in gl.get("pairs", [])]
             m["student_likeness/pairs"] = float(len(pairs))
+            m["student_likeness/flagged_pairs"] = float(sum(1 for p in pairs if p.get("flagged")))
             m["student_likeness/tie_rate"] = sum(1 for p in pairs if p["winner"] == "tie") / len(pairs) if pairs else 0.0
             m["student_likeness/A_win_rate"] = sum(1 for p in pairs if p["winner"] == "A") / len(pairs) if pairs else 0.0
         return m

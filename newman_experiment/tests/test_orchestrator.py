@@ -89,3 +89,49 @@ def test_mixed_group_is_rejected(tmp_path):
     items = [{"rank": 0, "local_idx": i, "condition_id": ids[0] if i != 3 else ids[1], "ids": [1, EOS], "text": "x"} for i in range(8)]
     with pytest.raises(GroupIntegrityError):
         orch.score_global(items, 0)
+
+
+class _Flagged(Exception):
+    code = "invalid_prompt"
+
+
+class _FlaggingChecker:
+    """Answer checker whose request for one solution text is always refused as invalid_prompt."""
+
+    def __init__(self, inner, bad_text, other_error=False):
+        self.inner, self.bad_text, self.other_error, self.calls = inner, bad_text, other_error, 0
+
+    async def check(self, problem, contract, reference, solution):
+        from tutee_rl.clients import RewardExecutionError
+        if solution == self.bad_text:
+            self.calls += 1
+            cause = ValueError("model not found") if self.other_error else _Flagged("Invalid prompt: flagged")
+            raise RewardExecutionError("answer check fatal error BadRequestError") from cause
+        return await self.inner.check(problem, contract, reference, solution)
+
+
+def test_flagged_answer_check_is_retried_then_scored_as_unjudgeable(tmp_path):
+    from newman.orchestrator import is_flagged
+    from tutee_rl.clients import RewardExecutionError
+
+    ids = ["c1"]
+    prepared(tmp_path, ids)
+    orch = RewardOrchestrator(cfg_for(tmp_path), FakeTokenizer(), tmp_path / "run", is_main=True)
+    funcs, _ = orch.reward_funcs()
+    completion_ids = [[100 + i, 3, i, EOS] for i in range(8)]
+    bad = FakeTokenizer().batch_decode([completion_ids[2]])[0].strip()
+    orch.answer = _FlaggingChecker(orch.answer, bad)
+    kwargs = {"condition_id": ["c1"] * 8, "trainer_state": None, "log_metric": None}
+    main = funcs[0]([None] * 8, [None] * 8, completion_ids, **kwargs)
+    assert main[2] == -0.75 and orch.answer.calls == 3          # three attempts, then a null verdict
+    logged = read_jsonl(tmp_path / "run" / "rollouts" / "step_000000.jsonl")
+    assert logged[2]["answer_check"]["verdict"] is None and logged[2]["answer_check"]["flagged"] is True
+    flagged = read_jsonl(tmp_path / "run" / "rollouts" / "flagged.jsonl")
+    assert len(flagged) == 1 and flagged[0]["text"] == bad and flagged[0]["role"] == "answer_check"
+    assert is_flagged(RewardExecutionError("x").with_traceback(None)) is False
+
+    other = RewardOrchestrator(cfg_for(tmp_path), FakeTokenizer(), tmp_path / "run2", is_main=True)
+    f2, _ = other.reward_funcs()
+    other.answer = _FlaggingChecker(other.answer, bad, other_error=True)
+    with pytest.raises(RewardExecutionError):                      # any other 400 still stops the run
+        f2[0]([None] * 8, [None] * 8, completion_ids, **kwargs)
