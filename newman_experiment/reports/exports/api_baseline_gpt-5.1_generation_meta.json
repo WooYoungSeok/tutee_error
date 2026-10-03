@@ -1,0 +1,23 @@
+{
+  "kind": "api",
+  "model": "gpt-5.1",
+  "conditions": 1752,
+  "rollouts": 1752,
+  "started_at": "2026-10-02T16:07:32+09:00",
+  "finished_at": "2026-10-02T16:08:50+09:00",
+  "timezone": "Asia/Seoul",
+  "request": {
+    "max_output_tokens": 8000,
+    "reasoning_effort": null,
+    "temperature": "not sent",
+    "samples_per_condition": 1
+  },
+  "student_prompt_sha256": "ccb99b191177fc77aad3f1e63308bdab69efde8491f70d0d433cc7573e4c16d9",
+  "taxonomy_sha256": "9b7cc796466492a7433cb3f2ff6ffcb9a1315fedd5abdd968cb8aa916ceebdba",
+  "truncated": 0,
+  "usage_total": {
+    "input_tokens": 635968,
+    "output_tokens": 321748
+  },
+  "prepared_test": "{\"path\": \"data/prepared/rl\", \"limit\": null}"
+}

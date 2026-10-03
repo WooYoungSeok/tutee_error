@@ -1,0 +1,45 @@
+{
+  "checkpoint": "epoch-2.0",
+  "verifier_model": "gpt-5.6-sol",
+  "samples": 2,
+  "rule": "incorrect (gpt-5-nano) and every call exactly `aligned`",
+  "request": {
+    "reasoning_effort": "not sent",
+    "max_output_tokens": 8000
+  },
+  "prompt_sha256": {
+    "system": "8873b8bcb1a596d72028d9444a4cad0748d37ff6bf5f36bfbac021ce857be16a",
+    "user": "e1fb1b93fbe7bf8b3d4a808ca8fa97b603b818928d70cbbc9543b23b79f1d60f"
+  },
+  "usage_total": {
+    "input_tokens": 2369792,
+    "output_tokens": 279746
+  },
+  "metrics": {
+    "rollouts": 3848,
+    "wrong_rate": 0.8058731808731808,
+    "sol_accept_given_wrong": 0.8078039342147695,
+    "sol_success": 0.650987525987526,
+    "sol_success_single_call": 0.6645010395010394,
+    "b_accept_given_wrong": 0.9925830377297646,
+    "b_success": 0.7998960498960499,
+    "sol_accept_given_wrong_distractor_matched": 0.9601081812035159,
+    "sol_accept_given_wrong_not_matched": 0.6689272503082614,
+    "sol_b_disagreement_given_wrong": 0.1886488229603354,
+    "invalid_sample_rate": 0.0,
+    "ci95_question_group_bootstrap": {
+      "sol_success": [
+        0.6179979253112033,
+        0.6831761006289309
+      ],
+      "sol_accept_given_wrong": [
+        0.7822503961965135,
+        0.8337792642140468
+      ],
+      "b_success": [
+        0.7719206680584552,
+        0.8240062761506276
+      ]
+    }
+  }
+}

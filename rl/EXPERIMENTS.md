@@ -601,3 +601,15 @@ test (481쌍 × 8, verifier B, `test_eval/summary.json`, best = test 평균 rewa
 ### D6. checkpoint 정리 (사용자 지시 2026-10-03)
 
 수렴하지 않은 run은 best 하나만 남김: `distractor_student_likeness_seed42_20261003_011448` → epoch-2.0(test best)만, `newman_student_likeness_seed42_20261002_154536` → 평가하지 않아 best가 없으므로 가장 많이 학습된 epoch-0.50만. 재개 checkpoint와 나머지 snapshot, smoke 가중치는 삭제(각 폴더 `checkpoints_deleted.json`). rollout·평가 기록은 보관.
+
+### D7. 실행 확인 — distractor 1차 test를 gpt-5.6-sol verifier로 채점 (사용자 요청 2026-10-03)
+
+`distractor_rl/scripts/score_api_verifier.py`, 결과 `<run>/test_eval_api_verifier_gpt-5.6-sol/{base,epoch-2.0}/metrics.json`. test rollout의 gpt-5-nano 오답 판정을 그대로 쓰고, 오답만 gpt-5.6-sol에 Eedi verifier(half-A/B)와 같은 system/user 메시지(`verifier_sft/prompts/system.txt`, `user.txt`: 질문·풀이·misconception 설명)로 보냄. 오답당 2회, 둘 다 aligned면 통과. reasoning 미전송, max_output_tokens 8000, invalid 0. 질문 그룹 bootstrap 1000.
+
+| 모델 | 오답률 | 오답 중 sol 통과 [95% CI] | **sol success** (오답 + sol 2/2) [95% CI] | 1회 호출 success | 오답 중 B 통과 | B success | 오답 중 sol 통과: distractor 일치 / 불일치 | sol·B 불일치 (오답 중) | 사용량 (입력 / 출력) |
+|---|---|---|---|---|---|---|---|---|---|
+| base | 0.417 | 0.783 [0.739, 0.824] | **0.327** [0.287, 0.368] | 0.332 | 0.978 | 0.408 | 0.966 / 0.608 | 0.199 | 1,037,164 / 135,080 |
+| epoch-2.0 | 0.806 | 0.808 [0.782, 0.834] | **0.651** [0.618, 0.683] | 0.665 | 0.993 | 0.800 | 0.960 / 0.669 | 0.189 | 2,369,792 / 279,746 |
+
+- gpt-5.6-sol은 B보다 엄격함(오답 중 통과 0.78–0.81 vs 0.98–0.99). distractor와 일치한 오답은 96–97% 통과, 일치하지 않는 오답은 61–67%만 통과.
+- sol 기준으로도 success는 base 0.327 → epoch-2.0 0.651로 두 배. 오답 중 통과율은 0.783 → 0.808로 거의 같아, 늘어난 몫은 대부분 오답이 늘어난 데서 옴.
