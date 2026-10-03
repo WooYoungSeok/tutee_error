@@ -1,0 +1,11 @@
+Problem:
+{problem}
+
+Answer contract:
+{answer_contract}
+
+Given options:
+{options}
+
+Student's final answer:
+{extracted_answer}

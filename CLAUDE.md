@@ -1,6 +1,6 @@
 # tutee_error — 에이전트 공통 규칙
 
-현재 진행 중인 실험은 `newman_experiment/`다. 그 안의 [`AGENTS.md`](newman_experiment/AGENTS.md)를 먼저 읽는다.
+현재 진행 중인 실험은 `distractor_rl/`(Eedi GRPO 변형, verifiable distractor 보상)이다. 그 안의 [`README.md`](distractor_rl/README.md)와 `rl/EXPERIMENTS.md`의 "Distractor 보상 실험" 절을 먼저 읽는다. 이전 실험 `newman_experiment/`는 2026-10-02에 중단했다(verifier A가 데이터셋 문체를 단서로 씀, `rl/EXPERIMENTS.md` N12-5) — [`AGENTS.md`](newman_experiment/AGENTS.md).
 사용자와의 대화는 한국어로 한다.
 
 - 연구 설계(프롬프트, 보상·loss, RM 출력 계약, 열린 sampling·batch 값)는 사용자와 먼저 확정한다. 확정된 결정은 다시 묻지 않는다.

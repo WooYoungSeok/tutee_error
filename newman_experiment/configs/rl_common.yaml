@@ -41,7 +41,7 @@ training:
   loss_type: dapo
   scale_rewards: group
   num_iterations: 1
-  num_train_epochs: 2
+  num_train_epochs: 1                   # user 2026-10-02: GSM8K has ~3x the Eedi conditions (1,056 steps/epoch)
   per_device_train_batch_size: 8        # completions
   gradient_accumulation_steps: 2
   expected_completions_per_step: 48     # 3 GPUs x 8 x 2 = 6 conditions x 8; any other product refuses to start (plan 9)
@@ -59,12 +59,15 @@ training:
   vllm_importance_sampling_clip_max: 3.0
   vllm_importance_sampling_clip_min: null
   use_bias_correction_kl: true
-  model_save_every_epochs: 0.5          # model-only epoch_checkpoints/epoch-{0.5,1.0,1.5,2.0}, all kept
-  resume_save_every_epochs: 0.5        # full checkpoints for --resume at the snapshot points, all kept (user decision
-  resume_save_total_limit: null        # 2026-10-01 for a 2 TiB disk: ~4 x 114 GB per run instead of every 50 steps)
+  model_save_every_epochs: 0.25         # user 2026-10-02: model-only epoch_checkpoints/epoch-{0.25,0.50,0.75,1.00}, all kept
+  resume_save_every_epochs: 0.25       # full checkpoints for --resume at the snapshot points, all kept (user 2026-10-02;
+  resume_save_total_limit: null        # 4 per run x ~122 GB measured)
   report_to: wandb
   wandb_project: tutee_error_newman_rl
   ddp_timeout_s: 5400
+
+continuation:                           # prepared 2026-10-02 (user asked to prepare only); read only with
+  warmup_ratio: 0.0                     # train_student.py --continue_from: no warmup, KL reference stays policy.model
 
 rewards:                                # plan 8.3
   lambda_correct_penalty: 0.75
@@ -87,9 +90,11 @@ answer_check:                           # plan 8.1: every rollout
 
 openai_client:
   keepalive_expiry_s: 600
+  flagged_attempts: 3                   # user 2026-10-02: an OpenAI invalid_prompt refusal is retried 3 times, then the
+                                        # answer check counts as a null verdict (-0.75) and a likeness pair as a tie
 
 verifier:                               # reward verifier A (plan 8.2)
-  checkpoint: REQUIRED                  # the half-A epoch chosen on the SFT test (eval_verifier.py)
+  checkpoint: WooYoungSeok/newman-verifier_half_a_v3_seed42_20261001_171232-epoch-5   # user 2026-10-02: v3 A best (HF private)
   served_name: reward_verifier_a
   base_url: http://127.0.0.1:8001/v1
   samples: 2
@@ -148,7 +153,7 @@ distributed:
 
 storage:                                # all checkpoints are kept (user rule 5): train_student.py refuses to start
   model_snapshot_gb: 15.3               # when the projected total does not fit; sizes re-measured after each save
-  resume_checkpoint_gb: 114
+  resume_checkpoint_gb: 122             # measured 121.86 GB (smoke 2026-10-02)
   margin_gb: 50
 
 evaluation:                             # plan 10
@@ -160,7 +165,7 @@ evaluation:                             # plan 10
   seed: 42                              # per-rollout seeds sha256(seed|condition_id|k): identical for every model
   bootstrap_samples: 1000
   verifier:                             # test verifier B: replaces these keys of `verifier`, same sampling
-    checkpoint: REQUIRED                # the half-B epoch chosen on the SFT test
+    checkpoint: WooYoungSeok/newman-verifier_half_b_v3_seed42_20261001_194709-epoch-5   # user 2026-10-02: v3 B best (HF private)
     served_name: test_verifier_b
     base_url: http://127.0.0.1:8002/v1
   server:
@@ -168,6 +173,8 @@ evaluation:                             # plan 10
     port: 8002
     gpu_memory_utilization: 0.45
     max_model_len: 4096
+  student_likeness_judge_splits: [validation]   # user 2026-10-02: the judge scores validation (snapshot choice of the
+                                        # student_likeness run); not test, where humans rate student-likeness (aux = 0 there)
   with_reward_verifier: true            # also run A on the same wrong solutions (A acceptance, A/B disagreement)
   reward_verifier_server:
     gpu: 3
@@ -176,8 +183,8 @@ evaluation:                             # plan 10
     max_model_len: 4096
 
 api_baselines:                          # plan 10.1 (open): same conditions, same scoring, generated through the API
-  models: [gpt-5.6-sol]                 # user decision 2026-09-30
-  samples_per_condition: 8
+  models: [gpt-5.6-sol, gpt-5.1]        # user decision 2026-09-30 (gpt-5.6-sol); gpt-5.1 added by the user 2026-10-02
+  samples_per_condition: 1              # user 2026-10-02: one sample, compared by B joint success (wrong + B 2/2 aligned)
   reasoning_effort: null                # not sent: the model's default, as verifier_sft/eval_api_verifier.py (user 2026-09-30)
   max_output_tokens: 8000               # includes reasoning tokens (user 2026-09-30)
   concurrency: 64

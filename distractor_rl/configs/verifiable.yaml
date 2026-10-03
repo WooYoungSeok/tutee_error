@@ -1,0 +1,42 @@
+# Verifiable distractor reward, no verifier (user decisions 2026-10-03). Everything not listed is the Eedi
+# student_likeness run's setting (../../rl/configs/common.yaml + student_likeness.yaml). Paths resolve from rl/.
+inherits: ../../rl/configs/student_likeness.yaml
+experiment: distractor_verifiable
+
+paths:
+  output_root: ../distractor_rl/outputs
+
+prompts:
+  answer_extract_system: ../distractor_rl/prompts/answer_extract_system.txt     # extraction only, no grading (draft)
+  answer_extract_user: ../distractor_rl/prompts/answer_extract_user.txt
+  distractor_match_system: ../distractor_rl/prompts/distractor_match_system.txt # approved 2026-10-02
+  distractor_match_user: ../distractor_rl/prompts/distractor_match_user.txt
+
+openai_client:
+  flagged_attempts: 3                   # OpenAI invalid_prompt refusal: 3 tries, then null answer / no match / tie
+  hedge_after_s: 10                     # speed (user 2026-10-03): no answer after 10 s -> same request once more, first answer wins
+
+answer_check:                           # settings of every gpt-5-nano call except the likeness judge
+  reasoning_effort: low
+
+student_likeness:
+  reasoning_effort: low
+
+servers:
+  rollout:
+    gpu_memory_utilization: 0.85        # GPU 3 holds only the rollout server (no reward verifier): more KV cache, same sampling
+
+rewards:
+  variant: verifiable
+  distractor_match_reward: 1.0          # final answer = a target distractor of the condition
+  non_target_reward: -0.75              # anything else: correct, another wrong answer, no clear answer
+  auxiliary_reward: student_likeness    # kept for rl's config check; the terms actually used are below
+  auxiliary_terms:                      # inside G = {target distractor matched}, |G| >= 2
+    student_likeness: 0.5
+    diversity: 0.25
+
+training:
+  report_to: wandb
+  wandb_project: tutee_error_distractor_rl
+  resume_save_steps: 171                # every 0.5 epoch (341 steps/epoch at 6 conditions x 8), all kept
+  resume_save_total_limit: 100

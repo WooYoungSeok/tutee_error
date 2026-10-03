@@ -409,3 +409,195 @@ best epoch-5 (macro-F1 0.8508 > epoch-4 0.8467). 다른 test에서의 결과 (`t
 - v2 test(같은 데이터셋 negative만)에서는 A 2차보다 +0.048 높지만 gpt-5.6-sol보다 −0.027 낮다.
 - 다른 데이터셋 negative는 단계가 같아도 거의 다 거부한다(1차 test 0.006, gpt-5.6-sol 0.300). 뜻이 같은 다른 데이터셋 유형도 거부하므로 출처 단서를 쓰고 있을 가능성이 있다.
 
+
+### N11-2. 실행 확인 — B 3차 (`verifier_half_b_v3_seed42_20261001_194709`, 19:47–22:33, 평가 22:46)
+
+원래 서버의 run 폴더 대신 HF private repo `WooYoungSeok/newman-verifier_half_b_v3_seed42_20261001_194709-epoch-5`(snapshot `ddae4e08`)의 `newman_meta/`(run_meta.json, test_eval_summary.json)에서 옮겼다. 다른 test(v2, all-type) 교차 평가와 유형별 결과는 이 서버에 없다.
+
+
+| 항목 | 값 |
+|---|---|
+| run / W&B | `verifier_half_b_v3_seed42_20261001_194709` / tutee_error_newman_verifier |
+| 역할 / half | test / B |
+| backbone | `deepseek-ai/DeepSeek-R1-0528-Qwen3-8B` |
+| 데이터 | `newman_experiment/data/prepared_v3/sft/half_b.jsonl` sha256 `d803ed248315`, 3189 rows / 1063 anchors, mapping verified True |
+| 학습 | 5 epoch, lr 1e-05, wd 0.01, warmup 0.1, linear, batch 8x4x1 = 32, max grad norm 1.0, bf16 True, max len 4096 |
+| optimizer (실제) | accelerate.utils.deepspeed.DeepSpeedOptimizerWrapper > deepspeed.runtime.zero.stage_1_and_2.DeepSpeedZeroOptimizer > deepspeed.ops.adam.cpu_adam.DeepSpeedCPUAdam {'lr': 0.0, 'betas': [0.9, 0.999], 'eps': 1e-08, 'weight_decay': 0.01} |
+| 저장 | snapshots epoch-1 (16.39 GB), epoch-2 (16.39 GB), epoch-3 (16.39 GB), epoch-4 (16.39 GB), epoch-5 (16.39 GB); resume checkpoints none |
+| 프롬프트 / taxonomy | system `a2513fd9a228` user `e8d93eafa952` / `9b7cc7964664` |
+| 승인 | taxonomy_definitions: approved, verifier_prompt: approved, verifier_backbones: approved |
+| 버전 / git | torch 2.11.0+cu128, transformers 5.17.0, deepspeed 0.19.7 / `7c7c02879b73` dirty True |
+| 시간 | 2026-10-01T19:47:47+09:00 → 2026-10-01T22:33:55+09:00 |
+
+SFT test (`newman_experiment/data/prepared_v3/sft/test.jsonl` 1584 rows, sha256 `0aac89ffa7e3`), selection rule ['macro_f1:max', 'negative_false_acceptance:min'], best **epoch-5** — chosen on the test split (user rule 5): the chosen checkpoint's test score is optimistic
+
+| checkpoint | accuracy | macro_f1 | negative_recall | negative_false_acceptance | positive_recall | invalid_rate | test_loss |
+|---|---|---|---|---|---|---|---|
+| base | 0.0000 | 0.0000 | 0.0000 | 0.0000 | 0.0000 | 1.0000 | 18.9044 |
+| epoch-1 | 0.7102 | 0.5830 | 0.9470 | 0.0530 | 0.2367 | 0.0000 | 0.2479 |
+| epoch-2 | 0.7424 | 0.7307 | 0.7131 | 0.2869 | 0.8011 | 0.0000 | 0.1713 |
+| epoch-3 | 0.8049 | 0.7933 | 0.7812 | 0.2188 | 0.8523 | 0.0000 | 0.1396 |
+| epoch-4 | 0.8535 | 0.8338 | 0.8987 | 0.1013 | 0.7633 | 0.0000 | 0.1450 |
+| epoch-5 | 0.8580 | 0.8423 | 0.8797 | 0.1203 | 0.8144 | 0.0000 | 0.1948 |
+
+
+## N12. 계획 — Student GRPO 시작 (2026-10-02, A100 80GB × 4, 드라이버 580)
+
+| 항목 | 계획 값 |
+|---|---|
+| 보상 verifier A | `WooYoungSeok/newman-verifier_half_a_v3_seed42_20261001_171232-epoch-5` (v3 A best, SFT test macro-F1 0.8508) — 사용자 결정 2026-10-02 |
+| 평가 verifier B | `WooYoungSeok/newman-verifier_half_b_v3_seed42_20261001_194709-epoch-5` (v3 B best, SFT test macro-F1 0.8423) — 사용자 결정 2026-10-02 |
+| GPU 배치 | 학습 GPU 0–2 (8 × 3 × 2 = 48 풀이 = 6 조건/step), GPU 3에 rollout(0.50) + verifier A(0.35). 계획 배치 그대로 |
+| step 수 (추정) | train 6,336 조건 / 6 = 1,056 step/epoch × **1 epoch** = 1,056 step/run (사용자 결정 2026-10-02, 처음 계획 2 epoch) |
+| 저장 | snapshot + 재개 checkpoint **0.25 epoch마다**, 모두 보관 (run당 4 × 15 GB + 4 × 약 122 GB) |
+| 평가 학생다움 judge | validation에서만 호출(student_likeness snapshot 선택), test는 호출 안 함(사람이 평가, aux = 0) |
+| checkpoint 선택 | RL validation 704 조건 × 8 rollout에서 verifier B 기준 `reward_total_mean`(= main + 0.5 × aux + truncation의 rollout 평균) 최고 0.5 epoch snapshot |
+| API baseline | gpt-5.6-sol, **조건당 1회**(사용자 결정 2026-10-02), 비교 지표 B joint success(오답 + B 2/2 aligned). 학습과 동시에 생성 |
+| 남은 차단 | 승인 `answer_judge_prompt`, `student_likeness_prompt` (사용자와 재논의 중) |
+
+### N12-1. 실행 확인 — smoke (`smoke_newman_diversity_seed42_20261002_112231`, 실제 보상 경로, 3 step)
+
+| 항목 | 값 |
+|---|---|
+| 구성 | `configs/diversity.yaml` 그대로(7B policy, verifier A v3 epoch-5, gpt-5-nano low), `--max_steps 3 --report_to none`, snapshot·재개 저장은 끝 1회로 override |
+| GPU | 학습 0–2(각 38–46 GiB), GPU 3 rollout + A 76 GiB. 48 풀이 = 6 조건/step |
+| step 시간 | 55 / 40 / 50 s (`step_time` 37.2 / 39.0 / 51.8 s) |
+| 답 채점 | correct 0.67–0.85, null 0, retry 0, 지연 2.8–3.8 s |
+| verifier A | 오답 수락률 0 / 0.125 / 0.214, invalid 0 |
+| 저장 실측 | snapshot 15.24 GB(16 s), 재개 checkpoint **121.86 GB**(설정 추정 114 GB) |
+| API baseline | `outputs/api_baselines/gpt-5.6-sol`: 1,752 조건 × 1, truncated 0, 입력 635,968 / 출력 390,230 토큰, 11:22–11:24 |
+
+### N12-2. 중단 run — `_aborted/newman_student_likeness_seed42_20261002_121157`
+
+| 항목 | 값 |
+|---|---|
+| 기간 | 2026-10-02 12:13 → 15:23 (step 약 234 / 1,056, 첫 재개 checkpoint step 264 전이라 checkpoint 없음) |
+| 이유 | gpt-5-nano 답 채점 요청 하나가 OpenAI에서 `invalid_prompt`(정책 위반 의심)로 거부됨. 재사용한 `tutee_rl` client가 모든 400을 치명 오류로 처리해 학습 전체가 멈춤. 거부된 풀이 원문은 그 step의 로그가 쓰이기 전이라 남지 않음 |
+| 그때까지의 학습 지표 | 정답률 0.65–0.85 → 약 0.18, `groups/K_mean` 0.22 → 0.93, step 41–50 s |
+| 조치 | 사용자 결정(2026-10-02): 거부되면 3회 재시도 후 판정 불가(−0.75), judge 쌍은 무승부, `rollouts/flagged.jsonl`에 기록. 같은 설정으로 새 이름의 run을 처음부터 다시 시작 |
+
+### N12-3. 실행 확인 — API baseline 잠정 평가 (verifier **A** 사용, B 평가 전)
+
+학습 중이라 B를 올릴 GPU가 없어, 학습용으로 떠 있는 verifier A 서버로 먼저 채점했다(`outputs/api_baselines_prelim_verifierA/test_eval`, `--override evaluation.verifier.*=A`). **A는 보상 verifier라 최종 평가값이 아니다**(파일 안 지표 이름은 `b_*`지만 실제 판정은 A). 오답률은 gpt-5-nano(low) 판정으로 최종값과 같다. RL test 1,752 조건 × 1, 질문 그룹 bootstrap 1000.
+
+| 모델 | 생성 (입력 / 출력 토큰) | 오답률 [95% CI] | A 수락률 (오답 중) | **A 기준 success** (오답 + A 2/2) [95% CI] | 단계별 success (Comp. / Proc. / Read. / Transf.) |
+|---|---|---|---|---|---|
+| gpt-5.6-sol | 635,968 / 390,230 | 0.932 [0.920, 0.943] | 0.169 | 0.158 [0.141, 0.175] | 0.167 / 0.084 / 0.595 / 0.079 |
+| gpt-5.1 | 635,968 / 321,748 (16:07–16:08) | 0.833 [0.816, 0.851] | 0.164 | 0.136 [0.120, 0.152] | 0.299 / 0.087 / 0.225 / 0.101 |
+
+null 0 / 0.001, truncation 0, flagged 0. B 기준 최종값은 RL 학습이 끝나 GPU가 비면 같은 생성물로 다시 채점한다.
+
+### N12-4. 실행 확인 — API baseline을 gpt-5.6-sol verifier로 채점 (사용자 요청 2026-10-02)
+
+`scripts/score_generations_api_verifier.py`. N12-3과 같은 생성물·같은 gpt-5-nano 답 판정을 그대로 쓰고, 오답만 gpt-5.6-sol에 **학습한 verifier와 같은 system/user 메시지**로 보냄(`configs/verifier_common.yaml` api_verifier: reasoning 미전송, max_output_tokens 8000, 엄격 판정). 오답당 **2회 호출, 둘 다 aligned면 통과**(A/B 규칙과 같음). 결과 `outputs/api_baselines_verifier_gpt-5.6-sol/api_<model>/metrics.json`, 질문 그룹 bootstrap 1000.
+
+| 생성 모델 | 오답률 | 오답 중 통과율 (sol / A) | **success: sol verifier** [95% CI] | success: A (N12-3) | 1회 호출 success (sol) | 단계별 success, sol (Comp. / Proc. / Read. / Transf.) | 사용량 (입력 / 출력) |
+|---|---|---|---|---|---|---|---|
+| gpt-5.6-sol | 0.932 | 0.965 / 0.169 | **0.899** [0.886, 0.912] | 0.158 | 0.904 | 0.864 / 0.923 / 0.950 / 0.868 | 1,398,574 / 134,238 |
+| gpt-5.1 | 0.833 | 0.814 / 0.164 | **0.678** [0.659, 0.700] | 0.136 | 0.691 | 0.701 / 0.677 / 0.761 / 0.641 | 1,505,318 / 169,217 |
+
+- invalid 0, flagged 0, 2회 판정 불일치 1.2% / 3.1%.
+- A와 sol의 판정 (오답만, A 통과 / sol 통과): gpt-5.6-sol 생성물 A1/sol1 273, A0/sol1 1,302, A1/sol0 3, A0/sol0 54. gpt-5.1 생성물 222 / 965 / 17 / 255. A가 통과시킨 것은 거의 다 sol도 통과시키고, sol은 A가 거부한 것의 대부분을 통과시킴.
+- A0/sol1 무작위 예시 2개(측정 오류 "30분 = 0.3시간", 계산 오류 "2500 × 1/10 = 200")는 눈으로 보기에 조건에 맞음. LaTeX 형식 여부로는 A 수락률 차이가 거의 없음(gpt-5.1 LaTeX 0.129 / plain 0.175).
+- 해석 주의: sol은 자기 생성물을 0.965 통과시켜 gpt-5.1 생성물(0.814)보다 높음(자기 선호 가능성). 어느 verifier가 맞는지는 사람 검수 전에는 판단할 수 없음.
+
+### N12-5. 진단 — verifier A가 데이터셋 문체를 단서로 씀 (2026-10-02, `newman_student_likeness_seed42_20261002_154536` step 약 580 시점)
+
+- 학습 보상 정체: `reward/total_mean`은 step 150까지 −0.55 → 0으로 오른 뒤(대부분 정답률 0.77 → 0.1 감소) 0.0–0.13 사이에서 천천히 오름. A 수락률(오답 중) 0.11 → 약 0.15, `groups/K0_rate` 약 0.65.
+- 유형별 rollout당 성공(A 기준, 최근 150 step): EIC unit conversion / calculation / confusing formula / operator / previous step 모두 0.000–0.004로 **처음부터 0**, MathEDU 다섯 유형 0.009–0.137, Stepwise·MathClean·EIC adding irrelevant 0.26–0.43.
+- API baseline 오답(N12-3/4)에서도 같음: A 수락률 EIC operator / calculation / unit conversion / formula **0.000**(gpt-5.6-sol verifier 0.64–0.98).
+- **확인 실험**: 같은 API 풀이 끝에 GSM8K/EIC 형식 줄 `#### <추출된 답>`만 붙여 A에 다시 보냄(오답만, 2회 모두 aligned):
+
+| 목표 유형 | n | A 원래 | A + `####` |
+|---|---|---|---|
+| eic.calculation_error | 203 | 0.000 | 0.872 |
+| eic.operator_error | 207 | 0.000 | 0.947 |
+| eic.unit_conversion_error | 168 | 0.000 | 0.369 |
+| eic.confusing_formula_error | 196 | 0.000 | 0.112 |
+| mathedu.arithmetical_error | 203 | 0.025 | 0.000 |
+| mathedu.wrong_mathematical_operation_concept | 181 | 0.006 | 0.000 |
+
+- 해석: A 3차(v3)는 풀이의 문체가 목표 유형의 원본 데이터셋 문체와 맞는지를 크게 본다. v3 데이터의 "다른 데이터셋·다른 단계 negative"가 문체 불일치 → not_aligned를 가르친 것으로 보임(N11-1에서 다른 데이터셋 negative를 거의 다 거부한 것과 같은 현상). Student 출력에는 `####`가 0회(14,400 rollout)라 EIC 문체 유형은 보상을 거의 받지 못함. B 3차도 같은 데이터로 학습해 같은 문제가 있을 가능성이 높음(미확인, GPU가 비면 같은 실험).
+
+### N12-6. 중단 — `newman_student_likeness_seed42_20261002_154536` (2026-10-02, 사용자 지시)
+
+step 610 / 1,056에서 사용자 지시로 학습을 멈춤(N12-5의 verifier A 문체 단서 진단 뒤, Eedi distractor 보상 실험으로 전환). 남은 것: snapshot `epoch-0.25`, `epoch-0.50`, 재개 checkpoint `checkpoint-264`, `checkpoint-528`(모두 보관), rollouts step 0–609. 평가와 diversity run은 실행하지 않음.
+
+---
+
+# Distractor 보상 실험 (`distractor_rl/`, Eedi GRPO 변형, 2026-10-02 사용자 결정)
+
+`rl/` 코드는 고치지 않고 `distractor_rl/scripts/_patch.py`가 Eedi `RewardOrchestrator` 자리에 `DistractorRewardOrchestrator`를 넣어 `rl/scripts/train.py`, `evaluate.py`를 그대로 실행한다. 설정은 `rl/configs/student_likeness.yaml`을 상속(`distractor_rl/configs/student_likeness.yaml`).
+
+## D1. 계획
+
+| 항목 | 값 |
+|---|---|
+| main reward | 정답 −0.75, 최종 답 판정 불가(null) −0.75, **오답이면서 조건의 target distractor와 같음 1.0**(verifier 불필요), 그 밖의 오답 + reward verifier 2/2 aligned **0.5**, 그 밖 0 |
+| 보조항 | 0.5 × student-likeness, G = main > 0 (distractor 일치 + verifier 통과) |
+| 답 채점 | Eedi 지시문 그대로(`rl/prompts/answer_judge_*.txt`), gpt-5-nano **reasoning low** |
+| distractor 판정 | 오답일 때만 두 번째 gpt-5-nano 호출(low), target distractor(조건 misconception의 보기)만 제시: `distractor_rl/prompts/distractor_match_*.txt` (사용자 승인, sha256 `7d4ea6ee…` / `aeb97193…`) |
+| 결정적 보정 | `_norm_answer` 기준으로 정답 문자열과 같으면 정답, target distractor와 같으면 일치(채점기보다 우선) |
+| OpenAI 거부 | `invalid_prompt`는 3회 재시도 후 답 채점 → null(−0.75), distractor 판정 → 불일치, judge 쌍 → 무승부, `rollouts/flagged.jsonl` |
+| 그 밖 | Eedi run과 같음: Qwen2.5-7B-Instruct, Eedi train 2,048 / test 481쌍, Student 지시문(보기 숨김), T 1.0, 2 epoch 682 step, 48 풀이/step, reward verifier half-A, test verifier half-B, best = test 평균 reward. snapshot 0.5 epoch, 재개 checkpoint 171 step마다 모두 보관 |
+| target distractor 수 | 모든 쌍에 1개 이상 (train 1개 1,858 / 2개 164 / 3개 26) |
+
+## D2. 설계 변경 이력 (smoke로 확인)
+
+| smoke | 내용 |
+|---|---|
+| `smoke_distractor_seed42_20261003_003118` (한 번의 호출, 3 step) | 채점기에 target 보기를 함께 주자 정답 `150 m`을 "option C(1.5 m)와 다르다"며 오답 + 일치로 판정(정답에 +1). "정답 + 일치" 모순이 재시도를 부름(최대 5/6회) |
+| `smoke_distractor_seed42_20261003_004733` (한 번의 호출 + 보정, 2 step) | 정답 문자열과 같은 답을 오답으로 판정 6/96, 이유는 모두 "target 보기와 맞지 않음". 한 번의 호출 방식 폐기 → 두 번 호출(A안, 사용자 승인) |
+| `smoke_distractor_seed42_20261003_010822` (두 번 호출, 2 step) | 96 rollout: 정답 53, distractor 25(문자열 보정 20 + 채점기 5, 5건 모두 맞음), verifier 통과 17, 거부 1. 정답을 오답으로 판정 0, 재시도 0, 거부 0 |
+
+## D3. 실행 확인 — `distractor_student_likeness_seed42_20261003_011448`
+
+tmux `distractor`, `distractor_rl/scripts/run_pipeline.sh`(학습 → 자동 재개 → test 평가). W&B `tutee_error_distractor_rl/de0597b6`. 682 step, 첫 step 56 s(정답률 0.65, 오답 중 distractor 일치 0.71, 거부 0). 학습 2026-10-03 01:15 → 평가 종료 11:51, OpenAI 거부 0.
+
+test (481쌍 × 8, verifier B, `test_eval/summary.json`, best = test 평균 reward → **epoch-2.0**, test에서 골라 낙관적):
+
+| 모델 | 평균 reward | 정답률 | distractor 일치 (전체) | **distractor 일치 (오답 중)** | 그 밖 오답 + B 통과 | 오답 중 B 통과 | 성공(main > 0) |
+|---|---|---|---|---|---|---|---|
+| base | −0.032 | 0.583 | 0.204 | 0.490 | 0.205 | 0.978 | 0.409 |
+| epoch-0.5 | 0.528 | 0.262 | 0.355 | 0.481 | 0.376 | 0.989 | 0.731 |
+| epoch-1.0 | 0.604 | 0.214 | 0.359 | 0.458 | 0.422 | 0.992 | 0.781 |
+| epoch-1.5 | 0.597 | 0.219 | 0.366 | 0.470 | 0.406 | 0.988 | 0.773 |
+| **epoch-2.0** | 0.646 | 0.193 | 0.384 | 0.477 | 0.416 | 0.993 | 0.801 |
+
+- 학습 reward는 step 75 무렵 약 0.6에 이른 뒤 0.55–0.67에서 정체. 오른 몫은 정답률 감소(0.58 → 0.19)에서 옴.
+- **오답 중 distractor 일치율은 base 0.490 → 0.46–0.48로 늘지 않음**(학습 중에도 0.50 → 약 0.44). 전체 일치율이 0.20 → 0.38로 오른 것은 오답이 늘었기 때문. Eedi run(목표 보기 일치 24.7% → 21.2%)과 같은 양상.
+- verifier B가 오답의 98–99%를 통과시켜, distractor가 아닌 오답도 거의 다 0.5를 받음. distractor 일치의 추가 보상은 +0.5뿐.
+
+### D4. 분석 — 조건별 target distractor 일치 (test 481조건 × 8, 사용자 요청 2026-10-03)
+
+| 모델 | 일치 / 전체 | 일치 / 오답 | 한 번도 못 맞힌 조건 (0/8) | 1회 이상 | 4회 이상 | 8/8 | 8개 모두 정답인 조건 |
+|---|---|---|---|---|---|---|---|
+| base | 0.204 | 0.490 | 280 | 201 | 96 | 29 | 139 |
+| epoch-0.5 | 0.355 | 0.481 | 167 | 314 | 186 | 44 | 21 |
+| epoch-1.0 | 0.359 | 0.458 | 145 | 336 | 187 | 44 | 8 |
+| epoch-1.5 | 0.366 | 0.470 | 158 | 323 | 186 | 45 | 10 |
+| epoch-2.0 | 0.384 | 0.477 | 149 | 332 | 198 | 49 | 7 |
+
+- 조건당 일치 수(0–8) 분포: base 280/44/38/23/16/19/18/14/29, epoch-2.0 149/53/44/37/35/33/37/44/49.
+- base → epoch-2.0 조건별: 0 → 1회 이상 144, 1회 이상 → 0 13, 둘 다 0 136. 늘어난 조건 253, 줄어든 조건 56, 같음 172.
+- epoch-2.0에서 못 맞힌 149조건의 rollout: 그 밖 오답 + verifier 통과 792, 정답 390, 거부 7, null 3. 이 조건들에서 오답은 거의 다 같은 0.5를 받아 distractor 쪽 신호가 없음.
+- 그림이 있는 문제(`![` 포함, 158조건)는 못 맞힌 비율 0.34, 오답 중 일치 0.431. 그림 없는 문제(323조건)는 0.29, 0.499. target 보기가 "None of these" 같은 문장인 10조건은 7개를 못 맞힘.
+
+## D5. 계획 → 진행 중 — verifiable distractor 보상, verifier 없음 (사용자 결정 2026-10-03, `distractor_rl/configs/verifiable.yaml`)
+
+| 항목 | 값 |
+|---|---|
+| main reward | **target distractor 일치 +1, 그 밖의 모든 응답(정답·다른 오답·추출 불가) −0.75**, truncation −0.5 |
+| verifier | 사용하지 않음(서버도 띄우지 않음). 평가 단계에서 `rl/scripts/evaluate.py`가 서버 상태를 검사해서 B 서버를 띄우기만 하고 채점에는 쓰지 않음 |
+| 보조항 | G = distractor 일치 풀이, \|G\| ≥ 2일 때 0.5 × student-likeness(gpt-5-nano low) + 0.25 × BLEU diversity |
+| gpt-5-nano | ① 최종 답 **추출만**(정오답 판정 없음, `prompts/answer_extract_*.txt`, 사용자 승인) ② 추출된 답이 있으면 distractor 판정(승인된 지시문). 모두 reasoning low |
+| 결정적 보정 | 정답 문자열과 같으면 판정 호출 없이 불일치, target distractor 문자열과 같으면 일치 |
+| 속도 | 10초 안에 응답이 없으면 같은 요청을 한 번 더 보내 먼저 온 응답을 씀(`openai_client.hedge_after_s`, smoke에서 58.5초짜리 한 건이 step 전체를 붙잡은 것을 보고 넣음). rollout 서버 GPU 메모리 0.50 → 0.85 |
+| OpenAI 거부 | 3회 재시도 후 추출 불가 / 불일치 / 무승부, `rollouts/flagged.jsonl` |
+| 학습 | 그룹 8(16을 검토했다가 8 유지), step당 48 = 조건 6개, 2 epoch 682 step, 그 밖 Eedi run과 같음. snapshot 0.5 epoch, 재개 checkpoint 171 step, 모두 보관 |
+| smoke | `smoke_verifiable_seed42_20261003_123006`(그룹 16, 2 step: 채점 66.8초 중 judge 대기 대부분), `smoke_verifiable_seed42_20261003_125025`(그룹 8 + 중복 전송, 3 step: step 38–41초, 채점 7–19초). 두 smoke 모두 가중치는 사용자 지시로 삭제 |
+| run | `distractor_verifiable_seed42_20261003_130011`, W&B `tutee_error_distractor_rl/873ace3e`, 13:00 시작, step 41–42초(예상 약 8.7시간) |
+
+### D6. checkpoint 정리 (사용자 지시 2026-10-03)
+
+수렴하지 않은 run은 best 하나만 남김: `distractor_student_likeness_seed42_20261003_011448` → epoch-2.0(test best)만, `newman_student_likeness_seed42_20261002_154536` → 평가하지 않아 best가 없으므로 가장 많이 학습된 epoch-0.50만. 재개 checkpoint와 나머지 snapshot, smoke 가중치는 삭제(각 폴더 `checkpoints_deleted.json`). rollout·평가 기록은 보관.

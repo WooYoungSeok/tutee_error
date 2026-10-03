@@ -1,0 +1,8 @@
+Problem:
+{problem}
+
+Answer contract:
+{answer_contract}
+
+Generated solution:
+{generated_solution}

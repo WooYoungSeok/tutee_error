@@ -169,8 +169,7 @@ def run_generation(args, jobs) -> None:
 # --- 2. scoring -------------------------------------------------------------------------------
 
 
-def items_for(cfg, out_dir: Path, rows, tok) -> list[dict]:
-    g = int(cfg["generation"]["num_generations"])
+def items_for(cfg, out_dir: Path, rows, tok, g: int) -> list[dict]:
     order = {r["condition_id"]: i for i, r in enumerate(rows)}
     comps = [c for c in read_jsonl(out_dir / "completions.jsonl") if c["condition_id"] in order]
     comps.sort(key=lambda c: (order[c["condition_id"]], c["k"]))
@@ -184,16 +183,22 @@ def items_for(cfg, out_dir: Path, rows, tok) -> list[dict]:
              "truncated": bool(c["truncated"]), "length": c.get("output_tokens") or 0} for i, c in enumerate(comps)]
 
 
-def score(cfg, name: str, out_dir: Path, rows) -> dict:
+def score(cfg, name: str, out_dir: Path, rows, kind: str = "vllm", split: str = "test") -> dict:
     from transformers import AutoTokenizer
 
     from newman.orchestrator import RewardOrchestrator
 
     tok = AutoTokenizer.from_pretrained(cfg["policy"]["model"])
-    items = items_for(cfg, out_dir, rows, tok)
+    g = int(cfg["generation"]["num_generations"])
+    if kind == "api":  # API baselines keep their own sample count (user 2026-10-02: 1); |G| < 2 there, so aux is 0
+        g = int(read_json(out_dir / "generation_meta.json")["request"]["samples_per_condition"])
+    items = items_for(cfg, out_dir, rows, tok, g)
     shutil.rmtree(out_dir / "rollouts", ignore_errors=True)
     ev = cfg["evaluation"]
     ecfg = copy.deepcopy(cfg)
+    ecfg["generation"]["num_generations"] = g
+    if ecfg["rewards"]["auxiliary_reward"] == "student_likeness" and split not in ev["student_likeness_judge_splits"]:
+        ecfg["rewards"]["auxiliary_reward"] = "none"  # user 2026-10-02: judge on validation only; humans rate test, aux = 0
     ecfg["verifier"] = {**cfg["verifier"], **ev["verifier"]}  # the only change from the training reward
     secondary = ("a", {**cfg["verifier"], "base_url": f"http://127.0.0.1:{ev['reward_verifier_server']['port']}/v1"}) \
         if ev["with_reward_verifier"] else None
@@ -290,7 +295,7 @@ def main() -> int:
             results[name] = read_json(out_dir / "metrics.json")
         else:
             print(f"[score] {name}", flush=True)
-            results[name] = score(cfg, name, out_dir, rows)
+            results[name] = score(cfg, name, out_dir, rows, kind, args.split)
         m = results[name]["metrics"]
         print(f"  {name}: B joint success {m['b_joint_success']:.4f} · wrong {m['wrong_rate']:.4f} · B accept|wrong "
               f"{(m['b_accept_given_wrong'] or 0):.4f} · reward {m['reward_total_mean']:.4f}", flush=True)
